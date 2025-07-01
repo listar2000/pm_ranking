@@ -1,0 +1,120 @@
+"""
+Concrete implementations of ChallengeLoader for different data sources.
+"""
+from pathlib import Path
+from typing import Dict, Any, Tuple, List
+import pandas as pd
+from .base import ChallengeLoader, ForecastChallenge, ForecastProblem, ForecastEvent
+from datetime import datetime
+
+
+class GJOChallengeLoader(ChallengeLoader):
+    """Load forecast challenges from GJO (Good Judgment Open) data format."""
+    
+    def __init__(self, predictions_file: str, metadata_file: str, challenge_title: str = ""):
+        """
+        Initialize the GJOChallengeLoader.
+        """
+        self.predictions_file = Path(predictions_file)
+        self.metadata_file = Path(metadata_file)
+
+        self.challenge_title = challenge_title
+        
+        if not self.predictions_file.exists():
+            raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
+        if not self.metadata_file.exists():
+            raise FileNotFoundError(f"Metadata file not found: {metadata_file}")
+
+    def _get_filtered_df(self, predictions_df: pd.DataFrame, metadata_df: pd.DataFrame, forecaster_filter: int, problem_filter: int) \
+        ->  Tuple[pd.DataFrame, pd.DataFrame]:
+        # step 1: we group the problems by problem_id and calculate the number of events for each problem
+        problem_event_counts = predictions_df.groupby('problem_id').size()
+
+        # step 2: we filter the problems by the number of events
+        filtered_metadata_df = metadata_df[metadata_df['problem_id'].isin(problem_event_counts[problem_event_counts >= problem_filter].index)]
+        filtered_predictions_df = predictions_df[predictions_df['problem_id'].isin(filtered_metadata_df['problem_id'])]
+
+        # step 3: we filter the forecasters by the number of events
+        forecaster_event_counts = filtered_predictions_df.groupby('username').size()
+        filtered_predictions_df = filtered_predictions_df[filtered_predictions_df['username'].isin(forecaster_event_counts[forecaster_event_counts >= forecaster_filter].index)]
+
+        return filtered_predictions_df, filtered_metadata_df
+    
+    def load_challenge(self, forecaster_filter: int = 0, problem_filter: int = 0) -> ForecastChallenge:
+        """Load challenge data from GJO format files."""
+        # Load metadata and predictions
+        metadata_df = pd.read_json(self.metadata_file)
+        predictions_df = pd.read_json(self.predictions_file)
+        
+        # Filter the data
+        if forecaster_filter > 0 or problem_filter > 0:
+            filtered_predictions_df, filtered_metadata_df = self._get_filtered_df(predictions_df, metadata_df, forecaster_filter, problem_filter)
+        else:
+            filtered_predictions_df, filtered_metadata_df = predictions_df, metadata_df
+        
+        # Iterate over each row of the filtered prediction df to construct the forecast events for each problem
+        problem_id_to_forecast_events = {}
+        problem_id_to_correct_idx = {}
+
+        for _, row in filtered_predictions_df.iterrows():
+            problem_id: int = int(row['problem_id'])
+            username: str = str(row['username'])
+            # the original timestamp is in string format like "2024-09-10T19:22:23Z"
+            timestamp: datetime = datetime.fromisoformat(str(row['timestamp']))
+            probs: List[float] = list(row['prediction'])
+
+            if problem_id not in problem_id_to_forecast_events:
+                problem_id_to_forecast_events[problem_id] = []
+                problem_meta_row = filtered_metadata_df[filtered_metadata_df['problem_id'] == problem_id].iloc[0]
+                problem_id_to_correct_idx[problem_id] = problem_meta_row['options'].index(problem_meta_row['correct_answer'])
+            
+            forecast_event = ForecastEvent(
+                problem_id=problem_id,
+                username=username,
+                timestamp=timestamp,
+                probs=probs,
+                correct_prob=probs[problem_id_to_correct_idx[problem_id]]
+            )
+
+            problem_id_to_forecast_events[problem_id].append(forecast_event)
+
+        # Iterate over each row of the filtered metadata df to construct the forecast problems
+        forecast_problems = []
+        for _, row in filtered_metadata_df.iterrows():
+            problem_id: int = int(row['problem_id'])
+            problem_forecasts = problem_id_to_forecast_events[problem_id]
+            forecast_problems.append(ForecastProblem(
+                title=str(row['title']),
+                problem_id=problem_id,
+                options=list(row['options']),
+                correct_option=str(row['correct_answer']),
+                forecasts=problem_forecasts,
+                end_date=datetime.fromisoformat(str(row['metadata']['end_date'])),
+                num_forecasters=len(problem_forecasts),
+                url=str(row['url']),
+                odds=None
+            ))
+        
+        # Create the forecast challenge
+        forecast_challenge = ForecastChallenge(
+            title=self.challenge_title,
+            forecast_problems=forecast_problems
+        )
+
+        return forecast_challenge
+    
+    def get_challenge_metadata(self) -> Dict[str, Any]:
+        """Get basic metadata about the GJO challenge."""
+        with open(self.metadata_file, 'r') as f:
+            metadata_df = pd.read_json(f)
+        
+        if self.challenge_title is None:
+            # set title to be the `xx` part of metadata file before `xx_metadata.json`
+            self.challenge_title = self.metadata_file.stem.split('_')[0]
+        
+        return {
+            'title': self.challenge_title,
+            'num_problems': len(metadata_df),
+            'predictions_file': str(self.predictions_file),
+            'metadata_file': str(self.metadata_file)
+        }

@@ -9,6 +9,7 @@ dependencies = [
     "ipykernel>=6.29.5",
     "matplotlib>=3.10.3",
     "pandas>=2.3.0",
+    "pydantic>=2.11.7",
     "pytest-playwright>=0.7.0",
     "requests>=2.32.4",
 ]
