@@ -4,11 +4,11 @@ from different types of data sources.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Iterator, Literal
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from functools import cached_property
-import math
+import math, random
 
 
 class ForecastEvent(BaseModel):
@@ -165,6 +165,27 @@ class ForecastChallenge(BaseModel):
                 return problem
         return None
 
+    def stream_problems(self, order: Literal["random", "time"] = "random", increment: int = 100) \
+        -> Iterator[List[ForecastProblem]]:
+        """
+        Stream the problems in the challenge. Either by random or by the problem end time.
+
+        Args:
+            order: The order in which to stream the problems.
+            increment: The number of problems to stream in each iteration.
+
+        Returns:
+            An iterator of lists of problems.
+        """
+        full_problems = self.forecast_problems.copy()
+        if order == "random":
+            random.shuffle(full_problems)
+        else:
+            full_problems.sort(key=lambda x: x.end_date)
+
+        for i in range(0, len(full_problems), increment):
+            yield full_problems[i:i+increment]
+
 
 class ChallengeLoader(ABC):
     """
@@ -181,3 +202,4 @@ class ChallengeLoader(ABC):
     def get_challenge_metadata(self) -> Dict[str, Any]:
         """Get metadata about the challenge without loading all data."""
         pass
+        

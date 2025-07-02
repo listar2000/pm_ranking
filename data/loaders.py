@@ -43,7 +43,15 @@ class GJOChallengeLoader(ChallengeLoader):
         return filtered_predictions_df, filtered_metadata_df
     
     def load_challenge(self, forecaster_filter: int = 0, problem_filter: int = 0) -> ForecastChallenge:
-        """Load challenge data from GJO format files."""
+        """Load challenge data from GJO format files.
+
+        Args:
+            forecaster_filter: minimum number of events for a forecaster to be included
+            problem_filter: minimum number of events for a problem to be included
+
+        Returns:
+            ForecastChallenge: a ForecastChallenge object containing the forecast problems and events
+        """
         # Load metadata and predictions
         metadata_df = pd.read_json(self.metadata_file)
         predictions_df = pd.read_json(self.predictions_file)
