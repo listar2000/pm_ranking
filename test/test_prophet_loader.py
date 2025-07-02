@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""
+Simple test for ProphetArenaChallengeLoader using assert-based testing.
+"""
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from data import ProphetArenaChallengeLoader, ForecastChallenge
+import pandas as pd
+import json
+
+
+def test_prophet_arena_loader_basic():
+    """Test basic functionality of ProphetArenaChallengeLoader."""
+    loader = ProphetArenaChallengeLoader(
+        predictions_file="data/raw/prophet_arena_full.csv",
+        challenge_title="Prophet Arena Example"
+    )
+    metadata = loader.get_challenge_metadata()
+    assert metadata['title'] == "Prophet Arena Example"
+    assert metadata['num_problems'] > 0
+    assert metadata['num_forecasters'] > 0
+    assert 'predictions_file' in metadata
+    print("✓ ProphetArena metadata loading test passed")
+
+
+def test_prophet_arena_loader_full_challenge():
+    """Test loading the full Prophet Arena challenge."""
+    loader = ProphetArenaChallengeLoader(
+        predictions_file="data/raw/prophet_arena_full.csv",
+        challenge_title="Prophet Arena Example"
+    )
+    challenge = loader.load_challenge()
+    assert challenge.title == "Prophet Arena Example"
+    assert len(challenge.forecast_problems) > 0
+    for problem in challenge.forecast_problems:
+        assert problem.title is not None
+        assert len(problem.options) > 0
+        assert problem.correct_option in problem.options or problem.correct_option is None
+        assert len(problem.forecasts) > 0
+        # Odds should be present and sum to ~1
+        if problem.odds:
+            assert abs(sum(problem.odds) - 1.0) < 0.1
+    print("✓ ProphetArena full challenge loading test passed")
+    return challenge
+
+
+def test_prophet_arena_odds_calculation(challenge: ForecastChallenge):
+    """Test the odds calculation helper for Prophet Arena."""
+    df = pd.read_csv("data/raw/prophet_arena_full.csv")
+    first_row = df.iloc[0]
+    options = json.loads(first_row['markets']) if isinstance(first_row['markets'], str) else first_row['markets']
+    market_info = json.loads(first_row['market_info']) if isinstance(first_row['market_info'], str) else first_row['market_info']
+    odds = ProphetArenaChallengeLoader._calculate_odds_for_problem(market_info, options)
+    assert isinstance(odds, list)
+    assert len(odds) == len(options)
+    if sum(odds) > 0:
+        assert abs(sum(odds) - 1.0) < 0.1
+    print("✓ ProphetArena odds calculation test passed")
+
+
+def run_all_tests():
+    """Run all tests."""
+    print("Running ProphetArenaChallengeLoader tests...")
+    print("=" * 50)
+    
+    try:
+        test_prophet_arena_loader_basic()
+        challenge = test_prophet_arena_loader_full_challenge()
+        test_prophet_arena_odds_calculation(challenge)
+        
+        print("=" * 50)
+        print("✓ All tests passed!")
+        
+    except Exception as e:
+        print(f"✗ Test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+    
+    return True
+
+
+if __name__ == "__main__":
+    run_all_tests()

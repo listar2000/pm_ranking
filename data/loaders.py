@@ -6,6 +6,8 @@ from typing import Dict, Any, Tuple, List
 import pandas as pd
 from .base import ChallengeLoader, ForecastChallenge, ForecastProblem, ForecastEvent
 from datetime import datetime
+import math
+from .utils import parse_json_or_eval
 
 
 class GJOChallengeLoader(ChallengeLoader):
@@ -117,4 +119,118 @@ class GJOChallengeLoader(ChallengeLoader):
             'num_problems': len(metadata_df),
             'predictions_file': str(self.predictions_file),
             'metadata_file': str(self.metadata_file)
+        }
+
+
+class ProphetArenaChallengeLoader(ChallengeLoader):
+    """Load forecast challenges from Prophet Arena data format."""
+    
+    def __init__(self, predictions_file: str, challenge_title: str = ""):
+        """
+        Initialize the ProphetArenaChallengeLoader.
+        """
+        self.predictions_file = Path(predictions_file)
+        self.challenge_title = challenge_title
+        
+        if not self.predictions_file.exists():
+            raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
+
+    @staticmethod
+    def _calculate_odds_for_problem(market_info: dict, options: list) -> list | None:
+        """
+        Calculate odds for each option from market_info dict.
+        For multi-option, use yes_ask for each option and normalize to sum to 1 (implied probabilities).
+        """
+        asks = []
+        for opt in options:
+            info = market_info.get(opt, {})
+            yes_ask = info.get('yes_ask', None)
+            if yes_ask is not None and yes_ask > 0:
+                asks.append(yes_ask)
+            else:
+                asks.append(None)
+        implied_probs = [(a / 100.0) if a is not None else 0.0 for a in asks]
+        total = sum(implied_probs)
+
+        if total > 0:
+            return [p / total for p in implied_probs]
+        else:
+            return None
+
+    def load_challenge(self) -> ForecastChallenge:
+        """
+        Load challenge data from Prophet Arena data format.
+        Group by submission_id, then for each group, build the list of forecasts, then the ForecastProblem.
+        """
+        df = pd.read_csv(self.predictions_file)
+
+        forecast_problems = []
+        problem_id_counter = 1
+        grouped = df.groupby('submission_id')
+        for submission_id, group in grouped:
+            first_row = group.iloc[0]
+            options = parse_json_or_eval(first_row['markets'], expect_type=list)
+            market_info = parse_json_or_eval(first_row['market_info'], expect_type=dict)
+            first_option_info = next(iter(market_info.values())) if market_info else {}
+            title = first_option_info.get('title', submission_id)
+            end_date_str = first_option_info.get('close_time', None)
+            end_date = datetime.fromisoformat(end_date_str.replace('Z', '+00:00')) if end_date_str else datetime.now()
+            odds = self._calculate_odds_for_problem(market_info, options)
+            market_outcome = parse_json_or_eval(first_row['market_outcome'], expect_type=dict)
+            
+            correct_option = [opt for opt, val in (market_outcome or {}).items() if int(val) == 1][0]
+
+            if correct_option not in options:
+                continue
+
+            forecasts = []
+            for _, row in group.iterrows():
+                username = str(row['predictor_name'])
+                prediction: dict = parse_json_or_eval(row['prediction'], expect_type=dict)
+                probs_dict = {d['market']: d['probability'] for d in prediction.get('probabilities', [])}
+                probs = [probs_dict.get(opt, 0.0) for opt in options]
+                # make sure the probs sum to 1
+                if not math.isclose(sum(probs), 1.0, abs_tol=1e-6):
+                    continue
+                timestamp = datetime.now()
+                correct_prob = probs[options.index(correct_option)] if correct_option in options else 0.0
+                forecasts.append(ForecastEvent(
+                    problem_id=problem_id_counter,
+                    username=username,
+                    timestamp=timestamp,
+                    probs=probs,
+                    correct_prob=correct_prob
+                ))
+            
+            if len(forecasts) > 0:
+                forecast_problems.append(ForecastProblem(
+                    title=title,
+                    problem_id=problem_id_counter,
+                    options=options,
+                    correct_option=correct_option,
+                    forecasts=forecasts,
+                    end_date=end_date if end_date else datetime.now(),
+                    num_forecasters=len(forecasts),
+                    url=None,
+                    odds=odds
+                ))
+                problem_id_counter += 1
+
+        forecast_challenge = ForecastChallenge(
+            title=self.challenge_title or "Prophet Arena Challenge",
+            forecast_problems=forecast_problems
+        )
+        return forecast_challenge
+
+    def get_challenge_metadata(self) -> Dict[str, Any]:
+        """
+        Get basic metadata about the Prophet Arena challenge using pandas groupby (no full parsing).
+        """
+        df = pd.read_csv(self.predictions_file)
+        num_problems = df['submission_id'].nunique()
+        return {
+            'title': self.challenge_title or "Prophet Arena Challenge",
+            'num_problems': num_problems,
+            'num_forecasters': df['predictor_name'].nunique(),
+            'predictions_file': str(self.predictions_file)
         }

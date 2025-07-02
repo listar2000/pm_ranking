@@ -10,7 +10,8 @@ from .base import (
 )
 
 from .loaders import (
-    GJOChallengeLoader
+    GJOChallengeLoader,
+    ProphetArenaChallengeLoader
 )
 
 __all__ = [

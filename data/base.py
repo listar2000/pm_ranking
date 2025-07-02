@@ -53,7 +53,6 @@ class ForecastProblem(BaseModel):
     odds: List[float] | None = Field(None, description="The odds for each option")
 
     @field_validator('correct_option')
-    @classmethod
     def validate_correct_option(cls, v, info):
         """Validate that correct_option is in the options list."""
         if info.data and 'options' in info.data and v not in info.data['options']:
@@ -83,7 +82,7 @@ class ForecastProblem(BaseModel):
 
     def has_odds(self) -> bool:
         """Check if the problem has odds data."""
-        return self.odds is not None
+        return self.odds is not None and len(self.odds) > 0
     
     @cached_property
     def crowd_probs(self) -> List[float]:
