@@ -12,5 +12,6 @@ dependencies = [
     "pydantic>=2.11.7",
     "pytest-playwright>=0.7.0",
     "requests>=2.32.4",
+    "seaborn>=0.13.2",
     "tqdm>=4.67.1",
 ]

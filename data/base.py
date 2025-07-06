@@ -166,7 +166,7 @@ class ForecastChallenge(BaseModel):
                 return problem
         return None
 
-    def stream_problems(self, order: Literal["random", "time"] = "random", increment: int = 100) \
+    def stream_problems(self, order: Literal["sequential", "random", "time"] = "sequential", increment: int = 100) \
         -> Iterator[List[ForecastProblem]]:
         """
         Stream the problems in the challenge. Either by random or by the problem end time.
@@ -181,8 +181,8 @@ class ForecastChallenge(BaseModel):
         full_problems = self.forecast_problems.copy()
         if order == "random":
             random.shuffle(full_problems)
-        else:
-            full_problems.sort(key=lambda x: x.end_date)
+        elif order == "time":
+            full_problems.sort(key=lambda x: x.end_date.replace(tzinfo=None))
 
         for i in range(0, len(full_problems), increment):
             yield full_problems[i:i+increment]

@@ -27,8 +27,6 @@ def _get_risk_neutral_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray
         The number of bets to each option that a risk-neutral investor would make.
     """
     n, d = forecast_probs.shape
-    assert implied_probs.shape == (d,), \
-        f"implied_probs must have shape (d,), but got {implied_probs.shape}"
     # calculate the edge for each option and each forecaster
     edges = forecast_probs - implied_probs # shape (n, d)
     edge_max = np.argmax(edges, axis=1) # shape (n,)
@@ -39,7 +37,7 @@ def _get_risk_neutral_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray
     bets_one_hot[np.arange(n), edge_max] = bet_values
     return bets_one_hot
 
-def _get_log_risk_averse_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray) -> np.ndarray:
+def _get_risk_averse_log_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray) -> np.ndarray:
     """
     Calculate the number of bets to each option that a log-risk-averse investor would make.
     From simple calculation, we know that no matter the implied probs, the log-risk-averse investor
@@ -50,13 +48,23 @@ def _get_log_risk_averse_bets(forecast_probs: np.ndarray, implied_probs: np.ndar
         implied_probs: a (d,) numpy array of implied probabilities for d options.
     Returns:
         The number of bets to each option that a log-risk-averse investor would make.
+    """    
+    return forecast_probs / implied_probs # shape (n, d)
+
+def _get_risk_generic_crra_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray, risk_aversion: float) -> np.ndarray:
+    """
+    Calculate the number of bets to each option that an investor with a certain CRRA utility 
+    (defined by the risk_aversion parameter) would make.
     """
     d = forecast_probs.shape[1]
     assert implied_probs.shape == (d,), \
         f"implied_probs must have shape (d,), but got {implied_probs.shape}"
-    
-    return forecast_probs / implied_probs # shape (n, d)
-
+    # calculate the unnormalized fraction (shape (n, d))
+    unnormalized_frac = implied_probs ** (1 - 1 / risk_aversion) * forecast_probs ** (1 / risk_aversion)
+    # normalize the fraction (shape (n, d)) of total money
+    normalized_frac = unnormalized_frac / np.sum(unnormalized_frac, axis=1, keepdims=True)
+    # turn the fraction into the actual number of $1 bets
+    return normalized_frac / implied_probs # shape (n, d)
 
 class MarketEarning(object):
     def __init__(self, num_money_per_round: int = 1, risk_aversion: float = 0.0):
@@ -74,13 +82,16 @@ class MarketEarning(object):
         forecast_probs = np.array([forecast.probs for forecast in problem.forecasts])
         # concatenate the implied probs for all forecasters
         implied_probs = np.array(problem.odds)
+        # check shape
+        assert forecast_probs.shape[1] == implied_probs.shape[0], \
+            f"forecast probs and implied probs must have the same shape, but got {forecast_probs.shape} and {implied_probs.shape}"
         
         if self.risk_aversion == 0:
             bets = _get_risk_neutral_bets(forecast_probs, implied_probs)
         elif self.risk_aversion == 1:
-            bets = _get_log_risk_averse_bets(forecast_probs, implied_probs)
+            bets = _get_risk_averse_log_bets(forecast_probs, implied_probs)
         else:
-            raise NotImplementedError(f"Risk aversion {self.risk_aversion} not implemented")
+            bets = _get_risk_generic_crra_bets(forecast_probs, implied_probs, self.risk_aversion)
         
         correct_idx = problem.options.index(problem.correct_option)
         earnings = bets[:, correct_idx] * self.num_money_per_round
