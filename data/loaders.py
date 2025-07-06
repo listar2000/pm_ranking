@@ -133,18 +133,25 @@ class GJOChallengeLoader(ChallengeLoader):
 class ProphetArenaChallengeLoader(ChallengeLoader):
     """Load forecast challenges from Prophet Arena data format."""
     
-    def __init__(self, predictions_file: str, challenge_title: str = ""):
+    def __init__(self, predictions_file: str, challenge_title: str = "", use_bid_for_odds: bool = False):
         """
         Initialize the ProphetArenaChallengeLoader.
+        Args:
+            predictions_file: the path to the predictions file
+            challenge_title: the title of the challenge
+            use_bid_for_odds: whether to use the `yes_bid` field for implied probability calculation
+                if True, the implied probability will be calculated as the (yes_bid + no_bid) / 2
+                if False, the implied probability will be simply `yes_ask` (normalized to sum to 1)
         """
         self.predictions_file = Path(predictions_file)
         self.challenge_title = challenge_title
-        
+        self.use_bid_for_odds = use_bid_for_odds
+
         if not self.predictions_file.exists():
             raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
 
     @staticmethod
-    def _calculate_odds_for_problem(market_info: dict, options: list) -> list | None:
+    def _calculate_implied_probs_for_problem(market_info: dict, options: list, use_bid_for_odds: bool = False) -> list | None:
         """
         Calculate odds for each option from market_info dict.
         For multi-option, use yes_ask for each option and normalize to sum to 1 (implied probabilities).
@@ -154,9 +161,18 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             info = market_info.get(opt, {})
             yes_ask = info.get('yes_ask', None)
             if yes_ask is not None and yes_ask > 0:
-                asks.append(yes_ask)
+                if use_bid_for_odds:
+                    if 'yes_bid' in info:
+                        yes_bid = info['yes_bid']
+                        asks.append((yes_bid + yes_ask) / 2)
+                    else:
+                        asks.append(yes_ask)
+                else:
+                    asks.append(yes_ask)
             else:
+                print(f"Warning: {opt} has no odds info")
                 asks.append(None)
+        # normalize the implied probabilities to sum to 1
         implied_probs = [(a / 100.0) if a is not None else 0.0 for a in asks]
         total = sum(implied_probs)
 
@@ -183,7 +199,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             title = first_option_info.get('title', submission_id)
             end_date_str = first_option_info.get('close_time', None)
             end_date = datetime.fromisoformat(end_date_str.replace('Z', '+00:00')) if end_date_str else datetime.now()
-            odds = self._calculate_odds_for_problem(market_info, options)
+            odds = self._calculate_implied_probs_for_problem(market_info, options, self.use_bid_for_odds)
             market_outcome = parse_json_or_eval(first_row['market_outcome'], expect_type=dict)
             
             correct_option = [opt for opt, val in (market_outcome or {}).items() if int(val) == 1][0]

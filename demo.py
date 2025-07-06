@@ -1,4 +1,5 @@
 from model.scoring_rule import BrierScoringRule, LogScoringRule
+from model.market_earning import MarketEarning
 from data import GJOChallengeLoader, ProphetArenaChallengeLoader
 
 def demo_scoring_rule_and_gjo_challenge():
@@ -22,14 +23,14 @@ def demo_scoring_rule_and_gjo_challenge():
         print()
 
 
-def demo_scoring_rule_and_prophet_arena_challenge():
+def demo_market_earning_and_prophet_arena_challenge():
     arena_file = "data/raw/prophet_arena_full.csv"
     prophet_arena_loader = ProphetArenaChallengeLoader(predictions_file=arena_file)
 
     prophet_arena_challenge = prophet_arena_loader.load_challenge()
 
-    log_scoring_rule = LogScoringRule(clip_prob=0.01)
-    results = log_scoring_rule.fit_stream(prophet_arena_challenge.stream_problems(increment=50))
+    market_earning = MarketEarning(num_money_per_round=1, risk_aversion=0.0)
+    results  = market_earning.fit_stream(prophet_arena_challenge.stream_problems(increment=50))
 
     for batch_id, (scores, rankings) in results.items():
         print(f"Batch {batch_id}:")
@@ -40,4 +41,4 @@ def demo_scoring_rule_and_prophet_arena_challenge():
 
 if __name__ == "__main__":
     # demo_scoring_rule_and_gjo_challenge()
-    demo_scoring_rule_and_prophet_arena_challenge()
+    demo_market_earning_and_prophet_arena_challenge()

@@ -80,6 +80,7 @@ class ForecastProblem(BaseModel):
                 raise ValueError(f"Number of odds ({len(v)}) must match number of options ({len(info.data['options'])})")
         return v
 
+    @property
     def has_odds(self) -> bool:
         """Check if the problem has odds data."""
         return self.odds is not None and len(self.odds) > 0

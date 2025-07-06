@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from typing import List, Iterator, Dict, Tuple, Any
 from data.base import ForecastProblem
+from model.utils import forecaster_data_to_rankings
 from tqdm import tqdm
 
 
@@ -21,7 +22,7 @@ class ScoringRule(ABC):
         """ implement the scoring function for the rule """
         pass
 
-    def fit(self, problems: List[ForecastProblem]) -> Tuple[Dict[str, Any], Dict[str, int]]:
+    def fit(self, problems: List[ForecastProblem], include_scores: bool = True) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """ fit the scoring rule to the problems """
         forecaster_data = {}
         
@@ -40,26 +41,14 @@ class ScoringRule(ABC):
             scores = self._score_fn(correct_probs, all_probs)
             # attribute the scores to the forecasters
             for username, score in zip(usernames, scores):
-                # if username == 'smitch15':
-                #     print(f"Score for {username} in problem {problem.problem_id}: {score}")
                 forecaster_data[username].append(score)
         
-        # Batch process all probabilities for each forecaster
-        fitted_scores = {}
-        for forecaster, scores in forecaster_data.items():
-            fitted_scores[forecaster] = np.mean(scores)
-        
-        # Calculate rankings more efficiently
-        sorted_forecasters = sorted(fitted_scores.keys(), key=lambda x: fitted_scores[x], reverse=True)
-        forecastor_rankings = {forecaster: rank for rank, forecaster in enumerate(sorted_forecasters)}
+        return forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
 
-        return fitted_scores, forecastor_rankings
-
-    def fit_stream(self, problem_iter: Iterator[List[ForecastProblem]]) -> Dict[int, Tuple[Dict[str, Any], Dict[str, int]]]:
+    def fit_stream(self, problem_iter: Iterator[List[ForecastProblem]], include_scores: bool = True) -> Dict[int, Tuple[Dict[str, Any], Dict[str, int]]]:
         """ return the fitted scores and rankings as problems are streamed in instead of all given at once """
-        # Initialize running state
         forecaster_data = {}
-        batch_results = {}            # Results for each batch
+        batch_results = {}
         batch_id = 0
         
         for batch in tqdm(problem_iter, desc=f"Fitting {self.__class__.__name__}"):
@@ -81,18 +70,7 @@ class ScoringRule(ABC):
                 for username, score in zip(usernames, scores):
                     forecaster_data[username].append(score)
 
-            # batch process the scores
-            fitted_scores = {}
-            for forecaster, scores in forecaster_data.items():
-                fitted_scores[forecaster] = np.mean(scores)
-            
-            # Calculate current rankings
-            sorted_forecasters = sorted(fitted_scores.keys(), key=lambda x: fitted_scores[x], reverse=True)
-
-            forecastor_rankings = {forecaster: rank + 1 for rank, forecaster in enumerate(sorted_forecasters)}
-            
-            # Store results for this batch
-            batch_results[batch_id] = (fitted_scores, forecastor_rankings)
+            batch_results[batch_id] = forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
             batch_id += 1
         
         return batch_results
