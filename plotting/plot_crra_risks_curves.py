@@ -95,8 +95,8 @@ if __name__ == "__main__":
     plt.tight_layout()
     
     # Save to high DPI PDF
-    output_file = "prophet_arena_risk_curves.pdf"
-    plt.savefig(output_file, dpi=300, bbox_inches='tight', format='pdf')
+    output_file = "prophet_arena_risk_curves.png"
+    plt.savefig(output_file, dpi=300, bbox_inches='tight', format='png')
     print(f"Plot saved as {output_file}")
     
     plt.show()

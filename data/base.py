@@ -166,6 +166,12 @@ class ForecastChallenge(BaseModel):
                 return problem
         return None
 
+    def get_problems(self, nums: int = -1) -> List[ForecastProblem]:
+        """Get a list of problems. If nums is -1, return all problems."""
+        if nums == -1:
+            return self.forecast_problems
+        return self.forecast_problems[:nums]
+
     def stream_problems(self, order: Literal["sequential", "random", "time"] = "sequential", increment: int = 100) \
         -> Iterator[List[ForecastProblem]]:
         """

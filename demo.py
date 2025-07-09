@@ -1,4 +1,4 @@
-from model.scoring_rule import BrierScoringRule, LogScoringRule
+from model.scoring_rule import BrierScoringRule
 from model.market_earning import MarketEarning
 from data import GJOChallengeLoader, ProphetArenaChallengeLoader
 
