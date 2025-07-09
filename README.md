@@ -39,7 +39,6 @@ Regardless of the data source, we provide a **unified interface** to load the da
         - `correct_prob`: the probability assigned to the correct answer.
 
     </details>
-<br>
 
 2. `ForecastProblem`: this is a collection of `ForecastEvent`s for a single forecast problem. It validates keeps track of metadata for the problem like the options and the correct option. It is also a handy way to organize the dataset as we treat `ForecastProblem` as the basic unit of **streaming prediction market data**.
 
@@ -58,8 +57,6 @@ Regardless of the data source, we provide a **unified interface** to load the da
     - `url`: the URL of the problem
     - `odds` (optional): the market odds for each option
     </details>
-
-<br>
 
 3. `ForecastChallenge`: this is a collection of `ForecastProblem`s . It implements two **core functionalities for all scoring/ranking methods** to use:
 
