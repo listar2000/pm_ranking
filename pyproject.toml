@@ -10,6 +10,7 @@ dependencies = [
     "matplotlib>=3.10.3",
     "pandas>=2.3.0",
     "pydantic>=2.11.7",
+    "pyro-ppl>=1.9.1",
     "pytest-playwright>=0.7.0",
     "requests>=2.32.4",
     "seaborn>=0.13.2",

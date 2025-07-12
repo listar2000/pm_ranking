@@ -93,17 +93,17 @@ class BrierScoringRule(ScoringRule):
     """
     Brier scoring rule.
     """
-    def _score_fn(self, correct_probs: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
+    def _score_fn(self, correct_probs: np.ndarray, all_probs: np.ndarray, negate: bool = True) -> np.ndarray:
         """ implement the scoring function for the rule """
         # correct_probs is 1D with shape (n,), all_probs is 2D with shape (n, k)
         # (1) we obtain (n,) correct_scores
         correct_scores = (1 - correct_probs) ** 2 - correct_probs ** 2
         # (2) we obtain (n,) incorrect scores
         incorrect_scores = np.sum(all_probs ** 2, axis=1)
-        # (3) we obtain (n,) scores
-        scores = correct_scores + incorrect_scores
+        # (3) we obtain (n,) scores, rescaled so that it lies in [0, 1]
+        scores = (correct_scores + incorrect_scores) / 2
         # (4) negate the result since higher scores are better
-        return -scores
+        return -scores if negate else scores
 
 
 class SphericalScoringRule(ScoringRule):
