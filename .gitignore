@@ -15,4 +15,4 @@ data/raw/*
 
 # Artifacts
 *.pdf
-model/irt/images/*
+model/irt/output/*

@@ -8,19 +8,22 @@ def demo_scoring_rule_and_gjo_challenge():
     predictions_file = "data/raw/all_predictions.json"
     gjo_loader = GJOChallengeLoader(metadata_file=metadata_file, predictions_file=predictions_file)
 
-    gjo_challenge = gjo_loader.load_challenge(forecaster_filter=20)
+    gjo_challenge = gjo_loader.load_challenge(forecaster_filter=20, problem_filter=20)
 
     # can replace this with log scoring rule or spherical scoring rule, see `scoring_rule.py`.
     brier_scoring_rule = BrierScoringRule()
 
-    results = brier_scoring_rule.fit_stream(gjo_challenge.stream_problems(increment=20))
+    fitted_scores, rankings = brier_scoring_rule.fit(gjo_challenge.forecast_problems, include_scores=True)
 
-    for batch_id, (scores, rankings) in results.items():
-        print(f"Batch {batch_id}:")
-        for forecaster, score in scores.items():
-            print(f"  {forecaster}: {score}")
-        print(f"  Rankings: {rankings}")
-        print()
+    for forecaster, score in fitted_scores.items(): # type: ignore
+        print(f"  {forecaster}: score={score}, rank={rankings[forecaster]}") # type: ignore
+
+    # for batch_id, (scores, rankings) in results.items():
+    #     print(f"Batch {batch_id}:")
+    #     for forecaster, score in scores.items():
+    #         print(f"  {forecaster}: {score}")
+    #     print(f"  Rankings: {rankings}")
+    #     print()
 
 
 def demo_market_earning_and_prophet_arena_challenge():
@@ -40,5 +43,5 @@ def demo_market_earning_and_prophet_arena_challenge():
         print()
 
 if __name__ == "__main__":
-    # demo_scoring_rule_and_gjo_challenge()
-    demo_market_earning_and_prophet_arena_challenge()
+    demo_scoring_rule_and_gjo_challenge()
+    # demo_market_earning_and_prophet_arena_challenge()

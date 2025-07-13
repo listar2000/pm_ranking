@@ -7,10 +7,13 @@ from pyro.infer.mcmc import NUTS, MCMC
 from pyro.optim import Adam # type: ignore
 import pyro
 import pyro.distributions as dist
-from typing import Literal, List, Dict, Any
+from typing import Literal, List, Dict, Any, Tuple
 
+from model.utils import forecaster_data_to_rankings
 from model.irt._dataset import _prepare_pyro_obs, IRTObs
 from data.base import ForecastProblem
+
+OUTPUT_DIR = __file__.replace(__file__.split("/")[-1], "output") # the output directory
 
 class IRTModel(object):
     def __init__(self, n_bins: int = 6, use_empirical_quantiles: bool = False, device: Literal["cpu", "cuda"] = "cpu", method: Literal["SVI", "NUTS"] = "SVI"):
@@ -21,12 +24,22 @@ class IRTModel(object):
         # initiate pyro observations with None
         self.irt_obs = None
 
-    def fit(self, problems: List[ForecastProblem], include_scores: bool = True) -> Dict[str, Any]:
+    def fit(self, problems: List[ForecastProblem], include_scores: bool = True, save_result: bool = False, \
+        num_samples: int = 1000, warmup_steps: int = 100) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """ fit the model to the problems """
         self.irt_obs = _prepare_pyro_obs(problems, self.n_bins, self.use_empirical_quantiles, self.device)  # type: ignore
 
-        self._fit_pyro_model(self.irt_obs.forecaster_ids, self.irt_obs.problem_ids, self.irt_obs.discretized_scores, self.irt_obs.anchor_points)
-        return {}
+        # TODO: leverage the `mcmc` object as well in the future. Currently, we only need the samples
+        posterior_samples = self._fit_pyro_model(self.irt_obs.forecaster_ids, self.irt_obs.problem_ids, self.irt_obs.discretized_scores, self.irt_obs.anchor_points, \
+            num_samples=num_samples, warmup_steps=warmup_steps)
+
+        self.posterior_samples = posterior_samples
+
+        if save_result:
+            import time
+            torch.save(posterior_samples, f"{OUTPUT_DIR}/posterior_samples_{time.strftime("%m%d_%H%M")}.pt")
+
+        return self._score_and_rank_forecasters(self.posterior_samples, include_scores=include_scores)
 
     def _model(self, forecaster_ids: torch.Tensor, problem_ids: torch.Tensor, discretized_scores: torch.Tensor, anchor_points: torch.Tensor):
         """
@@ -75,15 +88,14 @@ class IRTModel(object):
             # Now, we can sample from the Categorical distribution.
             pyro.sample("obs", dist.Categorical(logits=logits), obs=discretized_scores)
             
-    
     def _guide(self, forecaster_ids: torch.Tensor, problem_ids: torch.Tensor, discretized_scores: torch.Tensor, bin_edges: torch.Tensor):
         """
         The guide that defines the IRT model.
         """
         pass
 
-
-    def _fit_pyro_model(self, forecaster_ids: torch.Tensor, problem_ids: torch.Tensor, discretized_scores: torch.Tensor, anchor_points: torch.Tensor):
+    def _fit_pyro_model(self, forecaster_ids: torch.Tensor, problem_ids: torch.Tensor, discretized_scores: torch.Tensor, anchor_points: torch.Tensor, \
+        num_samples: int = 1000, warmup_steps: int = 100):
         """
         The core function that leverages pyro and SVI/NUTS to fit the model.
         """
@@ -94,7 +106,7 @@ class IRTModel(object):
             raise NotImplementedError("SVI is not implemented yet")
         elif self.method == "NUTS":
             nuts_kernel = NUTS(self._model, adapt_step_size=True)
-            mcmc = MCMC(nuts_kernel, num_samples=500, warmup_steps=50)
+            mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps)
             
             mcmc.run(
                 forecaster_ids=forecaster_ids,
@@ -105,19 +117,23 @@ class IRTModel(object):
 
             posterior_samples = mcmc.get_samples()
 
-            # get the summary of the posterior
-            theta_summary = self._summary(posterior_samples, ["theta"]).items()
-            a_summary = self._summary(posterior_samples, ["a"]).items()
-            b_summary = self._summary(posterior_samples, ["b"]).items()
-            p_summary = self._summary(posterior_samples, ["p"]).items()
+            return posterior_samples
 
-            print(theta_summary)
-            print(a_summary)
-            print(b_summary)
-            print(p_summary)
-            
-            # Plot the posterior samples
-            self.plot_posterior_samples(posterior_samples)
+    def _score_and_rank_forecasters(self, posterior_samples, include_scores: bool = True):
+        """
+        Take the posterior samples and take the scores to be the posterior mean of the theta.
+        """
+        assert self.irt_obs is not None, "IRT observations must be prepared before scoring and ranking forecasters"
+        theta_means = posterior_samples["theta"].mean(dim=0)
+        forecaster_idx_to_id = self.irt_obs.forecaster_idx_to_id
+
+        forecaster_data = {}
+
+        for i in range(len(theta_means)):
+            forecaster_id = forecaster_idx_to_id[i]
+            forecaster_data[forecaster_id] = theta_means[i].item()
+
+        return forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
 
     def _summary(self, traces, sites):
         """Aggregate marginals for MCMC samples
@@ -146,80 +162,6 @@ class IRTModel(object):
                     ]
         return site_stats
     
-    def plot_posterior_samples(self, posterior_samples: Dict[str, torch.Tensor]):
-        """
-        Plot histograms of posterior samples for theta, a, b, and p parameters.
-        Creates 4 separate PNG files.
-        
-        Args:
-            posterior_samples: Dictionary of posterior samples from MCMC
-        """
-        base_path = "/net/scratch2/listar2000/pm_ranking/model/irt/images"
-        
-        # Plot theta samples (first 10)
-        if 'theta' in posterior_samples:
-            plt.figure(figsize=(10, 6))
-            theta_samples = posterior_samples['theta'].detach().cpu().numpy()
-            for i in range(min(10, theta_samples.shape[1])):
-                plt.hist(theta_samples[:, i], bins=30, alpha=0.7, label=f'θ_{i}')
-            plt.title('Theta Parameters (First 10)', fontsize=14, fontweight='bold')
-            plt.xlabel('Value')
-            plt.ylabel('Frequency')
-            plt.legend()
-            plt.grid(True, alpha=0.3)
-            plt.tight_layout()
-            plt.savefig(f"{base_path}/theta_samples.png", dpi=300, bbox_inches='tight')
-            plt.close()
-            print(f"Theta samples plot saved to: {base_path}/theta_samples.png")
-        
-        # Plot a samples (first 10)
-        if 'a' in posterior_samples:
-            plt.figure(figsize=(10, 6))
-            a_samples = posterior_samples['a'].detach().cpu().numpy()
-            for i in range(min(10, a_samples.shape[1])):
-                plt.hist(a_samples[:, i], bins=30, alpha=0.7, label=f'a_{i}')
-            plt.title('Discrimination Parameters (First 10)', fontsize=14, fontweight='bold')
-            plt.xlabel('Value')
-            plt.ylabel('Frequency')
-            plt.legend()
-            plt.grid(True, alpha=0.3)
-            plt.tight_layout()
-            plt.savefig(f"{base_path}/a_samples.png", dpi=300, bbox_inches='tight')
-            plt.close()
-            print(f"Discrimination samples plot saved to: {base_path}/a_samples.png")
-        
-        # Plot b samples (first 10)
-        if 'b' in posterior_samples:
-            plt.figure(figsize=(10, 6))
-            b_samples = posterior_samples['b'].detach().cpu().numpy()
-            for i in range(min(10, b_samples.shape[1])):
-                plt.hist(b_samples[:, i], bins=30, alpha=0.7, label=f'b_{i}')
-            plt.title('Difficulty Parameters (First 10)', fontsize=14, fontweight='bold')
-            plt.xlabel('Value')
-            plt.ylabel('Frequency')
-            plt.legend()
-            plt.grid(True, alpha=0.3)
-            plt.tight_layout()
-            plt.savefig(f"{base_path}/b_samples.png", dpi=300, bbox_inches='tight')
-            plt.close()
-            print(f"Difficulty samples plot saved to: {base_path}/b_samples.png")
-        
-        # Plot p samples (all)
-        if 'p' in posterior_samples:
-            plt.figure(figsize=(10, 6))
-            p_samples = posterior_samples['p'].detach().cpu().numpy()
-            for i in range(p_samples.shape[1]):
-                plt.hist(p_samples[:, i], bins=30, alpha=0.7, label=f'p_{i}')
-            plt.title('Category Parameters (All)', fontsize=14, fontweight='bold')
-            plt.xlabel('Value')
-            plt.ylabel('Frequency')
-            plt.legend()
-            plt.grid(True, alpha=0.3)
-            plt.tight_layout()
-            plt.savefig(f"{base_path}/p_samples.png", dpi=300, bbox_inches='tight')
-            plt.close()
-            print(f"Category samples plot saved to: {base_path}/p_samples.png")
-        
 
 # some in-file tests
 if __name__ == "__main__":
@@ -233,4 +175,9 @@ if __name__ == "__main__":
     challenge = challenge_loader.load_challenge(forecaster_filter=20, problem_filter=20)
 
     irt_model = IRTModel(n_bins=6, use_empirical_quantiles=False, device="cpu", method="NUTS")
-    irt_model.fit(challenge.forecast_problems)
+    fitted_scores, rankings = irt_model.fit(challenge.forecast_problems, save_result=True, num_samples=1000, warmup_steps=100)
+
+    # print the results
+    for forecaster, score in fitted_scores.items(): # type: ignore
+        print(f"  {forecaster}: score={score}, rank={rankings[forecaster]}") # type: ignore
+    
