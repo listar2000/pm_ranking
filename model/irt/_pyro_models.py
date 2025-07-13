@@ -1,9 +1,8 @@
 from functools import partial
 import torch
 import pandas as pd
-import matplotlib.pyplot as plt
 from pyro.infer import SVI, Trace_ELBO
-from pyro.infer.mcmc import NUTS, MCMC
+from pyro.infer.mcmc import NUTS, MCMC, HMC
 from pyro.optim import Adam # type: ignore
 import pyro
 import pyro.distributions as dist
@@ -15,6 +14,7 @@ from data.base import ForecastProblem
 
 OUTPUT_DIR = __file__.replace(__file__.split("/")[-1], "output") # the output directory
 
+
 class IRTModel(object):
     def __init__(self, n_bins: int = 6, use_empirical_quantiles: bool = False, device: Literal["cpu", "cuda"] = "cpu", method: Literal["SVI", "NUTS"] = "SVI"):
         self.n_bins = n_bins
@@ -25,13 +25,13 @@ class IRTModel(object):
         self.irt_obs = None
 
     def fit(self, problems: List[ForecastProblem], include_scores: bool = True, save_result: bool = False, \
-        num_samples: int = 1000, warmup_steps: int = 100) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
+        num_samples: int = 1000, warmup_steps: int = 100, num_chains: int = 1) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """ fit the model to the problems """
         self.irt_obs = _prepare_pyro_obs(problems, self.n_bins, self.use_empirical_quantiles, self.device)  # type: ignore
 
         # TODO: leverage the `mcmc` object as well in the future. Currently, we only need the samples
         posterior_samples = self._fit_pyro_model(self.irt_obs.forecaster_ids, self.irt_obs.problem_ids, self.irt_obs.discretized_scores, self.irt_obs.anchor_points, \
-            num_samples=num_samples, warmup_steps=warmup_steps)
+            num_samples=num_samples, warmup_steps=warmup_steps, num_chains=num_chains)
 
         self.posterior_samples = posterior_samples
 
@@ -57,7 +57,7 @@ class IRTModel(object):
 
         # Define the problem-level difficulty parameters - `a` for discrimination and `b` for difficulty
         with pyro.plate("problems", M, device=self.device):
-            std_a = torch.tensor(1.0, device=self.device)
+            std_a = torch.tensor(5.0, device=self.device)
             a = pyro.sample("a", dist.HalfNormal(std_a))
             mean_b, std_b = torch.tensor(0.0, device=self.device), torch.tensor(5.0, device=self.device)
             b = pyro.sample("b", dist.Normal(mean_b, std_b))
@@ -95,7 +95,7 @@ class IRTModel(object):
         pass
 
     def _fit_pyro_model(self, forecaster_ids: torch.Tensor, problem_ids: torch.Tensor, discretized_scores: torch.Tensor, anchor_points: torch.Tensor, \
-        num_samples: int = 1000, warmup_steps: int = 100):
+        num_samples: int = 1000, warmup_steps: int = 100, num_chains: int = 1):
         """
         The core function that leverages pyro and SVI/NUTS to fit the model.
         """
@@ -106,7 +106,8 @@ class IRTModel(object):
             raise NotImplementedError("SVI is not implemented yet")
         elif self.method == "NUTS":
             nuts_kernel = NUTS(self._model, adapt_step_size=True)
-            mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps)
+            mp_context = "spawn" if num_chains > 1 and self.device == "cuda" else None
+            mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps, num_chains=num_chains, mp_context=mp_context)
             
             mcmc.run(
                 forecaster_ids=forecaster_ids,
@@ -175,7 +176,7 @@ if __name__ == "__main__":
     challenge = challenge_loader.load_challenge(forecaster_filter=20, problem_filter=20)
 
     irt_model = IRTModel(n_bins=6, use_empirical_quantiles=False, device="cpu", method="NUTS")
-    fitted_scores, rankings = irt_model.fit(challenge.forecast_problems, save_result=True, num_samples=1000, warmup_steps=100)
+    fitted_scores, rankings = irt_model.fit(challenge.forecast_problems, save_result=True, num_samples=200, warmup_steps=20, num_chains=1)
 
     # print the results
     for forecaster, score in fitted_scores.items(): # type: ignore
