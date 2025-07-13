@@ -7,87 +7,84 @@ Reference: https://github.com/nd-ball/py-irt/blob/master/py_irt/dataset.py
 from typing import Tuple, List, Literal, Dict
 from data.base import ForecastProblem
 from model.scoring_rule import BrierScoringRule
-from abc import ABC, abstractmethod
 import numpy as np
 import torch
+from dataclasses import dataclass
+from functools import cached_property
 
 
-class IRTDataset(ABC):
+@dataclass
+class IRTObs:
+    forecaster_ids: torch.Tensor
+    problem_ids: torch.Tensor
+    forecaster_id_to_idx: Dict[str, int]
+    problem_id_to_idx: Dict[str, int]
+    scores: torch.Tensor
+    discretized_scores: torch.Tensor
+    anchor_points: torch.Tensor
+
+    @cached_property
+    def forecaster_idx_to_id(self) -> Dict[int, str]:
+        return {v: k for k, v in self.forecaster_id_to_idx.items()}
+    
+    @cached_property
+    def problem_idx_to_id(self) -> Dict[int, str]:
+        return {v: k for k, v in self.problem_id_to_idx.items()}
+
+
+def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6, use_empirical_quantiles: bool = False,
+                device: Literal["cpu", "cuda"] = "cpu") -> IRTObs:
     """
-    This is an internal class that handles the transformation of data from the `ForecastProblem` level to
-    the `observations` that can be used to fit an IRT model (through the `pyro` library).
+    Let there be `n` forecasters and `m` problems. Since not every forecaster has forecasted every problem,
+    assume that we have a total of `k` forecasts (events) with k << n * m.
+    Take the `forecast_problems` and prepare the following dictionary of the following:
+        - `forecaster_ids`: a tensor of shape `(k,)` with the forecaster ids
+        - `problem_ids`: a tensor of shape `(k,)` with the problem ids
+        - `scores`: a tensor of shape `(k,)` with the scores of the forecasts (discretized from scoring rules)
+        - `discretized_scores`: a tensor of shape `(k,)` with the discretized scores of the forecasts
+        - `anchor_points`: a tensor of shape `(n_bins,)` with the anchor points of the discretized scores
+        - `forecaster_id_to_idx`: a dictionary with the forecaster ids as keys and the indices as values
+        - `problem_id_to_idx`: a dictionary with the problem ids as keys and the indices as values
     """
-    def __init__(self, forecast_problems: List[ForecastProblem], n_bins: int = 6, use_empirical_quantiles: bool = False,
-                 device: Literal["cpu", "cuda"] = "cpu"):
-        self.forecast_problems = forecast_problems
-        self.n_bins = n_bins
-        self.use_empirical_quantiles = use_empirical_quantiles
+    forecaster_ids, problem_ids, scores = [], [], []
+    forecaster_id_to_idx = {}
+    problem_id_to_idx = {}
 
-        if device == "cuda" and not torch.cuda.is_available():
-            raise ValueError("CUDA is not available")
-        self.device = device
+    brier_scoring_rule = BrierScoringRule()
 
-        # unpack the returned observations. See below for their definitions.
-        pyro_obs = self._prepare_pyro_obs()
-        self.forecaster_ids = pyro_obs["forecaster_ids"]
-        self.problem_ids = pyro_obs["problem_ids"]
-        self.scores = pyro_obs["scores"]
-        self.discretized_scores = pyro_obs["discretized_scores"]
-        self.bin_edges = pyro_obs["bin_edges"]
-        self.forecaster_id_to_idx = pyro_obs["forecaster_id_to_idx"]
-        self.problem_id_to_idx = pyro_obs["problem_id_to_idx"]
+    for forecast_problem in forecast_problems:
+        # we leverage the fact that for a single problem, `all_probs` have the same shape
+        correct_probs, all_probs = [], []
+        for forecast in forecast_problem.forecasts:
+            # get the forecaster id and problem id
+            forecaster_id, problem_id = forecast.username, forecast_problem.problem_id
+            if forecaster_id not in forecaster_id_to_idx:
+                forecaster_id_to_idx[forecaster_id] = len(forecaster_id_to_idx)
+            if problem_id not in problem_id_to_idx:
+                problem_id_to_idx[problem_id] = len(problem_id_to_idx)
 
-    def _prepare_pyro_obs(self) -> Dict[str, torch.Tensor | Dict[str, int]]:
-        """
-        Let there be `n` forecasters and `m` problems. Since not every forecaster has forecasted every problem,
-        assume that we have a total of `k` forecasts (events) with k << n * m.
-        Take the `forecast_problems` and prepare the following dictionary of the following:
-            - `forecaster_ids`: a tensor of shape `(k,)` with the forecaster ids
-            - `problem_ids`: a tensor of shape `(k,)` with the problem ids
-            - `scores`: a tensor of shape `(k,)` with the scores of the forecasts (discretized from scoring rules)
-            - `discretized_scores`: a tensor of shape `(k,)` with the discretized scores of the forecasts
-            - `bin_edges`: a tensor of shape `(n_bins + 1,)` with the bin edges of the discretized scores
-            - `forecaster_id_to_idx`: a dictionary with the forecaster ids as keys and the indices as values
-            - `problem_id_to_idx`: a dictionary with the problem ids as keys and the indices as values
-        """
-        forecaster_ids, problem_ids, scores = [], [], []
-        forecaster_id_to_idx = {}
-        problem_id_to_idx = {}
+            forecaster_ids.append(forecaster_id_to_idx[forecaster_id])
+            problem_ids.append(problem_id_to_idx[problem_id])
+            correct_probs.append(forecast.correct_prob)
+            all_probs.append(forecast.probs)
+        
+        # calculate the scores for this problem
+        scores.extend(brier_scoring_rule._score_fn(np.array(correct_probs), np.array(all_probs), negate=False))
 
-        brier_scoring_rule = BrierScoringRule()
+    # discretize the scores
+    discretized_indices, bin_edges = _discretize_scoring_rules(np.array(scores), n_bins, use_empirical_quantiles)
 
-        for forecast_problem in self.forecast_problems:
-            # we leverage the fact that for a single problem, `all_probs` have the same shape
-            correct_probs, all_probs = [], []
-            for forecast in forecast_problem.forecasts:
-                # get the forecaster id and problem id
-                forecaster_id, problem_id = forecast.username, forecast_problem.problem_id
-                if forecaster_id not in forecaster_id_to_idx:
-                    forecaster_id_to_idx[forecaster_id] = len(forecaster_id_to_idx)
-                if problem_id not in problem_id_to_idx:
-                    problem_id_to_idx[problem_id] = len(problem_id_to_idx)
+    # convert to tensors
+    return IRTObs(
+        forecaster_ids=torch.tensor(forecaster_ids, device=device, dtype=torch.long),
+        problem_ids=torch.tensor(problem_ids, device=device, dtype=torch.long),
+        forecaster_id_to_idx=forecaster_id_to_idx,
+        problem_id_to_idx=problem_id_to_idx,
+        scores=torch.tensor(scores, device=device, dtype=torch.float),
+        discretized_scores=torch.tensor(discretized_indices, device=device, dtype=torch.long),
+        anchor_points=torch.tensor(bin_edges, device=device, dtype=torch.float),
+    )
 
-                forecaster_ids.append(forecaster_id_to_idx[forecaster_id])
-                problem_ids.append(problem_id_to_idx[problem_id])
-                correct_probs.append(forecast.correct_prob)
-                all_probs.append(forecast.probs)
-            
-            # calculate the scores for this problem
-            scores.extend(brier_scoring_rule._score_fn(np.array(correct_probs), np.array(all_probs), negate=False))
-            
-        # discretize the scores
-        discretized_indices, bin_edges = _discretize_scoring_rules(np.array(scores), self.n_bins, self.use_empirical_quantiles)
-
-        # convert to tensors
-        return {
-            "forecaster_ids": torch.tensor(forecaster_ids, device=self.device, dtype=torch.long),
-            "problem_ids": torch.tensor(problem_ids, device=self.device, dtype=torch.long),
-            "forecaster_id_to_idx": forecaster_id_to_idx,
-            "problem_id_to_idx": problem_id_to_idx,
-            "scores": torch.tensor(scores, device=self.device, dtype=torch.float),
-            "discretized_scores": torch.tensor(discretized_indices, device=self.device, dtype=torch.long),
-            "bin_edges": torch.tensor(bin_edges, device=self.device, dtype=torch.float),
-        }
 
 def _discretize_scoring_rules(scores: np.ndarray, n_bins: int = 6, use_empirical_quantiles: bool = False) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -108,15 +105,17 @@ def _discretize_scoring_rules(scores: np.ndarray, n_bins: int = 6, use_empirical
     assert np.all(scores >= 0) and np.all(scores <= 1), "Scores must be between 0 and 1"
 
     if use_empirical_quantiles:
-        bin_edges = np.quantile(scores, np.linspace(0, 1, n_bins + 1)[1:])
+        anchor_points = np.quantile(scores, np.linspace(0, 1, n_bins))
+        # change the first and last anchor points to 0 and 1
+        anchor_points[0] = 0
+        anchor_points[-1] = 1
     else:
-        bin_edges = np.linspace(0, 1, n_bins + 1)[1:]
+        anchor_points = np.linspace(0, 1, n_bins)
 
-    discretized_indices = np.digitize(scores, bins=bin_edges, right=True)
-    # make sure the discretized indices are between 0 and n_bins - 1
-    assert np.all(discretized_indices >= 0) and np.all(discretized_indices <= n_bins - 1), "Discretized indices must be between 0 and n_bins - 1"
+    dists = np.abs(scores[:, None] - anchor_points[None, :])
+    discretized_indices = np.argmin(dists, axis=1)
 
-    return discretized_indices, bin_edges
+    return discretized_indices, anchor_points
 
 
 """
@@ -133,6 +132,7 @@ def _test_discretization():
     print(discretized_indices)
     print(bin_edges)
 
+
 def _test_and_profile_pyro_obs():
     import time
     from data.loaders import GJOChallengeLoader
@@ -142,18 +142,18 @@ def _test_and_profile_pyro_obs():
 
     # load the data
     challenge_loader = GJOChallengeLoader(predictions_file, metadata_file, challenge_title="GJO Challenge")
-    challenge = challenge_loader.load_challenge()
+    challenge = challenge_loader.load_challenge(forecaster_filter=20, problem_filter=20)
 
     start_time = time.time()
     # prepare the dataset
-    dataset = IRTDataset(challenge.forecast_problems, n_bins=6, use_empirical_quantiles=False, device="cpu")
+    dataset = _prepare_pyro_obs(challenge.forecast_problems, n_bins=6, use_empirical_quantiles=False, device="cpu")
     end_time = time.time()
     print(f"Time taken to prepare the dataset: {end_time - start_time} seconds")
 
     # print the shape of the dataset
-    print(f"Shape of the dataset: {dataset.forecaster_ids.shape}, {dataset.problem_ids.shape}, {dataset.scores.shape}, {dataset.discretized_scores.shape}, {dataset.bin_edges.shape}")
-    print(f"Shape of the dataset: {dataset.forecaster_id_to_idx}, {dataset.problem_id_to_idx}")
+    print(f"Shape of the dataset: {dataset['forecaster_ids'].shape}, {dataset['problem_ids'].shape}, {dataset['scores'].shape}, {dataset['discretized_scores'].shape}, {dataset['anchor_points'].shape}")
+    print(f"Shape of the dataset: {dataset['forecaster_id_to_idx']}, {dataset['problem_id_to_idx']}")
 
 if __name__ == "__main__":
-    # _test_discretization()
-    _test_and_profile_pyro_obs()
+    _test_discretization()
+    # _test_and_profile_pyro_obs()
