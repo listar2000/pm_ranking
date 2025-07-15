@@ -5,10 +5,12 @@ This module provides IRT-based models for ranking forecasters based on their per
 across multiple prediction problems.
 """
 
-from ._pyro_models import IRTModel
+from ._pyro_models import IRTModel, MCMCConfig, SVIConfig
 from ._dataset import IRTObs
 
 __all__ = [
     "IRTModel",
     "IRTObs", 
+    "MCMCConfig",
+    "SVIConfig",
 ]

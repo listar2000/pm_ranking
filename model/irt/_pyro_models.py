@@ -1,51 +1,88 @@
 from functools import partial
 import torch
-import pandas as pd
+import numpy as np
+
 from pyro.infer import SVI, Trace_ELBO
 from pyro.infer.mcmc import NUTS, MCMC, HMC
-from pyro.optim import Adam # type: ignore
+from pyro.optim import Adam, SGD # type: ignore
 import pyro
 import pyro.distributions as dist
+from pydantic import BaseModel, Field
 from typing import Literal, List, Dict, Any, Tuple
 
 from model.utils import forecaster_data_to_rankings
-from model.irt._dataset import _prepare_pyro_obs, IRTObs
+from model.irt._dataset import _prepare_pyro_obs
 from data.base import ForecastProblem
 
 OUTPUT_DIR = __file__.replace(__file__.split("/")[-1], "output") # the output directory
 
+"""
+Configurations for running MCMC and the SVI inference engines.
+"""
+class MCMCConfig(BaseModel):
+    total_samples: int = Field(default=1000, description="The total number of samples to draw from the posterior distribution.")
+    warmup_steps: int = Field(default=100, description="The number of warmup steps to run before sampling.")
+    num_workers: int = Field(default=1, description="The number of workers to use for parallelization. Note that we use a customized multiprocessing approach \
+        since the default implementation by Pyro can be very slow. This is why we don't use the name `num_chains`.")
+    device: Literal["cpu", "cuda"] = Field(default="cpu", description="The device to use for the MCMC engine.")
+    save_result: bool = Field(default=False, description="Whether to save the result to a file.")
+
+class SVIConfig(BaseModel):
+    optimizer: Literal["Adam", "SGD"] = Field(default="Adam", description="The optimizer to use for the SVI engine.")
+    num_steps: int = Field(default=1000, description="The number of steps to run for the SVI engine.")
+    learning_rate: float = Field(default=0.01, description="The learning rate to use for the SVI engine.")
+    device: Literal["cpu", "cuda"] = Field(default="cpu", description="The device to use for the SVI engine.")
 
 class IRTModel(object):
-    def __init__(self, n_bins: int = 6, use_empirical_quantiles: bool = False, device: Literal["cpu", "cuda"] = "cpu", method: Literal["SVI", "NUTS"] = "SVI"):
+    def __init__(self, n_bins: int = 6, use_empirical_quantiles: bool = False):
         self.n_bins = n_bins
         self.use_empirical_quantiles = use_empirical_quantiles
-        self.device = device
-        self.method = method
         # initiate pyro observations with None
         self.irt_obs = None
 
-    def fit(self, problems: List[ForecastProblem], include_scores: bool = True, save_result: bool = False, \
-        num_samples: int = 1000, warmup_steps: int = 100, num_chains: int = 1) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
+    def fit(self, problems: List[ForecastProblem], include_scores: bool = True, method: Literal["SVI", "NUTS"] = "SVI", \
+        config: MCMCConfig | SVIConfig | None = None) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """ fit the model to the problems """
+
+        assert method in ["SVI", "NUTS"], "Invalid method. Must be either 'SVI' or 'NUTS'."
+        assert config is not None, "Configuration must be provided."
+
+        self.method = method
+        if self.method == "SVI":
+            assert isinstance(config, SVIConfig), "SVI configuration must be provided."
+        elif self.method == "NUTS":
+            assert isinstance(config, MCMCConfig), "MCMC configuration must be provided."
+
+        self.device = config.device
         self.irt_obs = _prepare_pyro_obs(problems, self.n_bins, self.use_empirical_quantiles, self.device)  # type: ignore
 
-        # TODO: leverage the `mcmc` object as well in the future. Currently, we only need the samples
-        posterior_samples = self._fit_pyro_model(self.irt_obs.forecaster_ids, self.irt_obs.problem_ids, self.irt_obs.discretized_scores, self.irt_obs.anchor_points, \
-            num_samples=num_samples, warmup_steps=warmup_steps, num_chains=num_chains)
+        if self.method == "NUTS":
+            mcmc_config: MCMCConfig = config # type: ignore
+            posterior_samples = self._fit_pyro_model_mcmc(self.irt_obs.forecaster_ids, self.irt_obs.problem_ids, self.irt_obs.discretized_scores, self.irt_obs.anchor_points, \
+                num_samples=mcmc_config.total_samples, warmup_steps=mcmc_config.warmup_steps, num_chains=mcmc_config.num_workers)
 
-        self.posterior_samples = posterior_samples
+            self.posterior_samples = posterior_samples
 
-        if save_result:
-            import time
-            torch.save(posterior_samples, f"{OUTPUT_DIR}/posterior_samples_{time.strftime("%m%d_%H%M")}.pt")
+            if mcmc_config.save_result:
+                import time
+                torch.save(posterior_samples, f"{OUTPUT_DIR}/posterior_samples_{time.strftime("%m%d_%H%M")}.pt")
 
-        return self._score_and_rank_forecasters(self.posterior_samples, include_scores=include_scores)
+            return self._score_and_rank_mcmc(self.posterior_samples, include_scores=include_scores)
+        else:
+            svi_config: SVIConfig = config # type: ignore
+            fitted_params = self._fit_pyro_model_svi(self.irt_obs.forecaster_ids, self.irt_obs.problem_ids, self.irt_obs.discretized_scores, self.irt_obs.anchor_points, \
+                optimizer=svi_config.optimizer, num_steps=svi_config.num_steps, learning_rate=svi_config.learning_rate)
+
+            self.fitted_params = fitted_params
+
+            return self._score_and_rank_svi(self.fitted_params, include_scores=include_scores)
+        
 
     def _model(self, forecaster_ids: torch.Tensor, problem_ids: torch.Tensor, discretized_scores: torch.Tensor, anchor_points: torch.Tensor):
         """
         The model that defines the IRT model.
         """
-        # Infer N forecasters, M problems, and K observations from data
+        # Infer N forecasters, M problems, and K anchor points from data
         N = int(forecaster_ids.max()) + 1
         M = int(problem_ids.max()) + 1
         K = len(anchor_points)
@@ -90,51 +127,111 @@ class IRTModel(object):
             
     def _guide(self, forecaster_ids: torch.Tensor, problem_ids: torch.Tensor, discretized_scores: torch.Tensor, bin_edges: torch.Tensor):
         """
-        The guide that defines the IRT model.
+        The guide that defines the IRT model. Used for Stochastic Variational Inference (SVI).
         """
-        pass
+        # Infer N forecasters, M problems, and K anchor points from data
+        N = int(forecaster_ids.max()) + 1
+        M = int(problem_ids.max()) + 1
+        K = len(bin_edges)
+        # set up all the parameters (in a mean-field way)
+        mean_theta_param = pyro.param("mean_theta", torch.zeros(N, device=self.device))
+        std_theta_param = pyro.param("std_theta", torch.ones(N, device=self.device), constraint=dist.constraints.positive)
 
-    def _fit_pyro_model(self, forecaster_ids: torch.Tensor, problem_ids: torch.Tensor, discretized_scores: torch.Tensor, anchor_points: torch.Tensor, \
+        std_a_param = pyro.param("std_a", torch.empty(M, device=self.device).fill_(5.0), constraint=dist.constraints.positive)
+
+        mean_b_param = pyro.param("mean_b", torch.zeros(M, device=self.device))
+        std_b_param = pyro.param("std_b", torch.empty(M, device=self.device).fill_(5.0), constraint=dist.constraints.positive)
+
+        mean_p_param = pyro.param("mean_p", torch.zeros(K, device=self.device))
+        std_p_param = pyro.param("std_p", torch.empty(K, device=self.device).fill_(5.0), constraint=dist.constraints.positive)
+
+        with pyro.plate("forecasters", N, device=self.device):
+            theta = pyro.sample("theta", dist.Normal(mean_theta_param, std_theta_param))
+
+        with pyro.plate("problems", M, device=self.device):
+            a = pyro.sample("a", dist.HalfNormal(std_a_param))
+            b = pyro.sample("b", dist.Normal(mean_b_param, std_b_param))
+
+        with pyro.plate("categories", K, device=self.device):
+            p = pyro.sample("p", dist.Normal(mean_p_param, std_p_param))
+
+    def _fit_pyro_model_mcmc(self, forecaster_ids: torch.Tensor, problem_ids: torch.Tensor, discretized_scores: torch.Tensor, anchor_points: torch.Tensor, \
         num_samples: int = 1000, warmup_steps: int = 100, num_chains: int = 1):
         """
-        The core function that leverages pyro and SVI/NUTS to fit the model.
+        The core function that leverages pyro and NUTS to fit the model.
         """
         pyro.clear_param_store() # make sure the param store is empty
         assert self.irt_obs is not None, "IRT observations must be prepared before fitting the model"
 
-        if self.method == "SVI":
-            raise NotImplementedError("SVI is not implemented yet")
-        elif self.method == "NUTS":
-            nuts_kernel = NUTS(self._model, adapt_step_size=True)
-            mp_context = "spawn" if num_chains > 1 and self.device == "cuda" else None
-            mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps, num_chains=num_chains, mp_context=mp_context)
-            
-            mcmc.run(
-                forecaster_ids=forecaster_ids,
-                problem_ids=problem_ids,
-                discretized_scores=discretized_scores,
-                anchor_points=anchor_points,
-            )
+        nuts_kernel = NUTS(self._model, adapt_step_size=True)
+        mp_context = "spawn" if num_chains > 1 and self.device == "cuda" else None
+        mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps, num_chains=num_chains, mp_context=mp_context)
+        
+        mcmc.run(
+            forecaster_ids=forecaster_ids,
+            problem_ids=problem_ids,
+            discretized_scores=discretized_scores,
+            anchor_points=anchor_points,
+        )
 
-            posterior_samples = mcmc.get_samples()
+        posterior_samples = mcmc.get_samples()
 
-            return posterior_samples
+        return posterior_samples
 
-    def _score_and_rank_forecasters(self, posterior_samples, include_scores: bool = True):
+    def _fit_pyro_model_svi(self, forecaster_ids: torch.Tensor, problem_ids: torch.Tensor, discretized_scores: torch.Tensor, anchor_points: torch.Tensor, \
+        optimizer: Literal["Adam", "SGD"] = "Adam", num_steps: int = 1000, learning_rate: float = 0.01):
+        """
+        The core function that leverages pyro and SVI to fit the model.
+        """
+        from tqdm import tqdm
+
+        pyro.clear_param_store() # make sure the param store is empty
+        assert self.irt_obs is not None, "IRT observations must be prepared before fitting the model"
+
+        assert optimizer in ["Adam", "SGD"], "Invalid optimizer. Must be either 'Adam' or 'SGD'."
+        optim = Adam({"lr": learning_rate}) if optimizer == "Adam" else SGD({"lr": learning_rate})
+
+        svi = SVI(self._model, self._guide, optim, loss=Trace_ELBO())
+
+        pbar = tqdm(range(num_steps))
+        for i in pbar:
+            loss = svi.step(forecaster_ids, problem_ids, discretized_scores, anchor_points)
+            if i % 20 == 0:
+                pbar.set_description(f"SVI [Loss: {loss:5.1f}]")
+
+        return {
+            "svi_mean_thetas": pyro.param("mean_theta").detach().cpu().numpy(),
+            "svi_mean_a": pyro.param("std_a").detach().cpu().numpy() * np.sqrt(2 / np.pi), # special case for the half-normal distribution
+            "svi_mean_b": pyro.param("mean_b").detach().cpu().numpy(),
+            "svi_mean_p": pyro.param("mean_p").detach().cpu().numpy(),
+        }
+
+    def _score_and_rank_helper(self, theta_means, include_scores: bool = True):
+        """
+        Shared logic to map theta means to forecaster IDs and compute rankings.
+        """
+        assert self.irt_obs is not None, "IRT observations must be prepared before scoring and ranking forecasters"
+        forecaster_idx_to_id = self.irt_obs.forecaster_idx_to_id
+        forecaster_data = {}
+        for i in range(len(theta_means)):
+            forecaster_id = forecaster_idx_to_id[i]
+            # theta_means may be a numpy array or torch tensor; .item() works for both
+            forecaster_data[forecaster_id] = theta_means[i].item() if hasattr(theta_means[i], 'item') else float(theta_means[i])
+        return forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
+
+    def _score_and_rank_mcmc(self, posterior_samples, include_scores: bool = True):
         """
         Take the posterior samples and take the scores to be the posterior mean of the theta.
         """
-        assert self.irt_obs is not None, "IRT observations must be prepared before scoring and ranking forecasters"
         theta_means = posterior_samples["theta"].mean(dim=0)
-        forecaster_idx_to_id = self.irt_obs.forecaster_idx_to_id
+        return self._score_and_rank_helper(theta_means, include_scores=include_scores)
 
-        forecaster_data = {}
-
-        for i in range(len(theta_means)):
-            forecaster_id = forecaster_idx_to_id[i]
-            forecaster_data[forecaster_id] = theta_means[i].item()
-
-        return forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
+    def _score_and_rank_svi(self, fitted_params: Dict[str, Any], include_scores: bool = True):
+        """
+        Take the fitted parameters and take the scores to be the posterior mean of the theta.
+        """
+        theta_means = fitted_params["svi_mean_thetas"]
+        return self._score_and_rank_helper(theta_means, include_scores=include_scores)
 
     def _summary(self, traces, sites):
         """Aggregate marginals for MCMC samples
@@ -143,6 +240,8 @@ class IRTModel(object):
             traces: Dictionary of posterior samples from MCMC
             sites: List of site names to summarize
         """
+        import pandas as pd
+
         site_stats = {}
         for site_name in sites:
             if site_name in traces:
@@ -175,8 +274,10 @@ if __name__ == "__main__":
     challenge_loader = GJOChallengeLoader(predictions_file, metadata_file, challenge_title="GJO Challenge")
     challenge = challenge_loader.load_challenge(forecaster_filter=20, problem_filter=20)
 
-    irt_model = IRTModel(n_bins=6, use_empirical_quantiles=False, device="cpu", method="NUTS")
-    fitted_scores, rankings = irt_model.fit(challenge.forecast_problems, save_result=True, num_samples=200, warmup_steps=20, num_chains=1)
+    irt_model = IRTModel(n_bins=6, use_empirical_quantiles=False)
+    # mcmc_config = MCMCConfig(total_samples=200, warmup_steps=20, num_workers=1, device="cpu", save_result=True)
+    svi_config = SVIConfig(optimizer="Adam", num_steps=5000, learning_rate=0.005, device="cuda")
+    fitted_scores, rankings = irt_model.fit(challenge.forecast_problems, method="SVI", config=svi_config)
 
     # print the results
     for forecaster, score in fitted_scores.items(): # type: ignore
