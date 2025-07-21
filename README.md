@@ -4,26 +4,25 @@
 
 ### 📝 1. Introduction
 
-*PM-RANK* is a playground for applying & testing with **diverse methods for scoring and ranking prediction market results**, which can come from either **human or LLM** forecasting data. Currently, we support two types of prediction market data:
+#### 1.1: &nbsp; Installation
 
-- [Good Judgement Open `GJO`](https://goodjudgement.org/): a platform for human forecasting challenges. We provide a crawler to scrape (see below) the `GJO` challenges into the desirable format. Each `GJO` challenge data consists of a <ins>metadata file</ins> specifying the problems (e.g. what are the options), as well as a <ins>predictions file</ins> specifying the predictions made by the forecasters.
+**Install from PyPI (recommended):**
+```sh
+pip install pm-rank
+```
 
-- [Prophet Arena `Prophet`](https://prophetarena.com/): a platform for LLM forecasting challenges. Given a <ins>full prediction dataset</ins>, we automatically process the metadata as well as the individual prediction entries.
+**Install from source (local build):**
+```sh
+git clone https://github.com/yourusername/pm_rank.git
+cd pm_rank
+pip install .
+```
+Or, for development (editable) mode:
+```sh
+pip install -e .
+```
 
-Regardless of the data source, we provide a **unified interface** to load the data into the following data structures (which allow great scalabilities for other types of prediction market data).
-
-<details>
-<summary>&nbsp; Example Data Files</summary>
-
-- For `GJO` challenges, we have the following files:
-  - `data/gjo_challenge_metadata.json`: the metadata file for the `GJO` challenge
-  - `data/all_predictions.json`: the predictions file for the `GJO` challenge
-
-- For `Prophet` challenges, a single file is needed:
-    - `data/prophet_arena_full.csv`
-</details>
-
-#### 1.1: &nbsp; Unified Data Interface and Concepts
+#### 1.2: &nbsp; Unified Data Interface and Concepts
 
 > Please refer to `data/base.py` for the actual data model implementation. We give a high-level and non-comprehensive overview in a **bottom-up** manner.
 
@@ -65,7 +64,7 @@ Regardless of the data source, we provide a **unified interface** to load the da
 
 
 
-#### 1.2: &nbsp; File Structure
+#### 1.3: &nbsp; File Structure
 
 - `crawler/`: contains the code to scrape the prediction market data from GJO
 - `data/`: contains the datasets as well as the data structure codes
@@ -127,8 +126,9 @@ In `plotting/plot_crra_risks_curves.py`, we demonstrate a use case of fitting th
 
 To compare the different ranking metrics, see the code in `plotting/plot_correlations_multiple_metrics.py`. This script demonstrates how to compute all implemented ranking metrics (Brier, Market Earning, Generalized Bradley-Terry, IRT, and Weighted Brier) on a dataset and visualize the pairwise correlations between their resulting rankings. The resulting plot, which shows both Spearman and Kendall correlations between all pairs of ranking methods, is shown below:
 
-<img src="docs/correlation_grid.png" alt="Correlation Grid" width="400">
-
+<p align="center">
+  <img src="docs/correlation_grid.png" alt="Correlation Grid" width="400">
+</p>
 
 ---
 
