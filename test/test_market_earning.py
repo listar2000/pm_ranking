@@ -4,10 +4,10 @@ Tests for market_earning.py functions using assert-based testing.
 """
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 import numpy as np
-from model.market_earning import _get_risk_neutral_bets, _get_log_risk_averse_bets
+from pm_rank.model.market_earning import _get_risk_neutral_bets, _get_risk_averse_log_bets
 
 
 def test_risk_neutral_bets_basic():
@@ -79,7 +79,7 @@ def test_risk_neutral_bets_bet_values():
 
 
 def test_log_risk_averse_bets_basic():
-    """Test basic functionality of _get_log_risk_averse_bets."""
+    """Test basic functionality of _get_risk_averse_log_bets."""
     # Simple case with 2 forecasters and 3 options
     forecast_probs = np.array([
         [0.4, 0.3, 0.3],  # Forecaster 1
@@ -87,7 +87,7 @@ def test_log_risk_averse_bets_basic():
     ])
     implied_probs = np.array([0.33, 0.33, 0.34])
     
-    bets = _get_log_risk_averse_bets(forecast_probs, implied_probs)
+    bets = _get_risk_averse_log_bets(forecast_probs, implied_probs)
     
     # Check shape
     assert bets.shape == (2, 3)
@@ -104,7 +104,7 @@ def test_log_risk_averse_bets_proportional():
     forecast_probs = np.array([[0.6, 0.4]])  # Single forecaster
     implied_probs = np.array([0.5, 0.5])
     
-    bets = _get_log_risk_averse_bets(forecast_probs, implied_probs)
+    bets = _get_risk_averse_log_bets(forecast_probs, implied_probs)
     
     # Expected bets: [0.6/0.5, 0.4/0.5] = [1.2, 0.8]
     expected_bets = np.array([[1.2, 0.8]])
@@ -118,7 +118,7 @@ def test_log_risk_averse_bets_different_implied_probs():
     forecast_probs = np.array([[0.5, 0.5]])  # Single forecaster
     implied_probs = np.array([0.3, 0.7])  # Different implied probabilities
     
-    bets = _get_log_risk_averse_bets(forecast_probs, implied_probs)
+    bets = _get_risk_averse_log_bets(forecast_probs, implied_probs)
     
     # Expected bets: [0.5/0.3, 0.5/0.7] = [1.67, 0.71]
     expected_bets = np.array([[0.5/0.3, 0.5/0.7]])
@@ -134,7 +134,7 @@ def test_both_functions_consistency():
     implied_probs = np.array([0.33, 0.33, 0.34])
     
     risk_neutral_bets = _get_risk_neutral_bets(forecast_probs, implied_probs)
-    log_risk_averse_bets = _get_log_risk_averse_bets(forecast_probs, implied_probs)
+    log_risk_averse_bets = _get_risk_averse_log_bets(forecast_probs, implied_probs)
     
     # Risk neutral should still pick one option (even with equal edges)
     assert np.sum(risk_neutral_bets > 0) == 1
@@ -158,7 +158,7 @@ def test_input_validation():
         pass
     
     try:
-        _get_log_risk_averse_bets(forecast_probs, implied_probs)
+        _get_risk_averse_log_bets(forecast_probs, implied_probs)
         assert False, "Should have raised an AssertionError"
     except AssertionError:
         pass

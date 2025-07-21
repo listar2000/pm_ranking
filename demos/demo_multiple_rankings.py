@@ -2,16 +2,16 @@
 This demo shows how to compute the Spearman and Kendall correlation between multiple rankings.
 """
 import torch
-from model.irt import IRTModel, SVIConfig
-from model.scoring_rule import BrierScoringRule
-from model.market_earning import MarketEarning
-from model.utils import spearman_correlation, kendall_correlation
-from data import GJOChallengeLoader
+from pm_rank.model.irt import IRTModel, SVIConfig
+from pm_rank.model.scoring_rule import BrierScoringRule
+from pm_rank.model.market_earning import MarketEarning
+from pm_rank.model.utils import spearman_correlation, kendall_correlation
+from pm_rank.data import GJOChallengeLoader
 from typing import Dict
 
 def demo_multiple_rankings():
-    metadata_file = "data/raw/sports_challenge_metadata.json"
-    predictions_file = "data/raw/all_predictions.json"
+    metadata_file = "src/pm_rank/data/raw/sports_challenge_metadata.json"
+    predictions_file = "src/pm_rank/data/raw/all_predictions.json"
     gjo_loader = GJOChallengeLoader(metadata_file=metadata_file, predictions_file=predictions_file)
 
     gjo_challenge = gjo_loader.load_challenge(forecaster_filter=20, problem_filter=20)

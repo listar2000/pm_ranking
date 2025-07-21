@@ -1,0 +1,1552 @@
+[
+  {
+    "problem_id": "3940",
+    "title": "Who will win the NFL Most Valuable Player Award for the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3940-who-will-win-the-nfl-most-valuable-player-award-for-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2025-02-07T03:40:25Z",
+      "num_forecasters": 61,
+      "num_forecasts": 147
+    },
+    "options": [
+      "Josh Allen",
+      "Saquon Barkley",
+      "Sam Darnold",
+      "Jared Goff",
+      "Lamar Jackson",
+      "Someone else"
+    ],
+    "correct_answer": "Josh Allen"
+  },
+  {
+    "problem_id": "3843",
+    "title": "Which team will win the 2025 College Football Playoff National Championship?",
+    "url": "https://www.gjopen.com/questions/3843-which-team-will-win-the-2025-college-football-playoff-national-championship",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2025-01-21T03:30:12Z",
+      "num_forecasters": 46,
+      "num_forecasts": 278
+    },
+    "options": [
+      "Alabama Crimson Tide",
+      "Boise State Broncos",
+      "Brigham Young (BYU) Cougars",
+      "Georgia Bulldogs",
+      "Indiana Hoosiers",
+      "Miami Hurricanes",
+      "Mississippi (Ole Miss) Rebels",
+      "Notre Dame Fighting Irish",
+      "Ohio State Buckeyes",
+      "Oregon Ducks",
+      "Penn State Nittany Lions",
+      "Tennessee Volunteers",
+      "Texas Longhorns",
+      "Another team"
+    ],
+    "correct_answer": "Ohio State Buckeyes"
+  },
+  {
+    "problem_id": "3821",
+    "title": "Which tennis player will win the Men's Singles Final at the 2025 Australian Open?",
+    "url": "https://www.gjopen.com/questions/3821-which-tennis-player-will-win-the-men-s-singles-final-at-the-2025-australian-open",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2025-01-26T11:40:28Z",
+      "num_forecasters": 30,
+      "num_forecasts": 150
+    },
+    "options": [
+      "Carlos Alcaraz",
+      "Novak Djokovic",
+      "Taylor Fritz",
+      "Daniil Medvedev",
+      "Jannik Sinner",
+      "Alexander Zverev",
+      "Someone else"
+    ],
+    "correct_answer": "Jannik Sinner"
+  },
+  {
+    "problem_id": "3820",
+    "title": "Which tennis player will win the Women's Singles Final at the 2025 Australian Open?",
+    "url": "https://www.gjopen.com/questions/3820-which-tennis-player-will-win-the-women-s-singles-final-at-the-2025-australian-open",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2025-01-25T10:40:54Z",
+      "num_forecasters": 18,
+      "num_forecasts": 112
+    },
+    "options": [
+      "Mirra Andreeva",
+      "Coco Gauff",
+      "Naomi Osaka",
+      "Elena Rybakina",
+      "Aryna Sabalenka",
+      "Iga Swiatek",
+      "Qinwen Zheng",
+      "Someone else"
+    ],
+    "correct_answer": "Someone else"
+  },
+  {
+    "problem_id": "3788",
+    "title": "Will the Harvard Crimson defeat the Yale Bulldogs in \"The Game\" in 2024?",
+    "url": "https://www.gjopen.com/questions/3788-will-the-harvard-crimson-defeat-the-yale-bulldogs-in-the-game-in-2024",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-11-23T19:45:08Z",
+      "num_forecasters": 124,
+      "num_forecasts": 280
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "No"
+  },
+  {
+    "problem_id": "3754",
+    "title": "Which NFL team will finish in second place in the AFC West division in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3754-which-nfl-team-will-finish-in-second-place-in-the-afc-west-division-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-12-29T01:00:08Z",
+      "num_forecasters": 31,
+      "num_forecasts": 152
+    },
+    "options": [
+      "Denver Broncos",
+      "Kansas City Chiefs",
+      "Las Vegas Raiders",
+      "Los Angeles Chargers"
+    ],
+    "correct_answer": "Los Angeles Chargers"
+  },
+  {
+    "problem_id": "3753",
+    "title": "Which NFL team will finish in second place in the NFC South division in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3753-which-nfl-team-will-finish-in-second-place-in-the-nfc-south-division-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2025-01-05T21:20:20Z",
+      "num_forecasters": 24,
+      "num_forecasts": 182
+    },
+    "options": [
+      "Atlanta Falcons",
+      "Carolina Panthers",
+      "New Orleans Saints",
+      "Tampa Bay Buccaneers"
+    ],
+    "correct_answer": "Atlanta Falcons"
+  },
+  {
+    "problem_id": "3700",
+    "title": "Which college football team will win the Big 12 Conference Championship in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3700-which-college-football-team-will-win-the-big-12-conference-championship-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-12-07T20:30:07Z",
+      "num_forecasters": 24,
+      "num_forecasts": 139
+    },
+    "options": [
+      "Arizona",
+      "Iowa State",
+      "Kansas",
+      "Kansas State",
+      "Oklahoma State",
+      "Texas Christian University (TCU)",
+      "University of Central Florida (UCF)",
+      "Utah",
+      "Another team"
+    ],
+    "correct_answer": "Another team"
+  },
+  {
+    "problem_id": "3699",
+    "title": "Which college football team will win the Southeastern Conference (SEC) Championship in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3699-which-college-football-team-will-win-the-southeastern-conference-sec-championship-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-12-08T01:00:56Z",
+      "num_forecasters": 29,
+      "num_forecasts": 195
+    },
+    "options": [
+      "Alabama",
+      "Georgia",
+      "Louisiana State University (LSU)",
+      "Missouri",
+      "Ole Miss",
+      "Tennessee",
+      "Texas",
+      "Texas A&M",
+      "Another team"
+    ],
+    "correct_answer": "Georgia"
+  },
+  {
+    "problem_id": "3698",
+    "title": "Which college football team will win the Big Ten Conference Championship in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3698-which-college-football-team-will-win-the-big-ten-conference-championship-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-12-08T04:45:44Z",
+      "num_forecasters": 26,
+      "num_forecasts": 150
+    },
+    "options": [
+      "Iowa",
+      "Michigan",
+      "Nebraska",
+      "Ohio State",
+      "Oregon",
+      "Penn State",
+      "University of Southern California (USC)",
+      "Wisconsin",
+      "Another team"
+    ],
+    "correct_answer": "Oregon"
+  },
+  {
+    "problem_id": "3656",
+    "title": "How many passing touchdowns will New York Jets quarterback Aaron Rodgers throw in the 2024 NFL regular season?",
+    "url": "https://www.gjopen.com/questions/3656-how-many-passing-touchdowns-will-new-york-jets-quarterback-aaron-rodgers-throw-in-the-2024-nfl-regular-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2025-01-06T00:40:52Z",
+      "num_forecasters": 28,
+      "num_forecasts": 290
+    },
+    "options": [
+      "Fewer than 8",
+      "Between 8 and 14",
+      "Between 15 and 21",
+      "Between 22 and 28",
+      "Between 29 and 35",
+      "Between 36 and 42",
+      "Between 43 and 49",
+      "50 or more"
+    ],
+    "correct_answer": "Between 22 and 28"
+  },
+  {
+    "problem_id": "3655",
+    "title": "How many passing touchdowns will Chicago Bears quarterback Caleb Williams throw in the 2024 NFL regular season?",
+    "url": "https://www.gjopen.com/questions/3655-how-many-passing-touchdowns-will-chicago-bears-quarterback-caleb-williams-throw-in-the-2024-nfl-regular-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2025-01-05T21:06:34Z",
+      "num_forecasters": 30,
+      "num_forecasts": 301
+    },
+    "options": [
+      "Fewer than 8",
+      "Between 8 and 14",
+      "Between 15 and 21",
+      "Between 22 and 28",
+      "Between 29 and 35",
+      "Between 36 and 42",
+      "Between 43 and 49",
+      "50 or more"
+    ],
+    "correct_answer": "Between 15 and 21"
+  },
+  {
+    "problem_id": "3637",
+    "title": "Which team will win the 2024 Major League Soccer (MLS) Cup final?",
+    "url": "https://www.gjopen.com/questions/3637-which-team-will-win-the-2024-major-league-soccer-mls-cup-final",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-12-07T23:15:30Z",
+      "num_forecasters": 22,
+      "num_forecasts": 157
+    },
+    "options": [
+      "Colorado Rapids",
+      "Columbus Crew",
+      "FC Cincinnati",
+      "Inter Miami CF",
+      "LA Galaxy",
+      "Los Angeles FC",
+      "New York Red Bulls",
+      "Real Salt Lake",
+      "Another team"
+    ],
+    "correct_answer": "LA Galaxy"
+  },
+  {
+    "problem_id": "3630",
+    "title": "Which NFL team will win the NFC East division in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3630-which-nfl-team-will-win-the-nfc-east-division-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-12-29T21:07:21Z",
+      "num_forecasters": 42,
+      "num_forecasts": 242
+    },
+    "options": [
+      "Dallas Cowboys",
+      "New York Giants",
+      "Philadelphia Eagles",
+      "Washington Commanders"
+    ],
+    "correct_answer": "Philadelphia Eagles"
+  },
+  {
+    "problem_id": "3629",
+    "title": "Which NFL team will win the NFC North division in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3629-which-nfl-team-will-win-the-nfc-north-division-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2025-01-06T04:30:08Z",
+      "num_forecasters": 48,
+      "num_forecasts": 312
+    },
+    "options": [
+      "Chicago Bears",
+      "Detroit Lions",
+      "Green Bay Packers",
+      "Minnesota Vikings"
+    ],
+    "correct_answer": "Detroit Lions"
+  },
+  {
+    "problem_id": "3628",
+    "title": "Which NFL team will win the AFC South division in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3628-which-nfl-team-will-win-the-afc-south-division-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-12-16T00:40:48Z",
+      "num_forecasters": 37,
+      "num_forecasts": 190
+    },
+    "options": [
+      "Houston Texans",
+      "Indianapolis Colts",
+      "Jacksonville Jaguars",
+      "Tennessee Titans"
+    ],
+    "correct_answer": "Houston Texans"
+  },
+  {
+    "problem_id": "3627",
+    "title": "Which NFL team will win the AFC East division in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3627-which-nfl-team-will-win-the-afc-east-division-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-12-02T04:10:49Z",
+      "num_forecasters": 44,
+      "num_forecasts": 215
+    },
+    "options": [
+      "Buffalo Bills",
+      "Miami Dolphins",
+      "New England Patriots",
+      "New York Jets"
+    ],
+    "correct_answer": "Buffalo Bills"
+  },
+  {
+    "problem_id": "3626",
+    "title": "Which NFL team will win the AFC North division in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3626-which-nfl-team-will-win-the-afc-north-division-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2025-01-05T00:40:18Z",
+      "num_forecasters": 44,
+      "num_forecasts": 309
+    },
+    "options": [
+      "Baltimore Ravens",
+      "Cincinnati Bengals",
+      "Cleveland Browns",
+      "Pittsburgh Steelers"
+    ],
+    "correct_answer": "Baltimore Ravens"
+  },
+  {
+    "problem_id": "3612",
+    "title": "Which baseball team will win the 2024 MLB World Series?",
+    "url": "https://www.gjopen.com/questions/3612-which-baseball-team-will-win-the-2024-mlb-world-series",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-10-31T03:50:37Z",
+      "num_forecasters": 40,
+      "num_forecasts": 410
+    },
+    "options": [
+      "Atlanta Braves",
+      "Baltimore Orioles",
+      "Cleveland Guardians",
+      "Houston Astros",
+      "Los Angeles Dodgers",
+      "Milwaukee Brewers",
+      "Minnesota Twins",
+      "New York Yankees",
+      "Philadelphia Phillies",
+      "Seattle Mariners",
+      "Another team"
+    ],
+    "correct_answer": "Los Angeles Dodgers"
+  },
+  {
+    "problem_id": "3600",
+    "title": "Will the Men's Marathon Swimming competition take place in the River Seine at the 2024 Olympics?",
+    "url": "https://www.gjopen.com/questions/3600-will-the-men-s-marathon-swimming-competition-take-place-in-the-river-seine-at-the-2024-olympics",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-09T05:30:03Z",
+      "num_forecasters": 37,
+      "num_forecasts": 162
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "Yes"
+  },
+  {
+    "problem_id": "3599",
+    "title": "Who will win the Men's Single Final at the 2024 US Open?",
+    "url": "https://www.gjopen.com/questions/3599-who-will-win-the-men-s-single-final-at-the-2024-us-open",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-09-08T20:32:06Z",
+      "num_forecasters": 33,
+      "num_forecasts": 231
+    },
+    "options": [
+      "Carlos Alcaraz",
+      "Novak Djokovic",
+      "Daniil Medvedev",
+      "Rafael Nadal",
+      "Jannik Sinner",
+      "Alexander Zverev",
+      "Someone else"
+    ],
+    "correct_answer": "Jannik Sinner"
+  },
+  {
+    "problem_id": "3598",
+    "title": "Will a player seeded fourth or higher win the Women's Single Final at the 2024 US Open?",
+    "url": "https://www.gjopen.com/questions/3598-will-a-player-seeded-fourth-or-higher-win-the-women-s-single-final-at-the-2024-us-open",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-09-07T22:10:35Z",
+      "num_forecasters": 22,
+      "num_forecasts": 102
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "Yes"
+  },
+  {
+    "problem_id": "3563",
+    "title": "How many gold medals will American swimmer Katie Ledecky win in the 2024 Olympics?",
+    "url": "https://www.gjopen.com/questions/3563-how-many-gold-medals-will-american-swimmer-katie-ledecky-win-in-the-2024-olympics",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-03T19:28:12Z",
+      "num_forecasters": 41,
+      "num_forecasts": 129
+    },
+    "options": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4 or more"
+    ],
+    "correct_answer": "2"
+  },
+  {
+    "problem_id": "3551",
+    "title": "How many gold medals will China win in the 2024 Olympics?",
+    "url": "https://www.gjopen.com/questions/3551-how-many-gold-medals-will-china-win-in-the-2024-olympics",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-10T17:00:30Z",
+      "num_forecasters": 28,
+      "num_forecasts": 170
+    },
+    "options": [
+      "25 or fewer",
+      "Between 26 and 29",
+      "Between 30 and 33",
+      "Between 34 and 37",
+      "38 or more"
+    ],
+    "correct_answer": "38 or more"
+  },
+  {
+    "problem_id": "3550",
+    "title": "How many gold medals will the United States win in Athletics events, which includes track and field events, at the 2024 Olympics?",
+    "url": "https://www.gjopen.com/questions/3550-how-many-gold-medals-will-the-united-states-win-in-athletics-events-which-includes-track-and-field-events-at-the-2024-olympics",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-10T17:00:26Z",
+      "num_forecasters": 20,
+      "num_forecasts": 105
+    },
+    "options": [
+      "6 or fewer",
+      "Between 7 and 9",
+      "Between 10 and 12",
+      "13 or more"
+    ],
+    "correct_answer": "13 or more"
+  },
+  {
+    "problem_id": "3544",
+    "title": "Will Jake Paul and Mike Tyson publicly engage in a boxing match in 2024?",
+    "url": "https://www.gjopen.com/questions/3544-will-jake-paul-and-mike-tyson-publicly-engage-in-a-boxing-match-in-2024",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-11-16T05:00:11Z",
+      "num_forecasters": 66,
+      "num_forecasts": 340
+    },
+    "options": [
+      "Yes, and Mike Tyson will win",
+      "Yes, but Mike Tyson will not win",
+      "No"
+    ],
+    "correct_answer": "Yes, but Mike Tyson will not win"
+  },
+  {
+    "problem_id": "3531",
+    "title": "Where will the Serbian Men's Basketball team finish in the 2024 Olympics?",
+    "url": "https://www.gjopen.com/questions/3531-where-will-the-serbian-men-s-basketball-team-finish-in-the-2024-olympics",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-10T11:00:39Z",
+      "num_forecasters": 25,
+      "num_forecasts": 184
+    },
+    "options": [
+      "Serbia will win the gold medal",
+      "Serbia will win the silver medal",
+      "Serbia will win the bronze medal",
+      "Serbia will not win a medal"
+    ],
+    "correct_answer": "Serbia will win the bronze medal"
+  },
+  {
+    "problem_id": "3530",
+    "title": "Which country will win the 2024 Olympic gold medal in men's football (soccer)?",
+    "url": "https://www.gjopen.com/questions/3530-which-country-will-win-the-2024-olympic-gold-medal-in-men-s-football-soccer",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-09T18:50:43Z",
+      "num_forecasters": 44,
+      "num_forecasts": 206
+    },
+    "options": [
+      "Argentina",
+      "Egypt",
+      "France",
+      "Morocco",
+      "Paraguay",
+      "Spain",
+      "United States",
+      "Another team"
+    ],
+    "correct_answer": "Spain"
+  },
+  {
+    "problem_id": "3529",
+    "title": "Which country will win the 2024 Olympic gold medal in women's football (soccer)?",
+    "url": "https://www.gjopen.com/questions/3529-which-country-will-win-the-2024-olympic-gold-medal-in-women-s-football-soccer",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-10T17:10:33Z",
+      "num_forecasters": 34,
+      "num_forecasts": 162
+    },
+    "options": [
+      "Australia",
+      "Brazil",
+      "France",
+      "Germany",
+      "Japan",
+      "Spain",
+      "United States",
+      "Another team"
+    ],
+    "correct_answer": "United States"
+  },
+  {
+    "problem_id": "3528",
+    "title": "Where will the US Women's Artistic Gymnastics team finish in the 2024 Olympics?",
+    "url": "https://www.gjopen.com/questions/3528-where-will-the-us-women-s-artistic-gymnastics-team-finish-in-the-2024-olympics",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-07-30T18:30:10Z",
+      "num_forecasters": 23,
+      "num_forecasts": 58
+    },
+    "options": [
+      "The US will win the gold medal",
+      "The US will win the silver medal",
+      "The US will win the bronze medal",
+      "The US will not win a medal"
+    ],
+    "correct_answer": "The US will win the gold medal"
+  },
+  {
+    "problem_id": "3527",
+    "title": "How many Artistic Gymnastics medals will American gymnast Simone Biles win in the 2024 Olympics?",
+    "url": "https://www.gjopen.com/questions/3527-how-many-artistic-gymnastics-medals-will-american-gymnast-simone-biles-win-in-the-2024-olympics",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-05T18:00:06Z",
+      "num_forecasters": 29,
+      "num_forecasts": 129
+    },
+    "options": [
+      "0",
+      "1 or 2",
+      "3 or 4",
+      "5 or more"
+    ],
+    "correct_answer": "3 or 4"
+  },
+  {
+    "problem_id": "3500",
+    "title": "Will \"Bronny\" James be drafted in the 2024 NBA Draft?",
+    "url": "https://www.gjopen.com/questions/3500-will-bronny-james-be-drafted-in-the-2024-nba-draft",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-06-27T22:05:00Z",
+      "num_forecasters": 44,
+      "num_forecasts": 112
+    },
+    "options": [
+      "Yes, in the first round",
+      "Yes, in the second round",
+      "No"
+    ],
+    "correct_answer": "Yes, in the second round"
+  },
+  {
+    "problem_id": "3499",
+    "title": "Which Major League Baseball team will win the American League East Division in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3499-which-major-league-baseball-team-will-win-the-american-league-east-division-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-09-27T02:01:14Z",
+      "num_forecasters": 32,
+      "num_forecasts": 190
+    },
+    "options": [
+      "Baltimore Orioles",
+      "Boston Red Sox",
+      "New York Yankees",
+      "Tampa Bay Rays",
+      "Toronto Blue Jays"
+    ],
+    "correct_answer": "New York Yankees"
+  },
+  {
+    "problem_id": "3498",
+    "title": "Which Major League Baseball team will win the National League Central Division in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3498-which-major-league-baseball-team-will-win-the-national-league-central-division-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-09-18T21:01:45Z",
+      "num_forecasters": 32,
+      "num_forecasts": 162
+    },
+    "options": [
+      "Chicago Cubs",
+      "Cincinnati Reds",
+      "Milwaukee Brewers",
+      "Pittsburgh Pirates",
+      "St. Louis Cardinals"
+    ],
+    "correct_answer": "Milwaukee Brewers"
+  },
+  {
+    "problem_id": "3497",
+    "title": "Which Major League Baseball team will win the American League Central Division in the 2024 season?",
+    "url": "https://www.gjopen.com/questions/3497-which-major-league-baseball-team-will-win-the-american-league-central-division-in-the-2024-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-09-21T23:25:03Z",
+      "num_forecasters": 31,
+      "num_forecasts": 191
+    },
+    "options": [
+      "Chicago White Sox",
+      "Cleveland Guardians",
+      "Detroit Tigers",
+      "Kansas City Royals",
+      "Minnesota Twins"
+    ],
+    "correct_answer": "Cleveland Guardians"
+  },
+  {
+    "problem_id": "3439",
+    "title": "Will a player seeded third or higher win the Men's Single Final at the 2024 French Open?",
+    "url": "https://www.gjopen.com/questions/3439-will-a-player-seeded-third-or-higher-win-the-men-s-single-final-at-the-2024-french-open",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-06-09T17:31:12Z",
+      "num_forecasters": 23,
+      "num_forecasts": 74
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "Yes"
+  },
+  {
+    "problem_id": "3438",
+    "title": "Will a player seeded fourth or higher win the Women's Single Final at the 2024 French Open?",
+    "url": "https://www.gjopen.com/questions/3438-will-a-player-seeded-fourth-or-higher-win-the-women-s-single-final-at-the-2024-french-open",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-06-08T14:25:49Z",
+      "num_forecasters": 23,
+      "num_forecasts": 100
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "Yes"
+  },
+  {
+    "problem_id": "3414",
+    "title": "How far will the Nashville Predators advance in the 2024 Stanley Cup Playoffs?",
+    "url": "https://www.gjopen.com/questions/3414-how-far-will-the-nashville-predators-advance-in-the-2024-stanley-cup-playoffs",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-05-04T01:45:54Z",
+      "num_forecasters": 16,
+      "num_forecasts": 40
+    },
+    "options": [
+      "The First Round",
+      "The Second Round",
+      "Western Conference Finals",
+      "Stanley Cup Final",
+      "The Predators will win the 2024 Stanley Cup Final"
+    ],
+    "correct_answer": "The First Round"
+  },
+  {
+    "problem_id": "3411",
+    "title": "Will the US win 39 or more gold medals in the 2024 Summer Olympics?",
+    "url": "https://www.gjopen.com/questions/3411-will-the-us-win-39-or-more-gold-medals-in-the-2024-summer-olympics",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-11T12:00:38Z",
+      "num_forecasters": 92,
+      "num_forecasts": 343
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "Yes"
+  },
+  {
+    "problem_id": "3401",
+    "title": "What will be the average regular season attendance at WNBA games in 2024?",
+    "url": "https://www.gjopen.com/questions/3401-what-will-be-the-average-regular-season-attendance-at-wnba-games-in-2024",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-09-20T02:00:50Z",
+      "num_forecasters": 33,
+      "num_forecasts": 230
+    },
+    "options": [
+      "Fewer than 6,000",
+      "At least 6,000, but less than 7,000",
+      "At least 7,000, but less than 8,000",
+      "At least 8,000, but less than 9,000",
+      "At least 9,000, but less than 10,000",
+      "At least 10,000, but less than 11,000",
+      "At least 11,000, but less than 12,000",
+      "12,000 or more"
+    ],
+    "correct_answer": "At least 9,000, but less than 10,000"
+  },
+  {
+    "problem_id": "3393",
+    "title": "Between 24 July 2024 and 11 August 2024, will there be a terrorist attack in continental France or French Polynesia resulting in at least three fatalities?",
+    "url": "https://www.gjopen.com/questions/3393-between-24-july-2024-and-11-august-2024-will-there-be-a-terrorist-attack-in-continental-france-or-french-polynesia-resulting-in-at-least-three-fatalities",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-12T14:00:00Z",
+      "num_forecasters": 54,
+      "num_forecasts": 207
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "No"
+  },
+  {
+    "problem_id": "3372",
+    "title": "Which college basketball team will win the 2024 Women's NCAA Tournament?",
+    "url": "https://www.gjopen.com/questions/3372-which-college-basketball-team-will-win-the-2024-women-s-ncaa-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-04-07T21:20:32Z",
+      "num_forecasters": 27,
+      "num_forecasts": 49
+    },
+    "options": [
+      "South Carolina",
+      "Iowa",
+      "University of Connecticut (UConn)",
+      "North Carolina State"
+    ],
+    "correct_answer": "South Carolina"
+  },
+  {
+    "problem_id": "3371",
+    "title": "Which college basketball team will win the 2024 Men's NCAA Tournament?",
+    "url": "https://www.gjopen.com/questions/3371-which-college-basketball-team-will-win-the-2024-men-s-ncaa-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-04-09T03:30:00Z",
+      "num_forecasters": 35,
+      "num_forecasts": 57
+    },
+    "options": [
+      "University of Connecticut (UConn)",
+      "North Carolina State",
+      "Purdue",
+      "Alabama"
+    ],
+    "correct_answer": "University of Connecticut (UConn)"
+  },
+  {
+    "problem_id": "3365",
+    "title": "What will be total regular season attendance at Major League Baseball (MLB) games in 2024?",
+    "url": "https://www.gjopen.com/questions/3365-what-will-be-total-regular-season-attendance-at-major-league-baseball-mlb-games-in-2024",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-09-30T22:00:54Z",
+      "num_forecasters": 28,
+      "num_forecasts": 173
+    },
+    "options": [
+      "Fewer than 64 million",
+      "At least 64 million, but fewer than 67 million",
+      "At least 67 million, but fewer than 70 million",
+      "At least 70 million, but fewer than 73 million",
+      "At least 73 million, but fewer than 76 million",
+      "At least 76 million, but fewer than 79 million",
+      "79 million or more"
+    ],
+    "correct_answer": "At least 70 million, but fewer than 73 million"
+  },
+  {
+    "problem_id": "3353",
+    "title": "Which basketball team will win the Regional 4/Portland in the 2024 Women's NCAA Tournament?",
+    "url": "https://www.gjopen.com/questions/3353-which-basketball-team-will-win-the-regional-4-portland-in-the-2024-women-s-ncaa-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-03-31T18:00:19Z",
+      "num_forecasters": 12,
+      "num_forecasts": 27
+    },
+    "options": [
+      "Texas",
+      "Stanford",
+      "North Carolina State",
+      "Gonzaga",
+      "Utah",
+      "Tennessee",
+      "Iowa State",
+      "Alabama",
+      "Another team"
+    ],
+    "correct_answer": "North Carolina State"
+  },
+  {
+    "problem_id": "3352",
+    "title": "Which basketball team will win the Regional 3/Portland in the 2024 Women's NCAA Tournament?",
+    "url": "https://www.gjopen.com/questions/3352-which-basketball-team-will-win-the-regional-3-portland-in-the-2024-women-s-ncaa-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-04-02T03:00:50Z",
+      "num_forecasters": 11,
+      "num_forecasts": 32
+    },
+    "options": [
+      "University of Southern California (USC)",
+      "Ohio State",
+      "University of Connecticut (UConn)",
+      "Virginia Tech",
+      "Baylor",
+      "Syracuse",
+      "Duke",
+      "Kansas",
+      "Another team"
+    ],
+    "correct_answer": "University of Connecticut (UConn)"
+  },
+  {
+    "problem_id": "3351",
+    "title": "Which basketball team will win the Regional 2/Albany in the 2024 Women's NCAA Tournament?",
+    "url": "https://www.gjopen.com/questions/3351-which-basketball-team-will-win-the-regional-2-albany-in-the-2024-women-s-ncaa-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-04-02T01:00:25Z",
+      "num_forecasters": 11,
+      "num_forecasts": 27
+    },
+    "options": [
+      "Iowa",
+      "University of California, Los Angeles (UCLA)",
+      "Louisiana State University (LSU)",
+      "Kansas State",
+      "Colorado",
+      "Louisville",
+      "Creighton",
+      "West Virginia",
+      "Another team"
+    ],
+    "correct_answer": "Iowa"
+  },
+  {
+    "problem_id": "3350",
+    "title": "Which basketball team will win the Regional 1/Albany in the 2024 Women's NCAA Tournament?",
+    "url": "https://www.gjopen.com/questions/3350-which-basketball-team-will-win-the-regional-1-albany-in-the-2024-women-s-ncaa-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-03-31T18:00:29Z",
+      "num_forecasters": 9,
+      "num_forecasts": 32
+    },
+    "options": [
+      "South Carolina",
+      "Notre Dame",
+      "Oregon State",
+      "Indiana",
+      "Oklahoma",
+      "Nebraska",
+      "University of Mississippi (Ole Miss)",
+      "North Carolina",
+      "Another team"
+    ],
+    "correct_answer": "South Carolina"
+  },
+  {
+    "problem_id": "3349",
+    "title": "Which basketball team will win the West Regional in the 2024 Men's NCAA Tournament?",
+    "url": "https://www.gjopen.com/questions/3349-which-basketball-team-will-win-the-west-regional-in-the-2024-men-s-ncaa-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-03-30T18:00:09Z",
+      "num_forecasters": 19,
+      "num_forecasts": 58
+    },
+    "options": [
+      "North Carolina",
+      "Arizona",
+      "Baylor",
+      "Alabama",
+      "Saint Mary's",
+      "Clemson",
+      "Dayton",
+      "Mississippi State",
+      "Another team"
+    ],
+    "correct_answer": "Alabama"
+  },
+  {
+    "problem_id": "3348",
+    "title": "Which basketball team will win the Midwest Regional in the 2024 Men's NCAA Tournament?",
+    "url": "https://www.gjopen.com/questions/3348-which-basketball-team-will-win-the-midwest-regional-in-the-2024-men-s-ncaa-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-03-31T18:00:07Z",
+      "num_forecasters": 18,
+      "num_forecasts": 63
+    },
+    "options": [
+      "Purdue",
+      "Tennessee",
+      "Creighton",
+      "Kansas",
+      "Gonzaga",
+      "South Carolina",
+      "Texas",
+      "Utah State",
+      "Another team"
+    ],
+    "correct_answer": "Purdue"
+  },
+  {
+    "problem_id": "3347",
+    "title": "Which basketball team will win the South Regional in the 2024 Men's NCAA Tournament?",
+    "url": "https://www.gjopen.com/questions/3347-which-basketball-team-will-win-the-south-regional-in-the-2024-men-s-ncaa-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-03-31T18:00:13Z",
+      "num_forecasters": 18,
+      "num_forecasts": 60
+    },
+    "options": [
+      "Houston",
+      "Marquette",
+      "Kentucky",
+      "Duke",
+      "Wisconsin",
+      "Texas Tech",
+      "Florida",
+      "Nebraska",
+      "Another team"
+    ],
+    "correct_answer": "Another team"
+  },
+  {
+    "problem_id": "3346",
+    "title": "Which basketball team will win the East Regional in the 2024 Men's NCAA Tournament?",
+    "url": "https://www.gjopen.com/questions/3346-which-basketball-team-will-win-the-east-regional-in-the-2024-men-s-ncaa-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-03-30T18:00:57Z",
+      "num_forecasters": 26,
+      "num_forecasts": 70
+    },
+    "options": [
+      "University of Connecticut (UConn)",
+      "Iowa State",
+      "Illinois",
+      "Auburn",
+      "San Diego State",
+      "Brigham Young University (BYU)",
+      "Washington State",
+      "Florida Atlantic (FAU)",
+      "Another team"
+    ],
+    "correct_answer": "University of Connecticut (UConn)"
+  },
+  {
+    "problem_id": "3335",
+    "title": "How far will the Oklahoma City Thunder advance in the 2024 NBA playoffs?",
+    "url": "https://www.gjopen.com/questions/3335-how-far-will-the-oklahoma-city-thunder-advance-in-the-2024-nba-playoffs",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-05-19T02:40:55Z",
+      "num_forecasters": 28,
+      "num_forecasts": 158
+    },
+    "options": [
+      "The Play-In Tournament or before",
+      "The First Round",
+      "Conference Semifinals",
+      "Conference Finals",
+      "NBA Finals",
+      "The Thunder will win the 2024 NBA Finals"
+    ],
+    "correct_answer": "Conference Semifinals"
+  },
+  {
+    "problem_id": "3326",
+    "title": "Will a member of the LIV Golf League (LIV) win the 2024 PGA Championship?",
+    "url": "https://www.gjopen.com/questions/3326-will-a-member-of-the-liv-golf-league-liv-win-the-2024-pga-championship",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-05-19T23:14:35Z",
+      "num_forecasters": 21,
+      "num_forecasts": 50
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "No"
+  },
+  {
+    "problem_id": "3296",
+    "title": "How many National League Major League Baseball (MLB) teams will lose 100 or more games in the 2024 regular season?",
+    "url": "https://www.gjopen.com/questions/3296-how-many-national-league-major-league-baseball-mlb-teams-will-lose-100-or-more-games-in-the-2024-regular-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-09-29T03:06:27Z",
+      "num_forecasters": 40,
+      "num_forecasts": 289
+    },
+    "options": [
+      "0",
+      "1",
+      "2",
+      "3 or more"
+    ],
+    "correct_answer": "2"
+  },
+  {
+    "problem_id": "3295",
+    "title": "How many American League Major League Baseball (MLB) teams will lose 100 or more games in the 2024 regular season?",
+    "url": "https://www.gjopen.com/questions/3295-how-many-american-league-major-league-baseball-mlb-teams-will-lose-100-or-more-games-in-the-2024-regular-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-09-22T21:17:22Z",
+      "num_forecasters": 39,
+      "num_forecasts": 181
+    },
+    "options": [
+      "0 or 1",
+      "2",
+      "3",
+      "4 or more"
+    ],
+    "correct_answer": "0 or 1"
+  },
+  {
+    "problem_id": "3291",
+    "title": "Where will Inter Miami rank in the Eastern Conference at the end of the 2024 Major League Soccer (MLS) regular season?",
+    "url": "https://www.gjopen.com/questions/3291-where-will-inter-miami-rank-in-the-eastern-conference-at-the-end-of-the-2024-major-league-soccer-mls-regular-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-10-03T01:45:13Z",
+      "num_forecasters": 37,
+      "num_forecasts": 121
+    },
+    "options": [
+      "First or second",
+      "Third or fourth",
+      "Fifth, sixth, or seventh",
+      "Eighth or ninth",
+      "Tenth or lower"
+    ],
+    "correct_answer": "First or second"
+  },
+  {
+    "problem_id": "3290",
+    "title": "How far will the Iowa Hawkeyes advance in the 2024 NCAA Division I Women's Basketball Tournament?",
+    "url": "https://www.gjopen.com/questions/3290-how-far-will-the-iowa-hawkeyes-advance-in-the-2024-ncaa-division-i-women-s-basketball-tournament",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-04-07T21:20:16Z",
+      "num_forecasters": 29,
+      "num_forecasts": 92
+    },
+    "options": [
+      "The second round (32 teams) or before",
+      "The Sweet Sixteen",
+      "The Elite Eight",
+      "The Final Four",
+      "The Championship game",
+      "Iowa will win the 2024 Championship game"
+    ],
+    "correct_answer": "The Championship game"
+  },
+  {
+    "problem_id": "3289",
+    "title": "Will an F1 driver secure the 2024 championship at or before the 2024 Mexico City Grand Prix, scheduled for 27 October 2024?",
+    "url": "https://www.gjopen.com/questions/3289-will-an-f1-driver-secure-the-2024-championship-at-or-before-the-2024-mexico-city-grand-prix-scheduled-for-27-october-2024",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-10-27T21:44:53Z",
+      "num_forecasters": 63,
+      "num_forecasts": 330
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "No"
+  },
+  {
+    "problem_id": "3279",
+    "title": "Which country or countries will FIFA announce as the host(s) of the 2027 Women’s World Cup?",
+    "url": "https://www.gjopen.com/questions/3279-which-country-or-countries-will-fifa-announce-as-the-host-s-of-the-2027-women-s-world-cup",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-05-17T09:30:22Z",
+      "num_forecasters": 48,
+      "num_forecasts": 96
+    },
+    "options": [
+      "Belgium/Germany/Netherlands",
+      "Brazil",
+      "Mexico/United States",
+      "Another outcome"
+    ],
+    "correct_answer": "Brazil"
+  },
+  {
+    "problem_id": "3278",
+    "title": "Will the Chicago Bears make the first overall pick for the 2024 NFL Draft?",
+    "url": "https://www.gjopen.com/questions/3278-will-the-chicago-bears-make-the-first-overall-pick-for-the-2024-nfl-draft",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-04-26T00:20:43Z",
+      "num_forecasters": 65,
+      "num_forecasts": 125
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "Yes"
+  },
+  {
+    "problem_id": "3277",
+    "title": "Which pick overall will be highest for a non-quarterback in the 2024 NFL Draft?",
+    "url": "https://www.gjopen.com/questions/3277-which-pick-overall-will-be-highest-for-a-non-quarterback-in-the-2024-nfl-draft",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-04-26T00:40:43Z",
+      "num_forecasters": 43,
+      "num_forecasts": 92
+    },
+    "options": [
+      "1st",
+      "2nd",
+      "3rd",
+      "4th",
+      "5th or lower"
+    ],
+    "correct_answer": "4th"
+  },
+  {
+    "problem_id": "3276",
+    "title": "Will a first or second seed team in the 2024 NCAA Division I Men's Basketball Tournament lose in the first round?",
+    "url": "https://www.gjopen.com/questions/3276-will-a-first-or-second-seed-team-in-the-2024-ncaa-division-i-men-s-basketball-tournament-lose-in-the-first-round",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-03-23T03:00:59Z",
+      "num_forecasters": 63,
+      "num_forecasts": 100
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "No"
+  },
+  {
+    "problem_id": "3275",
+    "title": "Will a first or second seed team in the 2024 NCAA Division I Women's Basketball Tournament lose in either the first or second round?",
+    "url": "https://www.gjopen.com/questions/3275-will-a-first-or-second-seed-team-in-the-2024-ncaa-division-i-women-s-basketball-tournament-lose-in-either-the-first-or-second-round",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-03-24T18:05:25Z",
+      "num_forecasters": 33,
+      "num_forecasts": 56
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "Yes"
+  },
+  {
+    "problem_id": "3274",
+    "title": "Which team will win the 2024 Formula One World Constructors' Championship?",
+    "url": "https://www.gjopen.com/questions/3274-which-team-will-win-the-2024-formula-one-world-constructors-championship",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-12-08T14:30:28Z",
+      "num_forecasters": 96,
+      "num_forecasts": 518
+    },
+    "options": [
+      "Aston Martin Aramco Mercedes",
+      "Ferrari",
+      "Mercedes",
+      "McLaren Mercedes",
+      "Red Bull Racing Honda RBPT",
+      "Another team"
+    ],
+    "correct_answer": "McLaren Mercedes"
+  },
+  {
+    "problem_id": "3273",
+    "title": "Which driver will finish in second (2nd) place for the 2024 Formula One World Drivers' Championship?",
+    "url": "https://www.gjopen.com/questions/3273-which-driver-will-finish-in-second-2nd-place-for-the-2024-formula-one-world-drivers-championship",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-12-08T14:30:25Z",
+      "num_forecasters": 60,
+      "num_forecasts": 465
+    },
+    "options": [
+      "Lewis Hamilton",
+      "Charles Leclerc",
+      "Lando Norris",
+      "Sergio Perez",
+      "Oscar Piastri",
+      "George Russell",
+      "Max Verstappen",
+      "Another driver"
+    ],
+    "correct_answer": "Lando Norris"
+  },
+  {
+    "problem_id": "3272",
+    "title": "Which driver will win the 2024 Formula One World Drivers' Championship?",
+    "url": "https://www.gjopen.com/questions/3272-which-driver-will-win-the-2024-formula-one-world-drivers-championship",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-11-24T07:26:12Z",
+      "num_forecasters": 120,
+      "num_forecasts": 462
+    },
+    "options": [
+      "Lewis Hamilton",
+      "Charles Leclerc",
+      "Lando Norris",
+      "Sergio Perez",
+      "Oscar Piastri",
+      "George Russell",
+      "Max Verstappen",
+      "Another driver"
+    ],
+    "correct_answer": "Max Verstappen"
+  },
+  {
+    "problem_id": "3263",
+    "title": "Which football (soccer) club will win the 2023-24 UEFA Women's Champions League final?",
+    "url": "https://www.gjopen.com/questions/3263-which-football-soccer-club-will-win-the-2023-24-uefa-women-s-champions-league-final",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-05-25T17:45:22Z",
+      "num_forecasters": 30,
+      "num_forecasts": 87
+    },
+    "options": [
+      "Ajax (Netherlands)",
+      "Barcelona (Spain)",
+      "Benfica (Portugal)",
+      "Brann (Norway)",
+      "Chelsea (England)",
+      "Häcken (Sweden)",
+      "Lyon (France)",
+      "Paris (France)"
+    ],
+    "correct_answer": "Barcelona (Spain)"
+  },
+  {
+    "problem_id": "3262",
+    "title": "Which country will win the 2024 Concacaf W Gold Cup?",
+    "url": "https://www.gjopen.com/questions/3262-which-country-will-win-the-2024-concacaf-w-gold-cup",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-03-11T02:10:11Z",
+      "num_forecasters": 32,
+      "num_forecasts": 63
+    },
+    "options": [
+      "Argentina",
+      "Brazil",
+      "Canada",
+      "Costa Rica",
+      "Mexico",
+      "United States",
+      "Another Team"
+    ],
+    "correct_answer": "United States"
+  },
+  {
+    "problem_id": "3192",
+    "title": "Where will France rank among countries in total medals in the 2024 Summer Olympics?",
+    "url": "https://www.gjopen.com/questions/3192-where-will-france-rank-among-countries-in-total-medals-in-the-2024-summer-olympics",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-08-11T17:00:11Z",
+      "num_forecasters": 102,
+      "num_forecasts": 374
+    },
+    "options": [
+      "Third or higher",
+      "Fourth",
+      "Fifth",
+      "Sixth",
+      "Seventh or lower"
+    ],
+    "correct_answer": "Fourth"
+  },
+  {
+    "problem_id": "3157",
+    "title": "Which national team will win the UEFA EURO 2024 Final?",
+    "url": "https://www.gjopen.com/questions/3157-which-national-team-will-win-the-uefa-euro-2024-final",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-07-14T20:50:30Z",
+      "num_forecasters": 106,
+      "num_forecasts": 522
+    },
+    "options": [
+      "Belgium",
+      "England",
+      "France",
+      "Germany",
+      "Italy",
+      "Netherlands",
+      "Portugal",
+      "Spain",
+      "Another team"
+    ],
+    "correct_answer": "Spain"
+  },
+  {
+    "problem_id": "3153",
+    "title": "Which cricket team will win the 2024 Men's T20 World Cup Final?",
+    "url": "https://www.gjopen.com/questions/3153-which-cricket-team-will-win-the-2024-men-s-t20-world-cup-final",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-06-29T18:15:06Z",
+      "num_forecasters": 230,
+      "num_forecasts": 691
+    },
+    "options": [
+      "Australia",
+      "England",
+      "India",
+      "New Zealand",
+      "Pakistan",
+      "South Africa",
+      "West Indies",
+      "Another team"
+    ],
+    "correct_answer": "India"
+  },
+  {
+    "problem_id": "3126",
+    "title": "Which NHL hockey team will win the 2024 Stanley Cup Final?",
+    "url": "https://www.gjopen.com/questions/3126-which-nhl-hockey-team-will-win-the-2024-stanley-cup-final",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-06-25T02:55:13Z",
+      "num_forecasters": 60,
+      "num_forecasts": 381
+    },
+    "options": [
+      "Boston Bruins",
+      "Carolina Hurricanes",
+      "Colorado Avalanche",
+      "Dallas Stars",
+      "Edmonton Oilers",
+      "New Jersey Devils",
+      "New York Rangers",
+      "Toronto Maple Leafs",
+      "Vegas Golden Knights",
+      "Another team"
+    ],
+    "correct_answer": "Another team"
+  },
+  {
+    "problem_id": "3109",
+    "title": "Before 10 May 2024, will Travis Kelce and Taylor Swift announce or acknowledge that they are engaged to be married?",
+    "url": "https://www.gjopen.com/questions/3109-before-10-may-2024-will-travis-kelce-and-taylor-swift-announce-or-acknowledge-that-they-are-engaged-to-be-married",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-05-10T13:00:02Z",
+      "num_forecasters": 94,
+      "num_forecasts": 255
+    },
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "correct_answer": "No"
+  },
+  {
+    "problem_id": "3108",
+    "title": "Which team will win the 2024 NBA Finals?",
+    "url": "https://www.gjopen.com/questions/3108-which-team-will-win-the-2024-nba-finals",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-06-18T03:00:10Z",
+      "num_forecasters": 78,
+      "num_forecasts": 431
+    },
+    "options": [
+      "Boston Celtics",
+      "Denver Nuggets",
+      "Golden State Warriors",
+      "Los Angeles Clippers",
+      "Los Angeles Lakers",
+      "Milwaukee Bucks",
+      "Phoenix Suns",
+      "Another team"
+    ],
+    "correct_answer": "Boston Celtics"
+  },
+  {
+    "problem_id": "3106",
+    "title": "Who will win the 2024 NBA Most Valuable Player Award?",
+    "url": "https://www.gjopen.com/questions/3106-who-will-win-the-2024-nba-most-valuable-player-award",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-05-08T23:31:02Z",
+      "num_forecasters": 75,
+      "num_forecasts": 240
+    },
+    "options": [
+      "Stephen Curry",
+      "Luka Dončić",
+      "Joel Embiid",
+      "Giannis Antetokounmpo",
+      "Nikola Jokić",
+      "Jayson Tatum",
+      "Someone else"
+    ],
+    "correct_answer": "Nikola Jokić"
+  },
+  {
+    "problem_id": "3026",
+    "title": "Which team will win the English Premier League for the 2023-24 season?",
+    "url": "https://www.gjopen.com/questions/3026-which-team-will-win-the-english-premier-league-for-the-2023-24-season",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-05-19T17:00:52Z",
+      "num_forecasters": 98,
+      "num_forecasts": 530
+    },
+    "options": [
+      "Arsenal",
+      "Brighton & Hove Albion",
+      "Chelsea",
+      "Liverpool",
+      "Manchester City",
+      "Manchester United",
+      "Newcastle",
+      "Tottenham Hotspur",
+      "Another team"
+    ],
+    "correct_answer": "Manchester City"
+  },
+  {
+    "problem_id": "3025",
+    "title": "Which football (soccer) club will win the 2023-24 UEFA Champions League final?",
+    "url": "https://www.gjopen.com/questions/3025-which-football-soccer-club-will-win-the-2023-24-uefa-champions-league-final",
+    "metadata": {
+      "status": "Closed",
+      "end_date": "2024-06-01T21:00:16Z",
+      "num_forecasters": 89,
+      "num_forecasts": 423
+    },
+    "options": [
+      "Arsenal",
+      "Barcelona",
+      "Bayern Munich",
+      "Inter Milan",
+      "Manchester City",
+      "Manchester United",
+      "Paris Saint-Germain",
+      "Real Madrid",
+      "Another football club"
+    ],
+    "correct_answer": "Real Madrid"
+  }
+]

@@ -1,11 +1,11 @@
-from model.scoring_rule import BrierScoringRule
-from model.market_earning import MarketEarning
-from data import GJOChallengeLoader, ProphetArenaChallengeLoader
+from pm_rank.model.scoring_rule import BrierScoringRule
+from pm_rank.model.market_earning import MarketEarning
+from pm_rank.data import GJOChallengeLoader, ProphetArenaChallengeLoader
 
 def demo_scoring_rule_and_gjo_challenge():
 
-    metadata_file = "data/raw/sports_challenge_metadata.json"
-    predictions_file = "data/raw/all_predictions.json"
+    metadata_file = "src/pm_rank/data/raw/sports_challenge_metadata.json"
+    predictions_file = "src/pm_rank/data/raw/all_predictions.json"
     gjo_loader = GJOChallengeLoader(metadata_file=metadata_file, predictions_file=predictions_file)
 
     gjo_challenge = gjo_loader.load_challenge(forecaster_filter=20, problem_filter=20)
@@ -18,16 +18,9 @@ def demo_scoring_rule_and_gjo_challenge():
     for forecaster, score in fitted_scores.items(): # type: ignore
         print(f"  {forecaster}: score={score}, rank={rankings[forecaster]}") # type: ignore
 
-    # for batch_id, (scores, rankings) in results.items():
-    #     print(f"Batch {batch_id}:")
-    #     for forecaster, score in scores.items():
-    #         print(f"  {forecaster}: {score}")
-    #     print(f"  Rankings: {rankings}")
-    #     print()
-
 
 def demo_market_earning_and_prophet_arena_challenge():
-    arena_file = "data/raw/prophet_arena_full.csv"
+    arena_file = "src/pm_rank/data/raw/prophet_arena_full.csv"
     prophet_arena_loader = ProphetArenaChallengeLoader(predictions_file=arena_file)
 
     prophet_arena_challenge = prophet_arena_loader.load_challenge()
@@ -44,4 +37,4 @@ def demo_market_earning_and_prophet_arena_challenge():
 
 if __name__ == "__main__":
     demo_scoring_rule_and_gjo_challenge()
-    # demo_market_earning_and_prophet_arena_challenge()
+    demo_market_earning_and_prophet_arena_challenge()

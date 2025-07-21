@@ -99,13 +99,35 @@ Regardless of the data source, we provide a **unified interface** to load the da
 
     An interesting future step, at least for LLM forecasters, is to **ask it to verbalize its own risk-aversion** and use it to calculate the market earning.
 
+3. **Generalized Bradley-Terry Model** `model/bradley_terry.py`: Implements the Generalized Bradley-Terry (GBT) model for ranking forecasters based on their pairwise performance across prediction problems. The GBT model estimates a 'skill' parameter for each forecaster by comparing their probability assignments to the correct outcome, iteratively updating these skills to best explain the observed outcomes. This approach is particularly useful for settings where direct pairwise comparisons between forecasters are meaningful.
+
+4. **IRT (Item Response Theory) Models** `model/irt/`: Provides IRT-based models for ranking forecasters by modeling both forecaster ability and problem difficulty/discrimination. The IRT model uses probabilistic inference (via SVI or MCMC) to estimate latent skill parameters for each forecaster and latent difficulty/discrimination parameters for each problem, allowing for a nuanced ranking that accounts for the varying challenge of different prediction problems.
+
+5. **Weighted Brier Scoring Rule** `model/scoring_rule.py`: Once we have fit a IRT model, we can use the problem-level discrimination parameter to weight the Brier score. The simple way is through
+
+```python
+# assume that `irt_model` is already fitted.
+problem_discriminations, _ = irt_model.get_problem_level_parameters()
+problem_discriminations = np.array([problem_discriminations[problem.problem_id] for problem in problems])
+brier_scoring_rule = BrierScoringRule()
+brier_ranking_result = brier_scoring_rule.fit(problems, problem_discriminations=problem_discriminations, include_scores=False)
+```
+Our experiment shows that this weighted metric has the highest rank correlation with the IRT model-based individual skill ranking.
+
 #### 2.3: &nbsp; Example: Fitting Streaming Prediction Market Data
 
 In `plotting/plot_crra_risks_curves.py`, we demonstrate a use case of fitting the **market earning model** to the streaming prediction market data. The full dataset is streamed in batches of 100 problems. We then fit **three** market earning model at different risk-aversion levels (0, 0.5, 1). The results are shown in the following figure:
 
-<img src="docs/prophet_arena_risk_curves.png" alt="CRRA Risks Curves" width="800">
+<img src="docs/prophet_arena_risk_curves_0717.png" alt="CRRA Risks Curves" width="800">
 
 *PM-RANK*'s modular design makes it easy to conduct such analysis easily.
+
+
+#### 2.4: &nbsp; Example: Comparing Ranking Metrics and Plotting Correlations
+
+To compare the different ranking metrics, see the code in `plotting/plot_correlations_multiple_metrics.py`. This script demonstrates how to compute all implemented ranking metrics (Brier, Market Earning, Generalized Bradley-Terry, IRT, and Weighted Brier) on a dataset and visualize the pairwise correlations between their resulting rankings. The resulting plot, which shows both Spearman and Kendall correlations between all pairs of ranking methods, is shown below:
+
+<img src="docs/correlation_grid.png" alt="Correlation Grid" width="400">
 
 
 ---

@@ -4,9 +4,8 @@ Simple test for ProphetArenaChallengeLoader using assert-based testing.
 """
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from data import ProphetArenaChallengeLoader, ForecastChallenge
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+from pm_rank.data import ProphetArenaChallengeLoader, ForecastChallenge
 import pandas as pd
 import json
 

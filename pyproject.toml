@@ -1,18 +1,22 @@
 [project]
-name = "pm-ranking"
+name = "pm_rank"
 version = "0.1.0"
-description = "Add your description here"
+description = "A toolkit for scoring and ranking prediction market forecasters."
+authors = [
+    { name = "Sida Li", email = "listar2000@uchicago.edu" }
+]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "beautifulsoup4>=4.13.4",
-    "ipykernel>=6.29.5",
-    "matplotlib>=3.10.3",
-    "pandas>=2.3.0",
-    "pydantic>=2.11.7",
-    "pyro-ppl>=1.9.1",
-    "pytest-playwright>=0.7.0",
-    "requests>=2.32.4",
-    "seaborn>=0.13.2",
-    "tqdm>=4.67.1",
+    "numpy",
+    "matplotlib",
+    "seaborn",
+    # add other dependencies as needed
 ]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -4,18 +4,19 @@ Simple test for GJOChallengeLoader using assert-based testing.
 """
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+from pm_rank.data import GJOChallengeLoader, ForecastChallenge, ForecastProblem, ForecastEvent
 
-from data import GJOChallengeLoader, ForecastChallenge, ForecastProblem, ForecastEvent
-
+PREDICTIONS_FILE = "src/pm_rank/data/raw/all_predictions.json"
+METADATA_FILE = "src/pm_rank/data/raw/sports_challenge_metadata.json"
 
 def test_gjo_loader_basic():
     """Test basic functionality of GJOChallengeLoader."""
     
     # Initialize the loader with the actual data files
     loader = GJOChallengeLoader(
-        predictions_file="data/raw/all_predictions.json",
-        metadata_file="data/raw/sports_challenge_metadata.json",
+        predictions_file=PREDICTIONS_FILE,
+        metadata_file=METADATA_FILE,
         challenge_title="Sports Challenge 2024"
     )
     
@@ -33,8 +34,8 @@ def test_gjo_loader_full_challenge():
     """Test loading the full challenge without filters."""
     
     loader = GJOChallengeLoader(
-        predictions_file="data/raw/all_predictions.json",
-        metadata_file="data/raw/sports_challenge_metadata.json",
+        predictions_file=PREDICTIONS_FILE,
+        metadata_file=METADATA_FILE,
         challenge_title="Sports Challenge 2024"
     )
     
@@ -73,8 +74,8 @@ def test_gjo_loader_with_filters():
     """Test loading with forecaster and problem filters."""
     
     loader = GJOChallengeLoader(
-        predictions_file="data/raw/all_predictions.json",
-        metadata_file="data/raw/sports_challenge_metadata.json",
+        predictions_file=PREDICTIONS_FILE,
+        metadata_file=METADATA_FILE,
         challenge_title="Sports Challenge 2024"
     )
     
@@ -107,8 +108,8 @@ def test_challenge_properties():
     """Test computed properties of the challenge."""
     
     loader = GJOChallengeLoader(
-        predictions_file="data/raw/all_predictions.json",
-        metadata_file="data/raw/sports_challenge_metadata.json",
+        predictions_file=PREDICTIONS_FILE,
+        metadata_file=METADATA_FILE,
         challenge_title="Sports Challenge 2024"
     )
     
@@ -138,8 +139,8 @@ def test_problem_properties():
     """Test computed properties of problems."""
     
     loader = GJOChallengeLoader(
-        predictions_file="data/raw/all_predictions.json",
-        metadata_file="data/raw/sports_challenge_metadata.json",
+        predictions_file=PREDICTIONS_FILE,
+        metadata_file=METADATA_FILE,
         challenge_title="Sports Challenge 2024"
     )
     
@@ -158,7 +159,7 @@ def test_problem_properties():
         assert len(unique_forecasters) <= len(problem.forecasts)
         
         # Test odds property
-        assert problem.has_odds() == (problem.odds is not None)
+        assert problem.has_odds == (problem.odds is not None)
     
     print("✓ Problem properties test passed")
 
