@@ -82,13 +82,13 @@ Regardless of the data source, we provide a **unified interface** to load the da
 
 - [x] Basic scoring rules: Brier score, Log score, etc.
 - [x] Market earning model: directly evaluate how much money an individual forecaster can make (requires the `odds` field in the `ForecastProblem`)
-- [ ] Bradley-Terry (BT) type pairwise comparison models, including Elo rating
-- [ ] Item response theory (IRT) models
+- [x] Bradley-Terry (BT) type pairwise comparison models, including Elo rating
+- [x] Item response theory (IRT) models
 - [ ] For all models, configuration files to specify hyperparameters
 
 #### Diagnostics:
 
-- [ ] Calculate the correlation between different scoring/ranking methods
+- [x] Calculate the correlation between different scoring/ranking methods
 - [ ] For BT-model, calculate a "graph-connectivity" metric to assess the suitability of the model
 
 #### 2.2: &nbsp; Implemented Models
