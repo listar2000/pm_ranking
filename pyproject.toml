@@ -1,17 +1,25 @@
 [project]
 name = "pm_rank"
-version = "0.1.0"
+version = "0.1.1"
 description = "A toolkit for scoring and ranking prediction market forecasters."
 authors = [
     { name = "Sida Li", email = "listar2000@uchicago.edu" }
 ]
 readme = "README.md"
 requires-python = ">=3.12"
+
 dependencies = [
     "numpy",
     "matplotlib",
     "seaborn",
+    "pandas",
+    "tqdm"
     # add other dependencies as needed
+]
+
+[project.optional-dependencies]
+full = [
+    "torch>=2.0.0"
 ]
 
 [build-system]

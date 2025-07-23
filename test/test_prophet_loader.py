@@ -9,11 +9,12 @@ from pm_rank.data import ProphetArenaChallengeLoader, ForecastChallenge
 import pandas as pd
 import json
 
+ARENA_PREDICTIONS_FILE = "src/pm_rank/data/raw/prophet_arena_full.csv"
 
 def test_prophet_arena_loader_basic():
     """Test basic functionality of ProphetArenaChallengeLoader."""
     loader = ProphetArenaChallengeLoader(
-        predictions_file="data/raw/prophet_arena_full.csv",
+        predictions_file=ARENA_PREDICTIONS_FILE,
         challenge_title="Prophet Arena Example"
     )
     metadata = loader.get_challenge_metadata()
@@ -27,7 +28,7 @@ def test_prophet_arena_loader_basic():
 def test_prophet_arena_loader_full_challenge():
     """Test loading the full Prophet Arena challenge."""
     loader = ProphetArenaChallengeLoader(
-        predictions_file="data/raw/prophet_arena_full.csv",
+        predictions_file=ARENA_PREDICTIONS_FILE,
         challenge_title="Prophet Arena Example"
     )
     challenge = loader.load_challenge()
@@ -47,11 +48,11 @@ def test_prophet_arena_loader_full_challenge():
 
 def test_prophet_arena_odds_calculation(challenge: ForecastChallenge):
     """Test the odds calculation helper for Prophet Arena."""
-    df = pd.read_csv("data/raw/prophet_arena_full.csv")
+    df = pd.read_csv(ARENA_PREDICTIONS_FILE)
     first_row = df.iloc[0]
     options = json.loads(first_row['markets']) if isinstance(first_row['markets'], str) else first_row['markets']
     market_info = json.loads(first_row['market_info']) if isinstance(first_row['market_info'], str) else first_row['market_info']
-    odds = ProphetArenaChallengeLoader._calculate_odds_for_problem(market_info, options)
+    odds = ProphetArenaChallengeLoader._calculate_implied_probs_for_problem(market_info, options)
     assert isinstance(odds, list)
     assert len(odds) == len(options)
     if sum(odds) > 0:

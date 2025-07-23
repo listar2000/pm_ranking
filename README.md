@@ -10,6 +10,10 @@
 ```sh
 pip install pm-rank
 ```
+this will give you access to most basic scoring/ranking models *except for the IRT model*, which requires `torch>=2.0.0`. To install the full version, run:
+```sh
+pip install pm-rank[full]
+```
 
 **Install from source (local build):**
 ```sh

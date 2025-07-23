@@ -2,7 +2,7 @@
 Concrete implementations of ChallengeLoader for different data sources.
 """
 from pathlib import Path
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Optional
 import pandas as pd
 from .base import ChallengeLoader, ForecastChallenge, ForecastProblem, ForecastEvent
 from datetime import datetime
@@ -13,20 +13,35 @@ from .utils import parse_json_or_eval
 class GJOChallengeLoader(ChallengeLoader):
     """Load forecast challenges from GJO (Good Judgment Open) data format."""
     
-    def __init__(self, predictions_file: str, metadata_file: str, challenge_title: str = ""):
+    def __init__(self, predictions_df: Optional[pd.DataFrame] = None, predictions_file: Optional[str] = None, \
+        metadata_file: Optional[str] = None, challenge_title: str = ""):
         """
-        Initialize the GJOChallengeLoader.
-        """
-        self.predictions_file = Path(predictions_file)
-        self.metadata_file = Path(metadata_file)
+        Initialize the GJOChallengeLoader. The challenge can be either loaded with a given `pd.DataFrame` or with \
+            a combination of paths `predictions_file` and `metadata_file`.
 
+        Args:
+            predictions_df (pd.DataFrame): a pd.DataFrame containing the predictions. If provided, \
+                `predictions_file` and `metadata_file` will be ignored.
+            predictions_file (str): the path to the predictions file
+            metadata_file (str): the path to the metadata file
+            challenge_title (str): the title of the challenge
+        """
         self.challenge_title = challenge_title
-        
-        if not self.predictions_file.exists():
-            raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
-        if not self.metadata_file.exists():
-            raise FileNotFoundError(f"Metadata file not found: {metadata_file}")
+        # either predictions_file or prediction_df should be provided
+        if predictions_df is None:
+            assert predictions_file is not None and metadata_file is not None, \
+                "Either predictions_df or (predictions_file and metadata_file) should be provided"
 
+            self.predictions_file = Path(predictions_file)
+            self.metadata_file = Path(metadata_file)
+
+            if not self.predictions_file.exists():
+                raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
+            if not self.metadata_file.exists():
+                raise FileNotFoundError(f"Metadata file not found: {metadata_file}")
+        else:
+            self.predictions_df = predictions_df
+            
     def _get_filtered_df(self, predictions_df: pd.DataFrame, metadata_df: pd.DataFrame, forecaster_filter: int, problem_filter: int) \
         ->  Tuple[pd.DataFrame, pd.DataFrame]:
         # step 1: we group the problems by problem_id and calculate the number of events for each problem
@@ -52,9 +67,11 @@ class GJOChallengeLoader(ChallengeLoader):
         Returns:
             ForecastChallenge: a ForecastChallenge object containing the forecast problems and events
         """
-        # Load metadata and predictions
-        metadata_df = pd.read_json(self.metadata_file)
-        predictions_df = pd.read_json(self.predictions_file)
+        if hasattr(self, 'predictions_df'):
+            predictions_df = self.predictions_df
+        else:
+            predictions_df = pd.read_json(self.predictions_file)
+            metadata_df = pd.read_json(self.metadata_file)
         
         # Filter the data
         if forecaster_filter > 0 or problem_filter > 0:
@@ -115,8 +132,11 @@ class GJOChallengeLoader(ChallengeLoader):
     
     def get_challenge_metadata(self) -> Dict[str, Any]:
         """Get basic metadata about the GJO challenge."""
-        with open(self.metadata_file, 'r') as f:
-            metadata_df = pd.read_json(f)
+        if self.metadata_file is not None:
+            with open(self.metadata_file, 'r') as f:
+                metadata_df = pd.read_json(f)
+        else:
+            metadata_df = self.predictions_df[['problem_id', 'title', 'options', 'correct_answer', 'url']].drop_duplicates()
         
         if self.challenge_title is None:
             # set title to be the `xx` part of metadata file before `xx_metadata.json`
@@ -133,23 +153,29 @@ class GJOChallengeLoader(ChallengeLoader):
 class ProphetArenaChallengeLoader(ChallengeLoader):
     """Load forecast challenges from Prophet Arena data format."""
     
-    def __init__(self, predictions_file: str, challenge_title: str = "", use_bid_for_odds: bool = False):
+    def __init__(self, predictions_df: Optional[pd.DataFrame] = None, predictions_file: Optional[str] = None, \
+        challenge_title: str = "", use_bid_for_odds: bool = False):
         """
-        Initialize the ProphetArenaChallengeLoader.
+        Initialize the ProphetArenaChallengeLoader. The challenge can be either loaded with a given `pd.DataFrame` or with a path to a predictions file.
+
         Args:
-            predictions_file: the path to the predictions file
-            challenge_title: the title of the challenge
-            use_bid_for_odds: whether to use the `yes_bid` field for implied probability calculation
+            predictions_df (pd.DataFrame): a pd.DataFrame containing the predictions. If provided, `predictions_file` will be ignored.
+            predictions_file (str): the path to the predictions file
+            challenge_title (str): the title of the challenge
+            use_bid_for_odds (bool): whether to use the `yes_bid` field for implied probability calculation
                 if True, the implied probability will be calculated as the (yes_bid + no_bid) / 2
                 if False, the implied probability will be simply `yes_ask` (normalized to sum to 1)
         """
-        self.predictions_file = Path(predictions_file)
         self.challenge_title = challenge_title
         self.use_bid_for_odds = use_bid_for_odds
-
-        if not self.predictions_file.exists():
-            raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
-
+        if predictions_df is None:
+            assert predictions_file is not None, "Either predictions_df or predictions_file should be provided"
+            self.predictions_file = Path(predictions_file)
+            if not self.predictions_file.exists():
+                raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
+        else:
+            self.predictions_df = predictions_df
+    
     @staticmethod
     def _calculate_implied_probs_for_problem(market_info: dict, options: list, use_bid_for_odds: bool = False) -> list | None:
         """
@@ -186,7 +212,10 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         Load challenge data from Prophet Arena data format.
         Group by submission_id, then for each group, build the list of forecasts, then the ForecastProblem.
         """
-        df = pd.read_csv(self.predictions_file)
+        if hasattr(self, 'predictions_df'):
+            df = self.predictions_df
+        else:
+            df = pd.read_csv(self.predictions_file)
 
         forecast_problems = []
         problem_id_counter = 1
@@ -250,11 +279,14 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         """
         Get basic metadata about the Prophet Arena challenge using pandas groupby (no full parsing).
         """
-        df = pd.read_csv(self.predictions_file)
+        if hasattr(self, 'predictions_df'):
+            df = self.predictions_df
+        else:
+            df = pd.read_csv(self.predictions_file)
         num_problems = df['submission_id'].nunique()
         return {
             'title': self.challenge_title or "Prophet Arena Challenge",
             'num_problems': num_problems,
             'num_forecasters': df['predictor_name'].nunique(),
-            'predictions_file': str(self.predictions_file)
+            'predictions_file': str(getattr(self, 'predictions_file', 'Loaded from pd.DataFrame'))
         }
