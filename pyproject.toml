@@ -1,6 +1,6 @@
 [project]
 name = "pm_rank"
-version = "0.1.2"
+version = "0.1.3"
 description = "A toolkit for scoring and ranking prediction market forecasters."
 authors = [
     { name = "Sida Li", email = "listar2000@uchicago.edu" }
@@ -18,8 +18,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+docs = [
+    "sphinx",
+    "sphinxawesome-theme",
+]
+
 full = [
-    "torch>=2.0.0"
+    "torch>=2.0.0",
+    "sphinx",
+    "sphinxawesome-theme"
 ]
 
 [build-system]

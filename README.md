@@ -121,7 +121,7 @@ Our experiment shows that this weighted metric has the highest rank correlation 
 
 In `plotting/plot_crra_risks_curves.py`, we demonstrate a use case of fitting the **market earning model** to the streaming prediction market data. The full dataset is streamed in batches of 100 problems. We then fit **three** market earning model at different risk-aversion levels (0, 0.5, 1). The results are shown in the following figure:
 
-<img src="docs/prophet_arena_risk_curves_0717.png" alt="CRRA Risks Curves" width="800">
+<img src="docs/assets/prophet_arena_risk_curves_0717.png" alt="CRRA Risks Curves" width="800">
 
 *PM-RANK*'s modular design makes it easy to conduct such analysis easily.
 
@@ -131,7 +131,7 @@ In `plotting/plot_crra_risks_curves.py`, we demonstrate a use case of fitting th
 To compare the different ranking metrics, see the code in `plotting/plot_correlations_multiple_metrics.py`. This script demonstrates how to compute all implemented ranking metrics (Brier, Market Earning, Generalized Bradley-Terry, IRT, and Weighted Brier) on a dataset and visualize the pairwise correlations between their resulting rankings. The resulting plot, which shows both Spearman and Kendall correlations between all pairs of ranking methods, is shown below:
 
 <p align="center">
-  <img src="docs/correlation_grid.png" alt="Correlation Grid" width="400">
+  <img src="docs/assets/correlation_grid.png" alt="Correlation Grid" width="400">
 </p>
 
 ---
