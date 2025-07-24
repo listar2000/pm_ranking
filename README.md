@@ -15,6 +15,11 @@ this will give you access to most basic scoring/ranking models *except for the I
 pip install pm-rank[full]
 ```
 
+If you want to work on the documentation, you can install the `docs` version:
+```sh
+pip install pm-rank[docs]
+```
+
 **Install from source (local build):**
 ```sh
 git clone https://github.com/yourusername/pm_rank.git
