@@ -50,7 +50,7 @@ def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6,
     forecaster_id_to_idx = {}
     problem_id_to_idx = {}
 
-    brier_scoring_rule = BrierScoringRule()
+    brier_scoring_rule = BrierScoringRule(negate=False, verbose=False)
 
     for forecast_problem in forecast_problems:
         # we leverage the fact that for a single problem, `all_probs` have the same shape

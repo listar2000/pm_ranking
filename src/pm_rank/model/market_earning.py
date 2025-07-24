@@ -12,7 +12,8 @@ IMPORTANT DEFINITIONS:
 import numpy as np
 from typing import List, Dict, Any, Tuple, Iterator
 from pm_rank.data.base import ForecastProblem
-from pm_rank.model.utils import forecaster_data_to_rankings
+from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
+import logging
 
 def _get_risk_neutral_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray) -> np.ndarray:
     """
@@ -67,11 +68,17 @@ def _get_risk_generic_crra_bets(forecast_probs: np.ndarray, implied_probs: np.nd
     return normalized_frac / implied_probs # shape (n, d)
 
 class MarketEarning(object):
-    def __init__(self, num_money_per_round: int = 1, risk_aversion: float = 0.0):
+    def __init__(self, num_money_per_round: int = 1, risk_aversion: float = 0.0, verbose: bool = False):
         self.num_money_per_round = num_money_per_round
         assert risk_aversion >= 0 and risk_aversion <= 1, \
             f"risk_aversion must be between 0 and 1, but got {risk_aversion}"
         self.risk_aversion = risk_aversion
+        self.verbose = verbose
+        self.logger = get_logger(f"pm_rank.model.{self.__class__.__name__}")
+        if self.verbose:
+            self.logger.setLevel(logging.DEBUG)
+        self.logger.info(f"Initialized {self.__class__.__name__} with hyperparam: \n" + \
+            f"num_money_per_round={num_money_per_round}, risk_aversion={risk_aversion}")
 
     def _process_problem(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]]) -> None:
         """Process a single problem and update forecaster_data with earnings."""
@@ -107,8 +114,11 @@ class MarketEarning(object):
         forecaster_data = {}
         for problem in problems:
             self._process_problem(problem, forecaster_data)
-        
-        return forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
+            
+        result = forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
+        if self.verbose:
+            log_ranking_table(self.logger, result)
+        return result
 
     def fit_stream(self, problem_iter: Iterator[List[ForecastProblem]], include_scores: bool = True) -> \
         Dict[int, Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]]:
@@ -118,10 +128,17 @@ class MarketEarning(object):
         batch_id = 0
         
         for batch in problem_iter:
+            if self.verbose:
+                self.logger.debug(f"Processing batch {batch_id}")
+
             for problem in batch:
                 self._process_problem(problem, forecaster_data)
 
             batch_results[batch_id] = forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
+            
+            if self.verbose:
+                log_ranking_table(self.logger, batch_results[batch_id])
+
             batch_id += 1
         
         return batch_results

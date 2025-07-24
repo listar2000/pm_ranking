@@ -16,3 +16,6 @@ model/irt/output/*
 # Ignore raw data files
 src/pm_rank/data/raw/*.json
 src/pm_rank/data/raw/*.csv
+
+# Ignore slurm files
+slurm/*

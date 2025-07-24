@@ -8,8 +8,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 from typing import List, Iterator, Dict, Tuple, Any
 from pm_rank.data.base import ForecastProblem
-from pm_rank.model.utils import forecaster_data_to_rankings
-from tqdm import tqdm
+from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
+import logging
 
 # we use the following quantiles to cap the problem weights
 MAX_PROBLEM_WEIGHT_QUANTILE = 0.75
@@ -19,6 +19,11 @@ class ScoringRule(ABC):
     """
     Abstract base class for scoring rules.
     """
+    def __init__(self, verbose: bool = False):
+        self.verbose = verbose
+        self.logger = get_logger(f"pm_rank.model.{self.__class__.__name__}")
+        if self.verbose:
+            self.logger.setLevel(logging.DEBUG)
 
     @abstractmethod
     def _score_fn(self, correct_probs: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
@@ -35,13 +40,13 @@ class ScoringRule(ABC):
         problem_weights = len(problem_discriminations) * problem_weights / np.sum(problem_weights)
         return problem_weights
 
-    def fit(self, problems: List[ForecastProblem], problem_discriminations: np.ndarray = None, include_scores: bool = True) \
+    def fit(self, problems: List[ForecastProblem], problem_discriminations: np.ndarray | List[float] | None = None, include_scores: bool = True) \
         -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """ fit the scoring rule to the problems """
         forecaster_data = {}
 
         if problem_discriminations is not None:
-            problem_weights = self._get_problem_weights(problem_discriminations)
+            problem_weights = self._get_problem_weights(np.array(problem_discriminations))
         else:
             problem_weights = np.ones(len(problems))
         
@@ -63,7 +68,10 @@ class ScoringRule(ABC):
             for username, score in zip(usernames, scores):
                 forecaster_data[username].append(score)
         
-        return forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
+        result = forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
+        if self.verbose:
+            log_ranking_table(self.logger, result)
+        return result
 
     def fit_stream(self, problem_iter: Iterator[List[ForecastProblem]], include_scores: bool = True) -> Dict[int, Tuple[Dict[str, Any], Dict[str, int]]]:
         """ return the fitted scores and rankings as problems are streamed in instead of all given at once """
@@ -71,7 +79,9 @@ class ScoringRule(ABC):
         batch_results = {}
         batch_id = 0
         
-        for batch in tqdm(problem_iter, desc=f"Fitting {self.__class__.__name__}"):
+        for batch in problem_iter:
+            if self.verbose:
+                self.logger.debug(f"Processing batch {batch_id}")
             for problem in batch:
                 correct_probs, all_probs, usernames = [], [], []
                 for forecast in problem.forecasts:
@@ -91,6 +101,10 @@ class ScoringRule(ABC):
                     forecaster_data[username].append(score)
 
             batch_results[batch_id] = forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
+
+            if self.verbose:
+                log_ranking_table(self.logger, batch_results[batch_id])
+
             batch_id += 1
         
         return batch_results
@@ -100,9 +114,11 @@ class LogScoringRule(ScoringRule):
     """
     Log scoring rule.
     """
-    def __init__(self, clip_prob: float = 0.01):
+    def __init__(self, clip_prob: float = 0.01, verbose: bool = False):
         """ initialize the scoring rule """
+        super().__init__(verbose=verbose)
         self.clip_prob = clip_prob
+        self.logger.info(f"Initialized {self.__class__.__name__} with hyperparam: clip_prob={clip_prob}")
 
     def _score_fn(self, correct_probs: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
         """ implement the scoring function for the rule """
@@ -113,6 +129,11 @@ class BrierScoringRule(ScoringRule):
     """
     Brier scoring rule.
     """
+    def __init__(self, negate: bool = True, verbose: bool = False):
+        super().__init__(verbose=verbose)
+        self.negate = negate
+        self.logger.info(f"Initialized {self.__class__.__name__} with hyperparam: negate={negate}")
+
     def _score_fn(self, correct_probs: np.ndarray, all_probs: np.ndarray, negate: bool = True) -> np.ndarray:
         """ implement the scoring function for the rule """
         # correct_probs is 1D with shape (n,), all_probs is 2D with shape (n, k)
@@ -130,6 +151,10 @@ class SphericalScoringRule(ScoringRule):
     """
     Spherical scoring rule.
     """
+    def __init__(self, verbose: bool = False):
+        super().__init__(verbose=verbose)
+        self.logger.info(f"Initialized {self.__class__.__name__}")
+
     def _score_fn(self, correct_probs: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
         """ formula: r_j / sum_i r_i where r_j is the correct probability of the j-th option """
         correct_scores = correct_probs / np.linalg.norm(all_probs, axis=1)

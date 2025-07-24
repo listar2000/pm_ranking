@@ -7,21 +7,30 @@ from collections import OrderedDict
 import numpy as np
 from typing import Literal, List, Dict, Any, Tuple
 from pm_rank.data.base import ForecastProblem
-from pm_rank.model.utils import forecaster_data_to_rankings
-from tqdm import tqdm
+from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
+import logging
 
 
 class GeneralizedBT(object):
-    def __init__(self, method: Literal["MM", "Elo"] = "MM", num_iter: int = 100, threshold: float = 1e-3):
+    def __init__(self, method: Literal["MM", "Elo"] = "MM", num_iter: int = 100, threshold: float = 1e-3, verbose: bool = False):
         self.method = method
         self.num_iter = num_iter
         self.threshold = threshold
+        self.verbose = verbose
+        self.logger = get_logger(f"pm_rank.model.{self.__class__.__name__}")
+        if self.verbose:
+            self.logger.setLevel(logging.DEBUG)
+        self.logger.info(f"Initialized {self.__class__.__name__} with hyperparam: \n" + \
+            f"method={method}, num_iter={num_iter}, threshold={threshold}")
 
     def fit(self, problems: List[ForecastProblem], include_scores: bool = True) -> \
         Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
-        """Fit the Bradley-Terry model to the problems."""
         skills = self._fit_mm(problems, full_trajectory=False)
-        return forecaster_data_to_rankings(skills, include_scores=include_scores, ascending=False) # type: ignore
+        result = forecaster_data_to_rankings(skills, include_scores=include_scores, ascending=False) # type: ignore
+
+        if self.verbose:
+            log_ranking_table(self.logger, result)
+        return result
 
     def _fit_mm(self, problems: List[ForecastProblem], full_trajectory: bool = False):
         # TODO: currently we assume that each forecaster only makes one forecast per problem
@@ -39,7 +48,9 @@ class GeneralizedBT(object):
         if full_trajectory:
             trajectory = [thetas]
 
-        for t in tqdm(range(self.num_iter), desc="Fitting Generalized Bradley-Terry model"):
+        for t in range(self.num_iter):
+            if self.verbose and (t % 10 == 0 or t == self.num_iter - 1):
+                self.logger.debug(f"Iteration {t}/{self.num_iter}")
             # for each round, we need to calculate the W_t and D_t from existing thetas
             W_t, D_t = np.zeros(num_forecasters), np.zeros(num_forecasters)
             for problem in problems:
@@ -69,7 +80,8 @@ class GeneralizedBT(object):
             
             # convergence check
             if np.max(np.abs(thetas - old_thetas)) < self.threshold:
-                print(f"[GBT early stopping] Converged after {t} iterations")
+                if self.verbose:
+                    self.logger.info(f"Generalized Bradley-Terry model converged after {t} iterations")
                 break
             
         # return a dict of user_id, theta skill

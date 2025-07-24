@@ -1,5 +1,17 @@
-from typing import Dict, List, Literal
+import logging
+import sys
+from typing import Dict, List, Literal, Any, Tuple
 import numpy as np
+
+def get_logger(name: str = "pm_rank.model"):
+    logger = logging.getLogger(name)
+    if not logger.hasHandlers():
+        handler = logging.StreamHandler(sys.stdout)
+        formatter = logging.Formatter('[%(asctime)s] %(levelname)s %(name)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    return logger
 
 AGGREGATE_FNS = {
     "mean": np.mean,
@@ -76,3 +88,35 @@ def kendall_correlation(rank_dict_a: Dict[str, int], rank_dict_b: Dict[str, int]
 
     total_pairs = n * (n - 1) / 2
     return (concordant - discordant) / total_pairs if total_pairs != 0 else 0.0
+
+
+def _format_ranking_table(rankings: dict, scores: dict | None = None, max_rows: int = 20) -> str:
+    """
+    Format a table of forecaster scores and rankings for logging.
+    Shows up to max_rows entries, sorted by rank.
+    """
+    # Sort by rank
+    items = sorted(rankings.items(), key=lambda x: rankings[x[0]])
+    header = f"{'Rank':>4}  {'User':<20}"
+    if scores is not None:
+        header += f"  {'Score':>10}"
+    lines = [header, '-' * len(header)]
+    for _, (user, rank) in enumerate(items[:max_rows]):
+        if scores is not None:
+            lines.append(f"{rank:>4}  {user:<20}  {scores[user]:>10.4f}")
+        else:
+            lines.append(f"{rank:>4}  {user:<20}")
+    if len(items) > max_rows:
+        lines.append(f"... ({len(items) - max_rows} more)")
+    return '\n'.join(lines)
+
+
+def log_ranking_table(logger: logging.Logger, ranking_result: Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int], max_rows: int = 20):
+    """
+    Take in any model's ranking result, which might or might not include scores, and log the table.
+    """
+    if isinstance(ranking_result, tuple):
+        scores, rankings = ranking_result
+    else:
+        scores, rankings = None, ranking_result
+    logger.info(_format_ranking_table(rankings, scores, max_rows))

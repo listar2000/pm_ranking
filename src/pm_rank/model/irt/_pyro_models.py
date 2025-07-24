@@ -1,6 +1,8 @@
 from functools import partial
 import torch
 import numpy as np
+import logging
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 from pyro.infer import SVI, Trace_ELBO
 from pyro.infer.mcmc import NUTS, MCMC, HMC
@@ -10,7 +12,7 @@ import pyro.distributions as dist
 from pydantic import BaseModel, Field
 from typing import Literal, List, Dict, Any, Tuple
 
-from pm_rank.model.utils import forecaster_data_to_rankings
+from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
 from pm_rank.model.irt._dataset import _prepare_pyro_obs
 from pm_rank.data.base import ForecastProblem
 from pm_rank.data.loaders import GJOChallengeLoader
@@ -35,12 +37,18 @@ class SVIConfig(BaseModel):
     device: Literal["cpu", "cuda"] = Field(default="cpu", description="The device to use for the SVI engine.")
 
 class IRTModel(object):
-    def __init__(self, n_bins: int = 6, use_empirical_quantiles: bool = False):
+    def __init__(self, n_bins: int = 6, use_empirical_quantiles: bool = False, verbose: bool = False):
         self.n_bins = n_bins
         self.use_empirical_quantiles = use_empirical_quantiles
         # initiate pyro observations with None
         self.irt_obs = None
         self.method = None
+        self.verbose = verbose
+        self.logger = get_logger(f"pm_rank.model.{self.__class__.__name__}")
+        if self.verbose:
+            self.logger.setLevel(logging.DEBUG)
+        self.logger.info(f"Initialized {self.__class__.__name__} with hyperparam: \n" + \
+            f"n_bins={n_bins}, use_empirical_quantiles={use_empirical_quantiles}")
 
     def fit(self, problems: List[ForecastProblem], include_scores: bool = True, method: Literal["SVI", "NUTS"] = "SVI", \
         config: MCMCConfig | SVIConfig | None = None) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
@@ -67,9 +75,9 @@ class IRTModel(object):
 
             if mcmc_config.save_result:
                 import time
-                torch.save(posterior_samples, f"{OUTPUT_DIR}/posterior_samples_{time.strftime("%m%d_%H%M")}.pt")
+                torch.save(posterior_samples, f"{OUTPUT_DIR}/posterior_samples_{time.strftime('%m%d_%H%M')}.pt")
 
-            return self._score_and_rank_mcmc(self.posterior_samples, include_scores=include_scores)
+            result = self._score_and_rank_mcmc(self.posterior_samples, include_scores=include_scores)
         else:
             svi_config: SVIConfig = config # type: ignore
             fitted_params = self._fit_pyro_model_svi(self.irt_obs.forecaster_ids, self.irt_obs.problem_ids, self.irt_obs.discretized_scores, self.irt_obs.anchor_points, \
@@ -77,7 +85,11 @@ class IRTModel(object):
 
             self.fitted_params = fitted_params
 
-            return self._score_and_rank_svi(self.fitted_params, include_scores=include_scores)
+            result = self._score_and_rank_svi(self.fitted_params, include_scores=include_scores)
+        
+        if self.verbose:
+            log_ranking_table(self.logger, result)
+        return result
 
     def get_problem_level_parameters(self) -> Tuple[Dict[str, float], Dict[str, float]]:
         """
@@ -189,12 +201,22 @@ class IRTModel(object):
         mp_context = "spawn" if num_chains > 1 and self.device == "cuda" else None
         mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps, num_chains=num_chains, mp_context=mp_context)
         
-        mcmc.run(
-            forecaster_ids=forecaster_ids,
-            problem_ids=problem_ids,
-            discretized_scores=discretized_scores,
-            anchor_points=anchor_points,
-        )
+        if self.verbose:
+            with logging_redirect_tqdm([self.logger]):
+                mcmc.run(
+                    forecaster_ids=forecaster_ids,
+                    problem_ids=problem_ids,
+                    discretized_scores=discretized_scores,
+                    anchor_points=anchor_points,
+                )
+        else:
+            mcmc.run(
+                forecaster_ids=forecaster_ids,
+                problem_ids=problem_ids,
+                discretized_scores=discretized_scores,
+                anchor_points=anchor_points,
+                disable_progbar=True
+            )
 
         posterior_samples = mcmc.get_samples()
 
@@ -214,12 +236,16 @@ class IRTModel(object):
         optim = Adam({"lr": learning_rate}) if optimizer == "Adam" else SGD({"lr": learning_rate})
 
         svi = SVI(self._model, self._guide, optim, loss=Trace_ELBO())
-
-        pbar = tqdm(range(num_steps))
-        for i in pbar:
-            loss = svi.step(forecaster_ids, problem_ids, discretized_scores, anchor_points)
-            if i % 20 == 0:
-                pbar.set_description(f"SVI [Loss: {loss:5.1f}]")
+        if self.verbose:
+            with logging_redirect_tqdm([self.logger]):
+                pbar = tqdm(range(num_steps))
+                for i in pbar:
+                    loss = svi.step(forecaster_ids, problem_ids, discretized_scores, anchor_points)
+                    if i % 20 == 0:
+                        pbar.set_description(f"SVI [Loss: {loss:5.1f}]")
+        else:
+            for i in range(num_steps):
+                svi.step(forecaster_ids, problem_ids, discretized_scores, anchor_points)
 
         return {
             "svi_mean_thetas": pyro.param("mean_theta").detach().cpu().numpy(),

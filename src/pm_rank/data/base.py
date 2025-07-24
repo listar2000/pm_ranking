@@ -193,6 +193,15 @@ class ForecastChallenge(BaseModel):
         for i in range(0, len(full_problems), increment):
             yield full_problems[i:i+increment]
 
+    def fill_problem_with_fair_odds(self, force: bool = False) -> None:
+        """
+        Certain challenge do not have odds data, we can fill in fair/uniform odds for each problem.
+        If `force` is True, we will not check whether the problem already has odds data.
+        """
+        for problem in self.forecast_problems:
+            if problem.has_odds and not force:
+                continue
+            problem.odds = [1 / len(problem.options)] * len(problem.options)
 
 class ChallengeLoader(ABC):
     """
