@@ -4,12 +4,11 @@ from different types of data sources.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Iterator, Literal
+from typing import Dict, List, Any, Iterator, Literal, Tuple
 from pydantic import BaseModel, Field, field_validator
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import cached_property
 import math, random
-
 
 class ForecastEvent(BaseModel):
     """Individual forecast from a user for a specific problem."""
@@ -192,6 +191,73 @@ class ForecastChallenge(BaseModel):
 
         for i in range(0, len(full_problems), increment):
             yield full_problems[i:i+increment]
+
+    def stream_problems_over_time(
+        self, increment_by: Literal["day", "week", "month"] = "day",
+        min_bucket_size: int = 1,
+    ) -> Iterator[Tuple[str, List["ForecastProblem"]]]:
+        """Stream all problems in chronological buckets.
+
+        Each bucket covers a contiguous time window of length *increment_by* (day, week, or
+        month).  If the window does **not** yet contain *min_bucket_size* problems, the
+        window is repeatedly extended by another *increment_by* until the size
+        requirement is met **or** no problems remain.  All problems whose ``end_date`` is
+        **strictly after** the previous bucket boundary *and* **≤** the current bucket
+        boundary are included.
+
+        The timestamp returned for a bucket is the *inclusive* upper‐bound boundary
+        expressed in ISO‑8601 (YYYY‑MM‑DD).
+
+        Args:
+            increment_by: The time interval to stream problems in a bucket.
+            min_bucket_size: The minimum number of problems to stream in each bucket.
+
+        Returns:
+            An iterator where each element is a bucket of (timestamp, list of problems).
+        """
+
+        assert min_bucket_size > 0, "min_bucket_size must be greater than 0"
+        if not self.forecast_problems:
+            return  # Nothing to yield
+
+        # 1. Sort once so we can consume the list with a monotone pointer.
+        full_problems = sorted(self.forecast_problems, key=lambda p: p.end_date)
+
+        # 2. Helper that advances a *date* by the requested interval. We consciously use *relativedelta* for months to avoid the "30‑day" hack.
+        if increment_by == "day":
+            step = lambda d: d + timedelta(days=1)
+        elif increment_by == "week":
+            step = lambda d: d + timedelta(weeks=1)
+        elif increment_by == "month":
+            step = lambda d: d + timedelta(days=30)
+
+        # 3. Main sweep: maintain an index into *full_problems* and enlarge the current window until it holds ≥ *min_bucket_size* elements.
+        n, idx = len(full_problems), 0
+
+        # The lower boundary is exclusive. Start one microsecond before the first problem so that the first problem definitely falls into the first bucket.
+        prev_boundary = full_problems[0].end_date.date()  # earliest date present
+        prev_boundary = prev_boundary - timedelta(microseconds=1)
+
+        while idx < n:
+            # Upper boundary grows by *step* until bucket is large enough.
+            upper_boundary = step(prev_boundary)
+            bucket = []
+
+            while idx < n and len(bucket) < min_bucket_size:
+                # Consume problems whose date ≤ current upper_boundary.
+                while idx < n and full_problems[idx].end_date.date() <= upper_boundary:
+                    bucket.append(full_problems[idx])
+                    idx += 1
+
+                # If still not enough, advance the boundary again and repeat.
+                if len(bucket) < min_bucket_size:
+                    upper_boundary = step(upper_boundary)
+
+            # Even if we exit because idx == n (no more problems), we yield what we have.
+            if bucket:
+                yield upper_boundary.isoformat(), bucket
+                # Next loop: window starts after *upper_boundary*.
+                prev_boundary = upper_boundary
 
     def fill_problem_with_fair_odds(self, force: bool = False) -> None:
         """

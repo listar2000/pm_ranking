@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Dict 
 
-from data import ProphetArenaChallengeLoader
+from pm_rank.data.loaders import ProphetArenaChallengeLoader
 from pm_rank.model.market_earning import MarketEarning
 
 if __name__ == "__main__":
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         'figure.titlesize': 18
     })
     
-    arena_file = "data/raw/prophet_arena_full.csv"
+    arena_file = "src/pm_rank/data/raw/prophet_arena_full.csv"
     prophet_arena_loader = ProphetArenaChallengeLoader(predictions_file=arena_file)
 
     prophet_arena_challenge = prophet_arena_loader.load_challenge()
@@ -94,9 +94,9 @@ if __name__ == "__main__":
     # Adjust layout to prevent overlap
     plt.tight_layout()
     
-    # Save to high DPI PDF
-    output_file = "prophet_arena_risk_curves_0717.png"
-    plt.savefig(output_file, dpi=300, bbox_inches='tight', format='png')
-    print(f"Plot saved as {output_file}")
+    # # Save to high DPI PDF
+    # output_file = "prophet_arena_risk_curves_0717.png"
+    # plt.savefig(output_file, dpi=300, bbox_inches='tight', format='png')
+    # print(f"Plot saved as {output_file}")
     
     plt.show()

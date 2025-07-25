@@ -60,16 +60,37 @@ def test_prophet_arena_odds_calculation(challenge: ForecastChallenge):
     print("✓ ProphetArena odds calculation test passed")
 
 
+def test_prophet_arena_stream_problems_over_time(challenge: ForecastChallenge):
+    """Test the stream_problems_over_time method."""
+    streamed_problem = 0
+
+    for bucket in challenge.stream_problems_over_time(increment_by="day", min_bucket_size=10):
+        print(f"Bucket: {bucket[0]} has {len(bucket[1])} problems")
+        streamed_problem += len(bucket[1])
+
+    assert streamed_problem == len(challenge.forecast_problems)
+    print("✓ ProphetArena stream_problems_over_time test passed")
+
+
+def test_prophet_arena_market_earning_fit_stream_with_timestamp(challenge: ForecastChallenge):
+    """Test the market earning fit_stream_with_timestamp method."""
+    from pm_rank.model.market_earning import MarketEarning
+    market_earning = MarketEarning(verbose=True)
+    market_earning.fit_stream_with_timestamp(challenge.stream_problems_over_time(increment_by="day", min_bucket_size=10))
+    print("✓ ProphetArena market earning fit_stream_with_timestamp test passed")
+
+
 def run_all_tests():
     """Run all tests."""
-    print("Running ProphetArenaChallengeLoader tests...")
+    print("Running ProphetArenaChallengeLoader tests...")   
     print("=" * 50)
     
     try:
         test_prophet_arena_loader_basic()
         challenge = test_prophet_arena_loader_full_challenge()
         test_prophet_arena_odds_calculation(challenge)
-        
+        test_prophet_arena_stream_problems_over_time(challenge)
+        test_prophet_arena_market_earning_fit_stream_with_timestamp(challenge)
         print("=" * 50)
         print("✓ All tests passed!")
         

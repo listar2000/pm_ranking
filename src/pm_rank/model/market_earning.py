@@ -10,7 +10,8 @@ IMPORTANT DEFINITIONS:
 - `number of bets` means the number of contracts (see above) to buy for each outcome.
 """
 import numpy as np
-from typing import List, Dict, Any, Tuple, Iterator
+from typing import List, Dict, Any, Tuple, Iterator, Callable
+from collections import OrderedDict
 from pm_rank.data.base import ForecastProblem
 from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
 import logging
@@ -108,6 +109,26 @@ class MarketEarning(object):
                 forecaster_data[username] = []
             forecaster_data[username].append(earnings[i])
 
+    def _fit_stream_generic(self, batch_iter: Iterator, key_fn: Callable, include_scores: bool = True, use_ordered: bool = False):
+        """Generic streaming fit function for both index and timestamp keys."""
+        forecaster_data = {}
+        batch_results = OrderedDict() if use_ordered else {}
+
+        for i, item in enumerate(batch_iter):
+            key, batch = key_fn(i, item)
+            if self.verbose:
+                msg = f"Processing batch {key}" if not use_ordered else f"Processing batch {i} at {key}"
+                self.logger.debug(msg)
+            for problem in batch:
+                self._process_problem(problem, forecaster_data)
+            batch_results[key] = forecaster_data_to_rankings(
+                forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean"
+            )
+            if self.verbose:
+                log_ranking_table(self.logger, batch_results[key])
+
+        return batch_results
+
     def fit(self, problems: List[ForecastProblem], include_scores: bool = True) -> \
         Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """Fit the market earning model to the problems."""
@@ -123,22 +144,17 @@ class MarketEarning(object):
     def fit_stream(self, problem_iter: Iterator[List[ForecastProblem]], include_scores: bool = True) -> \
         Dict[int, Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]]:
         """Return the fitted scores and rankings as problems are streamed in instead of all given at once."""
-        forecaster_data = {}
-        batch_results = {}
-        batch_id = 0
-        
-        for batch in problem_iter:
-            if self.verbose:
-                self.logger.debug(f"Processing batch {batch_id}")
+        return self._fit_stream_generic(
+            problem_iter,
+            key_fn=lambda i, batch: (i, batch),
+            include_scores=include_scores,
+            use_ordered=False
+        )
 
-            for problem in batch:
-                self._process_problem(problem, forecaster_data)
-
-            batch_results[batch_id] = forecaster_data_to_rankings(forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
-            
-            if self.verbose:
-                log_ranking_table(self.logger, batch_results[batch_id])
-
-            batch_id += 1
-        
-        return batch_results
+    def fit_stream_with_timestamp(self, problem_time_iter: Iterator[Tuple[str, List[ForecastProblem]]], include_scores: bool = True) -> OrderedDict:
+        return self._fit_stream_generic(
+            problem_time_iter,
+            key_fn=lambda i, item: (item[0], item[1]),
+            include_scores=include_scores,
+            use_ordered=True
+        )

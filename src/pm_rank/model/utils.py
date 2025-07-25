@@ -97,15 +97,15 @@ def _format_ranking_table(rankings: dict, scores: dict | None = None, max_rows: 
     """
     # Sort by rank
     items = sorted(rankings.items(), key=lambda x: rankings[x[0]])
-    header = f"{'Rank':>4}  {'User':<20}"
+    header = f"{'Rank':>4}  {'User':<25}"
     if scores is not None:
         header += f"  {'Score':>10}"
     lines = [header, '-' * len(header)]
     for _, (user, rank) in enumerate(items[:max_rows]):
         if scores is not None:
-            lines.append(f"{rank:>4}  {user:<20}  {scores[user]:>10.4f}")
+            lines.append(f"{rank:>4}  {user:<25}  {scores[user]:>10.4f}")
         else:
-            lines.append(f"{rank:>4}  {user:<20}")
+            lines.append(f"{rank:>4}  {user:<25}")
     if len(items) > max_rows:
         lines.append(f"... ({len(items) - max_rows} more)")
     return '\n'.join(lines)
@@ -119,4 +119,4 @@ def log_ranking_table(logger: logging.Logger, ranking_result: Tuple[Dict[str, An
         scores, rankings = ranking_result
     else:
         scores, rankings = None, ranking_result
-    logger.info(_format_ranking_table(rankings, scores, max_rows))
+    logger.info("\n" + _format_ranking_table(rankings, scores, max_rows))

@@ -1,13 +1,14 @@
 """
 Concrete implementations of ChallengeLoader for different data sources.
 """
+import logging
 from pathlib import Path
 from typing import Dict, Any, Tuple, List, Optional
 import pandas as pd
 from .base import ChallengeLoader, ForecastChallenge, ForecastProblem, ForecastEvent
 from datetime import datetime
 import math
-from .utils import parse_json_or_eval
+from .utils import parse_json_or_eval, get_logger
 
 
 class GJOChallengeLoader(ChallengeLoader):
@@ -27,6 +28,8 @@ class GJOChallengeLoader(ChallengeLoader):
             challenge_title (str): the title of the challenge
         """
         self.challenge_title = challenge_title
+        self.logger = get_logger(f"pm_rank.data.loaders.{self.__class__.__name__}")
+
         # either predictions_file or prediction_df should be provided
         if predictions_df is None:
             assert predictions_file is not None and metadata_file is not None, \
@@ -39,9 +42,12 @@ class GJOChallengeLoader(ChallengeLoader):
                 raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
             if not self.metadata_file.exists():
                 raise FileNotFoundError(f"Metadata file not found: {metadata_file}")
+
+            self.logger.info(f"Initialize challenge loader with predictions file {predictions_file} and metadata file {metadata_file}")
         else:
             self.predictions_df = predictions_df
-            
+            self.logger.info(f"Initialize challenge loader with pd.DataFrame")
+
     def _get_filtered_df(self, predictions_df: pd.DataFrame, metadata_df: pd.DataFrame, forecaster_filter: int, problem_filter: int) \
         ->  Tuple[pd.DataFrame, pd.DataFrame]:
         # step 1: we group the problems by problem_id and calculate the number of events for each problem
@@ -168,16 +174,19 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         """
         self.challenge_title = challenge_title
         self.use_bid_for_odds = use_bid_for_odds
+        self.logger = get_logger(f"pm_rank.data.loaders.{self.__class__.__name__}")
         if predictions_df is None:
             assert predictions_file is not None, "Either predictions_df or predictions_file should be provided"
             self.predictions_file = Path(predictions_file)
             if not self.predictions_file.exists():
                 raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
+            self.logger.info(f"Initialize challenge loader with predictions file {predictions_file}")
         else:
             self.predictions_df = predictions_df
-    
+            self.logger.info(f"Initialize challenge loader with pd.DataFrame")
+
     @staticmethod
-    def _calculate_implied_probs_for_problem(market_info: dict, options: list, use_bid_for_odds: bool = False) -> list | None:
+    def _calculate_implied_probs_for_problem(market_info: dict, options: list, use_bid_for_odds: bool = False, logger: Optional[logging.Logger] = None) -> list | None:
         """
         Calculate odds for each option from market_info dict.
         For multi-option, use yes_ask for each option and normalize to sum to 1 (implied probabilities).
@@ -196,7 +205,8 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                 else:
                     asks.append(yes_ask)
             else:
-                print(f"Warning: {opt} has no odds info")
+                warning_msg = f"Warning: Option {opt} in market {market_info.get('title', 'Unknown Market')} has no odds info"
+                logger.warning(warning_msg) if logger is not None else print(warning_msg)
                 asks.append(None)
         # normalize the implied probabilities to sum to 1
         implied_probs = [(a / 100.0) if a is not None else 0.0 for a in asks]
@@ -220,15 +230,22 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         forecast_problems = []
         problem_id_counter = 1
         grouped = df.groupby('submission_id')
+
+        self.logger.info(f"Currently, the Prophet Arena challenge is using the `open_time` in place of `close_time` for each problem.")
+        self.logger.info(f"This is because the `close_time` are too far from each other, and the `open_time` is more consistent.")
+
         for submission_id, group in grouped:
             first_row = group.iloc[0]
             options = parse_json_or_eval(first_row['markets'], expect_type=list)
             market_info = parse_json_or_eval(first_row['market_info'], expect_type=dict)
-            first_option_info = next(iter(market_info.values())) if market_info else {}
+            # skip this market if the market_info is empty
+            if not market_info:
+                continue
+            first_option_info = next(iter(market_info.values()))
             title = first_option_info.get('title', submission_id)
-            end_date_str = first_option_info.get('close_time', None)
-            end_date = datetime.fromisoformat(end_date_str.replace('Z', '+00:00')) if end_date_str else datetime.now()
-            odds = self._calculate_implied_probs_for_problem(market_info, options, self.use_bid_for_odds)
+            open_date_str = first_option_info.get('open_time', None)
+            open_date = datetime.fromisoformat(open_date_str.replace('Z', '+00:00')) if open_date_str else datetime.now()
+            odds = self._calculate_implied_probs_for_problem(market_info, options, self.use_bid_for_odds, self.logger)
             market_outcome = parse_json_or_eval(first_row['market_outcome'], expect_type=dict)
             
             correct_option = [opt for opt, val in (market_outcome or {}).items() if int(val) == 1][0]
@@ -262,7 +279,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     options=options,
                     correct_option=correct_option,
                     forecasts=forecasts,
-                    end_date=end_date if end_date else datetime.now(),
+                    end_date=open_date,
                     num_forecasters=len(forecasts),
                     url=None,
                     odds=odds
