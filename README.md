@@ -22,7 +22,7 @@ pip install pm-rank[docs]
 
 **Install from source (local build):**
 ```sh
-git clone https://github.com/yourusername/pm_rank.git
+git clone https://github.com/listar2000/pm_rank.git
 cd pm_rank
 pip install .
 ```
@@ -126,9 +126,9 @@ Our experiment shows that this weighted metric has the highest rank correlation 
 
 In `plotting/plot_crra_risks_curves.py`, we demonstrate a use case of fitting the **market earning model** to the streaming prediction market data. The full dataset is streamed in batches of 100 problems. We then fit **three** market earning model at different risk-aversion levels (0, 0.5, 1). The results are shown in the following figure:
 
-<img src="docs/assets/prophet_arena_risk_curves_0717.png" alt="CRRA Risks Curves" width="800">
+<img src="docs/source/_static/prophet_arena_risk_curves_0717.png" alt="CRRA Risks Curves" width="800">
 
-*PM-RANK*'s modular design makes it easy to conduct such analysis easily.
+*PM-RANK*'s modular design makesg it easy to conduct such analysis easily.
 
 
 #### 2.4: &nbsp; Example: Comparing Ranking Metrics and Plotting Correlations

@@ -21,12 +21,16 @@ dependencies = [
 docs = [
     "sphinx",
     "sphinxawesome-theme",
+    "sphinx-math-dollar",
+    "myst-parser",
 ]
 
 full = [
     "torch>=2.0.0",
     "sphinx",
-    "sphinxawesome-theme"
+    "sphinxawesome-theme",
+    "sphinx-math-dollar",
+    "myst-parser",
 ]
 
 [build-system]
