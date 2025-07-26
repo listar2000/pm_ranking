@@ -9,15 +9,24 @@
 project = 'PM-RANK'
 copyright = '2025, Prophet Arena Team'
 author = 'Prophet Arena Team'
-release = '0.1.3'
+release = '0.2.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = ['myst_parser', 'sphinx.ext.mathjax', "sphinx_math_dollar"]
 
 templates_path = ['_templates']
 exclude_patterns = []
+
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
+
+myst_enable_extensions = [
+    'amsmath',
+]
 
 language = 'en'
 

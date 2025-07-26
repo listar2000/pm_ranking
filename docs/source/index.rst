@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 PM-RANK Documentation
-====================
+=====================
 
 Welcome to the documentation for **PM-RANK**!
 
@@ -14,6 +14,12 @@ Welcome to the documentation for **PM-RANK**!
 
    usage
    api
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Blogposts:
+
+   blogpost/ranking_llm_250727
 
 Project Overview
 ----------------
