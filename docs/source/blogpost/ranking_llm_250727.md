@@ -21,7 +21,7 @@ In this post, we'll guide you through the reasoning behind our metric choices an
 
   It naturally generalizes beyond binary outcomes, assessing both accuracy and calibration.
 
-* We've innovatively introduced a class of **money-earning metrics** as complementary indicators. Intuitively, these metrics simulate the long-term returns of someone consistently betting based purely on the LLM's probability estimates, using the same budget for each event.
+* We've innovatively introduced a class of **expected return metrics** as complementary indicators. Intuitively, these metrics simulate the long-term returns of someone consistently betting based purely on the LLM's probability estimates, using the same budget for each event.
 
 * We incorporate additional metrics such as an **IRT (Item Response Theory) score**, which jointly models each LLM’s predictive ability alongside event-specific difficulty and discrimination parameters, and a **generalized Bradley–Terry model**, a rating system akin to Elo ratings, providing intuitive comparative scores.
 
@@ -56,7 +56,7 @@ It's worth noting that popular real-world forecasting platforms, such as [Good J
 
 While the Brier score serves as our default scoring method due to its interpretability and robustness, we also make other proper scoring rules, such as the logarithmic (log) and spherical scores, availabe in the `pm_rank` package. The intuitive interpretation of the Brier score makes it our primary evaluation metric.
 
-## Money Earning: what practitioners might care about
+## Expected Return: what practitioners might care about
 
 In real-world prediction markets, practitioners care deeply about **actionable insights**—specifically, how much money one could earn by faithfully following an LLM’s probabilistic predictions. However, LLMs only provide probabilistic estimates rather than direct recommendations for betting actions. Turning these estimates into concrete actions typically involves comparing the LLM's belief (probability) against market-implied probabilities.
 
@@ -84,19 +84,44 @@ Once these factors are determined, we can determine the optimal strategy $a_i^*$
 * **Logarithmic utility ($\gamma=1$)** bettors allocate their budget proportionally according to the LLM’s probabilities, i.e. $a_{ik}^* \propto p_{ik}$.
 * **Intermediate risk aversions ($0 < \gamma < 1$)** smoothly interpolate between these two extremes, providing flexible yet clearly interpretable betting strategies.
 
-Our money-earning metric then measures the long-term rate of return by following the optimal betting strategy $a_i^*$ across all events. Specifically, we define the **money-earning score (MES)** as:
+Our expected return metric then measures the long-term rate of return by following the optimal betting strategy $a_i^*$ across all events. Specifically, we define the **expected return score (ERS)** as:
 
 \begin{equation*}
-MES := \frac{\sum_{i=1}^{N} \text{payoff from } i\text{-th } \text{event under } a_i^*}{N}.
+ERS := \frac{\sum_{i=1}^{N} \text{payoff from } i\text{-th } \text{event under } a_i^*}{N}.
 \end{equation*}
 
-We need to specify the hyperparameter $\gamma$ to compute the MES. By default, we follow the risk-neutral case ($\gamma=0$), but our platform also allows users to vary this factor (perhaps based on their own risk preferences). Below we show three moving MES metrics over time (as more and more prediction events are closed) for four LLMs and $\gamma = 0, 0.5, 1$:
+where the payoff is simply $a_{ik}^*$ whenever outcome $k$ occurs. We need to specify the hyperparameter $\gamma$ to compute the ERS. By default, we follow the risk-neutral case ($\gamma=0$), but our platform also allows users to vary this factor (perhaps based on their own risk preferences). Below we show three moving ERS metrics over time (as more and more prediction events are closed) for four LLMs and $\gamma = 0, 0.5, 1$:
 
 <p align="center">
-<img src="../_static/prophet_arena_risk_curves_0717.png" alt="Money Earning Score" width="800"/>
-</p>
+<img src="../_static/prophet_arena_risk_curves_0717.png" alt="Expected Return Score" width="800" title="Expected return curves for LLMs, generated with `pm_rank`."/>
 
 Creating such plots is straightforward and efficient using the built-in functions in the `pm_rank` package.
+</p>
+
+### 💭 Absolute versus relative metrics 
+
+It is now the right time to reflect and compare the two important metrics introduced so far. Despite the obvious differences in their mathematical formulations, a more high-level distinction to keep in mind is that: the Brier score is an **absolute metric**, while the expected return score is a **relative metric**. To elaborate:
+
+- When we calculate the Brier score (or any other proper scoring rule), we measure how the LLM's probabilistic predictions align with the observed outcomes. A good score means that the LLM can effectively synthesize the provided information and make accurate & well-calibrated predictions through reasoning. The market odds, which can be interpreted as the human-consensus probabilities, **do not enter into the calculation**.
+
+- On the other hand, the expected return depends on the observed outcome and the strategy $a_i^*$, which in turn is determined by **both the LLM's probabilities and the market odds**. It is thus a **relative metric** in the sense that achieving a good score requires the LLM to perform "relatively better" than most human bettors to create arbitrage opportunities.
+
+<details>
+<summary>🤔 Follow-up: when would rankings based on these two metrics differ?</summary>
+
+Imagine the following stylized setup: 
+
+- There are two LLMs, $A$ and $B$, and all events fall under two categories, `finance` and `sports` (50-50 proportion).
+- For human market, it is relatively more "predictable" in the `sports` category, while the `finance` events require more information aggregation and are thus harder to predict.
+- For LLM $A$, it is substantially better at predicting the `sports` events than $B$, while it is slightly worse at predicting the `finance` events.
+- Now, LLM $A$ will have better Brier score than $B$ because overall it has better predictive capabilities in the **absolute sense** (ignoring market odds).
+- However, if we consider the expected return score, we will find that LLM $B$ will have a better score than $A$ because it is able to make more money in the `finance` events where humans are more inferior at. Despite its strong predictive capabilities in the `sports` events, LLM $A$ is not able to create arbitrage opportunities there since humans are also very good at these problems.
+
+
+
+</details>
+
+
 
 ## IRT & Bradley-Terry: lens of statistical modeling
 
