@@ -1,6 +1,6 @@
 [project]
 name = "pm_rank"
-version = "0.2.1"
+version = "0.2.3"
 description = "A toolkit for scoring and ranking prediction market forecasters."
 authors = [
     { name = "Sida Li", email = "listar2000@uchicago.edu" }
@@ -13,7 +13,7 @@ dependencies = [
     "matplotlib",
     "seaborn",
     "pandas",
-    "tqdm"
+    "tqdm",
     # add other dependencies as needed
 ]
 
@@ -27,7 +27,7 @@ docs = [
 ]
 
 full = [
-    "torch>=2.0.0",
+    "pyro-ppl",
     "sphinx",
     "sphinxawesome-theme",
     "sphinx-math-dollar",

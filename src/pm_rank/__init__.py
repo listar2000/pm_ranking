@@ -18,9 +18,6 @@ from .data import (
 
 from .model import (
     GeneralizedBT,
-    IRTModel,
-    SVIConfig,
-    MCMCConfig,
     BrierScoringRule,
     LogScoringRule,
     SphericalScoringRule,
@@ -44,12 +41,17 @@ __all__ = [
 
     # Model classes
     'GeneralizedBT',
-    'IRTModel',
-    'SVIConfig',
-    'MCMCConfig',
     'BrierScoringRule',
+    'LogScoringRule',
     'SphericalScoringRule',
     'AverageReturn',
     'spearman_correlation',
     'kendall_correlation'
 ]
+
+# optionally import based on whether `pyro-ppl` is installed
+try:
+    from .model import IRTModel, SVIConfig, MCMCConfig, __all__
+    __all__.extend(['IRTModel', 'SVIConfig', 'MCMCConfig'])
+except ImportError:
+    pass
