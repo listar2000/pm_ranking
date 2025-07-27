@@ -13,9 +13,9 @@ from .utils import parse_json_or_eval, get_logger
 
 class GJOChallengeLoader(ChallengeLoader):
     """Load forecast challenges from GJO (Good Judgment Open) data format."""
-    
-    def __init__(self, predictions_df: Optional[pd.DataFrame] = None, predictions_file: Optional[str] = None, \
-        metadata_file: Optional[str] = None, challenge_title: str = ""):
+
+    def __init__(self, predictions_df: Optional[pd.DataFrame] = None, predictions_file: Optional[str] = None,
+                 metadata_file: Optional[str] = None, challenge_title: str = ""):
         """
         Initialize the GJOChallengeLoader. The challenge can be either loaded with a given `pd.DataFrame` or with \
             a combination of paths `predictions_file` and `metadata_file`.
@@ -28,7 +28,8 @@ class GJOChallengeLoader(ChallengeLoader):
             challenge_title (str): the title of the challenge
         """
         self.challenge_title = challenge_title
-        self.logger = get_logger(f"pm_rank.data.loaders.{self.__class__.__name__}")
+        self.logger = get_logger(
+            f"pm_rank.data.loaders.{self.__class__.__name__}")
 
         # either predictions_file or prediction_df should be provided
         if predictions_df is None:
@@ -39,30 +40,37 @@ class GJOChallengeLoader(ChallengeLoader):
             self.metadata_file = Path(metadata_file)
 
             if not self.predictions_file.exists():
-                raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
+                raise FileNotFoundError(
+                    f"Predictions file not found: {predictions_file}")
             if not self.metadata_file.exists():
-                raise FileNotFoundError(f"Metadata file not found: {metadata_file}")
+                raise FileNotFoundError(
+                    f"Metadata file not found: {metadata_file}")
 
-            self.logger.info(f"Initialize challenge loader with predictions file {predictions_file} and metadata file {metadata_file}")
+            self.logger.info(
+                f"Initialize challenge loader with predictions file {predictions_file} and metadata file {metadata_file}")
         else:
             self.predictions_df = predictions_df
             self.logger.info(f"Initialize challenge loader with pd.DataFrame")
 
     def _get_filtered_df(self, predictions_df: pd.DataFrame, metadata_df: pd.DataFrame, forecaster_filter: int, problem_filter: int) \
-        ->  Tuple[pd.DataFrame, pd.DataFrame]:
+            -> Tuple[pd.DataFrame, pd.DataFrame]:
         # step 1: we group the problems by problem_id and calculate the number of events for each problem
         problem_event_counts = predictions_df.groupby('problem_id').size()
 
         # step 2: we filter the problems by the number of events
-        filtered_metadata_df = metadata_df[metadata_df['problem_id'].isin(problem_event_counts[problem_event_counts >= problem_filter].index)]
-        filtered_predictions_df = predictions_df[predictions_df['problem_id'].isin(filtered_metadata_df['problem_id'])]
+        filtered_metadata_df = metadata_df[metadata_df['problem_id'].isin(
+            problem_event_counts[problem_event_counts >= problem_filter].index)]
+        filtered_predictions_df = predictions_df[predictions_df['problem_id'].isin(
+            filtered_metadata_df['problem_id'])]
 
         # step 3: we filter the forecasters by the number of events
-        forecaster_event_counts = filtered_predictions_df.groupby('username').size()
-        filtered_predictions_df = filtered_predictions_df[filtered_predictions_df['username'].isin(forecaster_event_counts[forecaster_event_counts >= forecaster_filter].index)]
+        forecaster_event_counts = filtered_predictions_df.groupby(
+            'username').size()
+        filtered_predictions_df = filtered_predictions_df[filtered_predictions_df['username'].isin(
+            forecaster_event_counts[forecaster_event_counts >= forecaster_filter].index)]
 
         return filtered_predictions_df, filtered_metadata_df
-    
+
     def load_challenge(self, forecaster_filter: int = 0, problem_filter: int = 0) -> ForecastChallenge:
         """Load challenge data from GJO format files.
 
@@ -78,13 +86,14 @@ class GJOChallengeLoader(ChallengeLoader):
         else:
             predictions_df = pd.read_json(self.predictions_file)
             metadata_df = pd.read_json(self.metadata_file)
-        
+
         # Filter the data
         if forecaster_filter > 0 or problem_filter > 0:
-            filtered_predictions_df, filtered_metadata_df = self._get_filtered_df(predictions_df, metadata_df, forecaster_filter, problem_filter)
+            filtered_predictions_df, filtered_metadata_df = self._get_filtered_df(
+                predictions_df, metadata_df, forecaster_filter, problem_filter)
         else:
             filtered_predictions_df, filtered_metadata_df = predictions_df, metadata_df
-        
+
         # Iterate over each row of the filtered prediction df to construct the forecast events for each problem
         problem_id_to_forecast_events = {}
         problem_id_to_correct_idx = {}
@@ -98,9 +107,11 @@ class GJOChallengeLoader(ChallengeLoader):
 
             if problem_id not in problem_id_to_forecast_events:
                 problem_id_to_forecast_events[problem_id] = []
-                problem_meta_row = filtered_metadata_df[filtered_metadata_df['problem_id'] == problem_id].iloc[0]
-                problem_id_to_correct_idx[problem_id] = problem_meta_row['options'].index(problem_meta_row['correct_answer'])
-            
+                problem_meta_row = filtered_metadata_df[filtered_metadata_df['problem_id']
+                                                        == problem_id].iloc[0]
+                problem_id_to_correct_idx[problem_id] = problem_meta_row['options'].index(
+                    problem_meta_row['correct_answer'])
+
             forecast_event = ForecastEvent(
                 problem_id=problem_id,
                 username=username,
@@ -122,12 +133,13 @@ class GJOChallengeLoader(ChallengeLoader):
                 options=list(row['options']),
                 correct_option=str(row['correct_answer']),
                 forecasts=problem_forecasts,
-                end_date=datetime.fromisoformat(str(row['metadata']['end_date'])),
+                end_date=datetime.fromisoformat(
+                    str(row['metadata']['end_date'])),
                 num_forecasters=len(problem_forecasts),
                 url=str(row['url']),
                 odds=None
             ))
-        
+
         # Create the forecast challenge
         forecast_challenge = ForecastChallenge(
             title=self.challenge_title,
@@ -135,19 +147,20 @@ class GJOChallengeLoader(ChallengeLoader):
         )
 
         return forecast_challenge
-    
+
     def get_challenge_metadata(self) -> Dict[str, Any]:
         """Get basic metadata about the GJO challenge."""
         if self.metadata_file is not None:
             with open(self.metadata_file, 'r') as f:
                 metadata_df = pd.read_json(f)
         else:
-            metadata_df = self.predictions_df[['problem_id', 'title', 'options', 'correct_answer', 'url']].drop_duplicates()
-        
+            metadata_df = self.predictions_df[[
+                'problem_id', 'title', 'options', 'correct_answer', 'url']].drop_duplicates()
+
         if self.challenge_title is None:
             # set title to be the `xx` part of metadata file before `xx_metadata.json`
             self.challenge_title = self.metadata_file.stem.split('_')[0]
-        
+
         return {
             'title': self.challenge_title,
             'num_problems': len(metadata_df),
@@ -158,29 +171,32 @@ class GJOChallengeLoader(ChallengeLoader):
 
 class ProphetArenaChallengeLoader(ChallengeLoader):
     """Load forecast challenges from Prophet Arena data format."""
-    
-    def __init__(self, predictions_df: Optional[pd.DataFrame] = None, predictions_file: Optional[str] = None, \
-        challenge_title: str = "", use_bid_for_odds: bool = False):
-        """
-        Initialize the ProphetArenaChallengeLoader. The challenge can be either loaded with a given `pd.DataFrame` or with a path to a predictions file.
 
-        Args:
-            predictions_df (pd.DataFrame): a pd.DataFrame containing the predictions. If provided, `predictions_file` will be ignored.
-            predictions_file (str): the path to the predictions file
-            challenge_title (str): the title of the challenge
-            use_bid_for_odds (bool): whether to use the `yes_bid` field for implied probability calculation
-                if True, the implied probability will be calculated as the (yes_bid + no_bid) / 2
-                if False, the implied probability will be simply `yes_ask` (normalized to sum to 1)
+    def __init__(self, predictions_df: Optional[pd.DataFrame] = None, predictions_file: Optional[str] = None,
+                 challenge_title: str = "", use_bid_for_odds: bool = False):
+        """Initialize the ProphetArenaChallengeLoader.
+
+        The challenge can be either loaded with a given `pd.DataFrame` or with a path to a predictions file.
+
+        :param predictions_df: A pd.DataFrame containing the predictions. If provided, `predictions_file` will be ignored.
+        :param predictions_file: The path to the predictions file.
+        :param challenge_title: The title of the challenge.
+        :param use_bid_for_odds: Whether to use the `yes_bid` field for implied probability calculation.
+                                If True, the implied probability will be calculated as the (yes_bid + no_bid) / 2.
+                                If False, the implied probability will be simply `yes_ask` (normalized to sum to 1).
         """
         self.challenge_title = challenge_title
         self.use_bid_for_odds = use_bid_for_odds
-        self.logger = get_logger(f"pm_rank.data.loaders.{self.__class__.__name__}")
+        self.logger = get_logger(
+            f"pm_rank.data.loaders.{self.__class__.__name__}")
         if predictions_df is None:
             assert predictions_file is not None, "Either predictions_df or predictions_file should be provided"
             self.predictions_file = Path(predictions_file)
             if not self.predictions_file.exists():
-                raise FileNotFoundError(f"Predictions file not found: {predictions_file}")
-            self.logger.info(f"Initialize challenge loader with predictions file {predictions_file}")
+                raise FileNotFoundError(
+                    f"Predictions file not found: {predictions_file}")
+            self.logger.info(
+                f"Initialize challenge loader with predictions file {predictions_file}")
         else:
             self.predictions_df = predictions_df
             self.logger.info(f"Initialize challenge loader with pd.DataFrame")
@@ -206,7 +222,8 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     asks.append(yes_ask)
             else:
                 warning_msg = f"Warning: Option {opt} in market {market_info.get('title', 'Unknown Market')} has no odds info"
-                logger.warning(warning_msg) if logger is not None else print(warning_msg)
+                logger.warning(warning_msg) if logger is not None else print(
+                    warning_msg)
                 asks.append(None)
         # normalize the implied probabilities to sum to 1
         implied_probs = [(a / 100.0) if a is not None else 0.0 for a in asks]
@@ -231,24 +248,32 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         problem_id_counter = 1
         grouped = df.groupby('submission_id')
 
-        self.logger.info(f"Currently, the Prophet Arena challenge is using the `open_time` in place of `close_time` for each problem.")
-        self.logger.info(f"This is because the `close_time` are too far from each other, and the `open_time` is more consistent.")
+        self.logger.info(
+            f"Currently, the Prophet Arena challenge is using the `open_time` in place of `close_time` for each problem.")
+        self.logger.info(
+            f"This is because the `close_time` are too far from each other, and the `open_time` is more consistent.")
 
         for submission_id, group in grouped:
             first_row = group.iloc[0]
-            options = parse_json_or_eval(first_row['markets'], expect_type=list)
-            market_info = parse_json_or_eval(first_row['market_info'], expect_type=dict)
+            options = parse_json_or_eval(
+                first_row['markets'], expect_type=list)
+            market_info = parse_json_or_eval(
+                first_row['market_info'], expect_type=dict)
             # skip this market if the market_info is empty
             if not market_info:
                 continue
             first_option_info = next(iter(market_info.values()))
             title = first_option_info.get('title', submission_id)
             open_date_str = first_option_info.get('open_time', None)
-            open_date = datetime.fromisoformat(open_date_str.replace('Z', '+00:00')) if open_date_str else datetime.now()
-            odds = self._calculate_implied_probs_for_problem(market_info, options, self.use_bid_for_odds, self.logger)
-            market_outcome = parse_json_or_eval(first_row['market_outcome'], expect_type=dict)
-            
-            correct_option = [opt for opt, val in (market_outcome or {}).items() if int(val) == 1][0]
+            open_date = datetime.fromisoformat(open_date_str.replace(
+                'Z', '+00:00')) if open_date_str else datetime.now()
+            odds = self._calculate_implied_probs_for_problem(
+                market_info, options, self.use_bid_for_odds, self.logger)
+            market_outcome = parse_json_or_eval(
+                first_row['market_outcome'], expect_type=dict)
+
+            correct_option = [opt for opt, val in (
+                market_outcome or {}).items() if int(val) == 1][0]
 
             if correct_option not in options:
                 continue
@@ -256,14 +281,17 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             forecasts = []
             for _, row in group.iterrows():
                 username = str(row['predictor_name'])
-                prediction: dict = parse_json_or_eval(row['prediction'], expect_type=dict)
-                probs_dict = {d['market']: d['probability'] for d in prediction.get('probabilities', [])}
+                prediction: dict = parse_json_or_eval(
+                    row['prediction'], expect_type=dict)
+                probs_dict = {d['market']: d['probability']
+                              for d in prediction.get('probabilities', [])}
                 probs = [probs_dict.get(opt, 0.0) for opt in options]
                 # make sure the probs sum to 1
                 if not math.isclose(sum(probs), 1.0, abs_tol=1e-6):
                     continue
                 timestamp = datetime.now()
-                correct_prob = probs[options.index(correct_option)] if correct_option in options else 0.0
+                correct_prob = probs[options.index(
+                    correct_option)] if correct_option in options else 0.0
                 forecasts.append(ForecastEvent(
                     problem_id=problem_id_counter,
                     username=username,
@@ -271,7 +299,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     probs=probs,
                     correct_prob=correct_prob
                 ))
-            
+
             if len(forecasts) > 0:
                 forecast_problems.append(ForecastProblem(
                     title=title,

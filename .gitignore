@@ -20,3 +20,6 @@ src/pm_rank/data/raw/*.csv
 
 # Ignore slurm files
 slurm/*
+
+# Virtual env
+docs_env/

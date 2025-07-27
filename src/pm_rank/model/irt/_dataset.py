@@ -15,6 +15,20 @@ from functools import cached_property
 
 @dataclass
 class IRTObs:
+    """
+    An internal, helper class that handles the transformation of data from the `ForecastProblem` level to an internal format
+
+    The `forecaster_id_to_idx` and `problem_id_to_idx` are used to map the forecaster and problem ids to indices.
+    This is useful for the `pyro` library, which requires the data to be in a certain format.
+
+    :param forecaster_ids: A tensor of shape `(k,)` with the forecaster ids
+    :param problem_ids: A tensor of shape `(k,)` with the problem ids
+    :param forecaster_id_to_idx: A dictionary with the forecaster ids as keys and the indices as values
+    :param problem_id_to_idx: A dictionary with the problem ids as keys and the indices as values
+    :param scores: A tensor of shape `(k,)` with the scores of the forecasts (discretized from scoring rules)
+    :param discretized_scores: A tensor of shape `(k,)` with the discretized scores of the forecasts
+    :param anchor_points: A tensor of shape `(n_bins,)` with the anchor points of the discretized scores
+    """
     forecaster_ids: torch.Tensor
     problem_ids: torch.Tensor
     forecaster_id_to_idx: Dict[str, int]
@@ -26,14 +40,14 @@ class IRTObs:
     @cached_property
     def forecaster_idx_to_id(self) -> Dict[int, str]:
         return {v: k for k, v in self.forecaster_id_to_idx.items()}
-    
+
     @cached_property
     def problem_idx_to_id(self) -> Dict[int, str]:
         return {v: k for k, v in self.problem_id_to_idx.items()}
 
 
 def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6, use_empirical_quantiles: bool = False,
-                device: Literal["cpu", "cuda"] = "cpu") -> IRTObs:
+                      device: Literal["cpu", "cuda"] = "cpu") -> IRTObs:
     """
     Let there be `n` forecasters and `m` problems. Since not every forecaster has forecasted every problem,
     assume that we have a total of `k` forecasts (events) with k << n * m.
@@ -67,22 +81,27 @@ def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6,
             problem_ids.append(problem_id_to_idx[problem_id])
             correct_probs.append(forecast.correct_prob)
             all_probs.append(forecast.probs)
-        
+
         # calculate the scores for this problem
-        scores.extend(brier_scoring_rule._score_fn(np.array(correct_probs), np.array(all_probs), negate=False))
+        scores.extend(brier_scoring_rule._score_fn(
+            np.array(correct_probs), np.array(all_probs), negate=False))
 
     # discretize the scores
-    discretized_indices, bin_edges = _discretize_scoring_rules(np.array(scores), n_bins, use_empirical_quantiles)
+    discretized_indices, bin_edges = _discretize_scoring_rules(
+        np.array(scores), n_bins, use_empirical_quantiles)
 
     # convert to tensors
     return IRTObs(
-        forecaster_ids=torch.tensor(forecaster_ids, device=device, dtype=torch.long),
+        forecaster_ids=torch.tensor(
+            forecaster_ids, device=device, dtype=torch.long),
         problem_ids=torch.tensor(problem_ids, device=device, dtype=torch.long),
         forecaster_id_to_idx=forecaster_id_to_idx,
         problem_id_to_idx=problem_id_to_idx,
         scores=torch.tensor(scores, device=device, dtype=torch.float),
-        discretized_scores=torch.tensor(discretized_indices, device=device, dtype=torch.long),
-        anchor_points=torch.tensor(bin_edges, device=device, dtype=torch.float),
+        discretized_scores=torch.tensor(
+            discretized_indices, device=device, dtype=torch.long),
+        anchor_points=torch.tensor(
+            bin_edges, device=device, dtype=torch.float),
     )
 
 
@@ -102,7 +121,8 @@ def _discretize_scoring_rules(scores: np.ndarray, n_bins: int = 6, use_empirical
         and the second array is the bin edges.
     """
     # make sure all scores are between 0 and 1
-    assert np.all(scores >= 0) and np.all(scores <= 1), "Scores must be between 0 and 1"
+    assert np.all(scores >= 0) and np.all(
+        scores <= 1), "Scores must be between 0 and 1"
 
     if use_empirical_quantiles:
         anchor_points = np.quantile(scores, np.linspace(0, 1, n_bins))
@@ -121,14 +141,18 @@ def _discretize_scoring_rules(scores: np.ndarray, n_bins: int = 6, use_empirical
 """
 Some simple in-file tests.
 """
+
+
 def _test_discretization():
     # test the discretization
     scores = np.array([0, 0.1, 0.1, 0.2, 0.2, 0.8, 0.9])
-    discretized_indices, bin_edges = _discretize_scoring_rules(scores, n_bins=3, use_empirical_quantiles=False)
+    discretized_indices, bin_edges = _discretize_scoring_rules(
+        scores, n_bins=3, use_empirical_quantiles=False)
     print(discretized_indices)
     print(bin_edges)
 
-    discretized_indices, bin_edges = _discretize_scoring_rules(scores, n_bins=3, use_empirical_quantiles=True)
+    discretized_indices, bin_edges = _discretize_scoring_rules(
+        scores, n_bins=3, use_empirical_quantiles=True)
     print(discretized_indices)
     print(bin_edges)
 
@@ -141,18 +165,25 @@ def _test_and_profile_pyro_obs():
     metadata_file = "data/raw/sports_challenge_metadata.json"
 
     # load the data
-    challenge_loader = GJOChallengeLoader(predictions_file, metadata_file, challenge_title="GJO Challenge")
-    challenge = challenge_loader.load_challenge(forecaster_filter=20, problem_filter=20)
+    challenge_loader = GJOChallengeLoader(
+        predictions_file, metadata_file, challenge_title="GJO Challenge")
+    challenge = challenge_loader.load_challenge(
+        forecaster_filter=20, problem_filter=20)
 
     start_time = time.time()
     # prepare the dataset
-    dataset = _prepare_pyro_obs(challenge.forecast_problems, n_bins=6, use_empirical_quantiles=False, device="cpu")
+    dataset = _prepare_pyro_obs(
+        challenge.forecast_problems, n_bins=6, use_empirical_quantiles=False, device="cpu")
     end_time = time.time()
-    print(f"Time taken to prepare the dataset: {end_time - start_time} seconds")
+    print(
+        f"Time taken to prepare the dataset: {end_time - start_time} seconds")
 
     # print the shape of the dataset
-    print(f"Shape of the dataset: {dataset['forecaster_ids'].shape}, {dataset['problem_ids'].shape}, {dataset['scores'].shape}, {dataset['discretized_scores'].shape}, {dataset['anchor_points'].shape}")
-    print(f"Shape of the dataset: {dataset['forecaster_id_to_idx']}, {dataset['problem_id_to_idx']}")
+    print(
+        f"Shape of the dataset: {dataset['forecaster_ids'].shape}, {dataset['problem_ids'].shape}, {dataset['scores'].shape}, {dataset['discretized_scores'].shape}, {dataset['anchor_points'].shape}")
+    print(
+        f"Shape of the dataset: {dataset['forecaster_id_to_idx']}, {dataset['problem_id_to_idx']}")
+
 
 if __name__ == "__main__":
     _test_discretization()

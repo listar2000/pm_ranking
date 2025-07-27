@@ -1,0 +1,21 @@
+{#- Template file for the breadcrumbs. -#}
+{%- if pagename != master_doc %}
+<nav aria-label="{{ _('breadcrumbs') }}" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+  <a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="{{ pathto(master_doc) }}">
+    <span class="hidden md:inline">{{ docstitle }}</span>
+    <svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
+      <path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
+    </svg>
+  </a>
+  {%- for parent in parents %}
+  <div class="mr-1">{{ theme_breadcrumbs_separator|default('/') }}</div>
+  <a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="{{ parent.link|e }}">
+    {{ parent.title|replace('src.pm_rank.', 'pm_rank/') }}
+  </a>
+  {%- endfor %}
+  <div class="mr-1">{{ theme_breadcrumbs_separator|default('/') }}</div>
+  <span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
+    {{ title|replace('src.pm_rank.', 'pm_rank/') }}
+  </span>
+</nav>
+{%- endif %} 

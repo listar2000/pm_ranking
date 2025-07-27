@@ -51,7 +51,7 @@ pip install -e .
 2. `ForecastProblem`: this is a collection of `ForecastEvent`s for a single forecast problem. It validates keeps track of metadata for the problem like the options and the correct option. It is also a handy way to organize the dataset as we treat `ForecastProblem` as the basic unit of **streaming prediction market data**.
 
 
-    In particular, if a `ForecastProblem` has the `odds` field, we would answer questions like "how much money can an individual forecaster make" and use these results to rank the forecasters. See `model/market_earning.py` for more details.
+    In particular, if a `ForecastProblem` has the `odds` field, we would answer questions like "how much money can an individual forecaster make" and use these results to rank the forecasters. See `model/average_return.py` for more details.
 
     <details>
     <summary>&nbsp; Key Fields in <code>ForecastProblem</code></summary>
@@ -103,7 +103,7 @@ pip install -e .
 
 1. **Scoring Rules** `model/scoring_rule.py`: utlize proper scoring rules to score and rank the forecasters. Some scoring rule (e.g. log) only requires the probability assigned to the correct option, while others (e.g. Brier) requires the full probability distribution.
 
-2. **Market Earning Model** `model/market_earning.py`: calculate the market earning for each forecaster. This model is only applicable when the `odds` field is present in the `ForecastProblem`. In particular, this is a class of models with a hyperparameter `risk_aversion` to uniformly control the risk-taking behavior of the forecasters. For instance, a `risk_aversion=0` represents risk neutrality so we can translate the forecaster's probability distribution into their behavior -- **all-in the most market-undervalued option**. A `risk_aversion=1` then corresponds to a log utility function. 
+2. **Market Earning Model** `model/average_return.py`: calculate the market earning for each forecaster. This model is only applicable when the `odds` field is present in the `ForecastProblem`. In particular, this is a class of models with a hyperparameter `risk_aversion` to uniformly control the risk-taking behavior of the forecasters. For instance, a `risk_aversion=0` represents risk neutrality so we can translate the forecaster's probability distribution into their behavior -- **all-in the most market-undervalued option**. A `risk_aversion=1` then corresponds to a log utility function. 
 
     An interesting future step, at least for LLM forecasters, is to **ask it to verbalize its own risk-aversion** and use it to calculate the market earning.
 
