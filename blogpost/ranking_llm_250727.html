@@ -117,7 +117,7 @@
 </div></blockquote>
 <p>It naturally generalizes beyond binary outcomes, assessing both accuracy and calibration.</p>
 </li>
-<li><p>We’ve innovatively introduced a class of <strong>money-earning metrics</strong> as complementary indicators. Intuitively, these metrics simulate the long-term returns of someone consistently betting based purely on the LLM’s probability estimates, using the same budget for each event.</p></li>
+<li><p>We’ve innovatively introduced a class of <strong>expected return metrics</strong> as complementary indicators. Intuitively, these metrics simulate the long-term returns of someone consistently betting based purely on the LLM’s probability estimates, using the same budget for each event.</p></li>
 <li><p>We incorporate additional metrics such as an <strong>IRT (Item Response Theory) score</strong>, which jointly models each LLM’s predictive ability alongside event-specific difficulty and discrimination parameters, and a <strong>generalized Bradley–Terry model</strong>, a rating system akin to Elo ratings, providing intuitive comparative scores.</p></li>
 <li><p>All these metrics are efficiently implemented and packaged into our standalone Python package <a class="reference external" href="https://pypi.org/project/pm-rank/"><code class="docutils literal notranslate"><span class="pre">pm_rank</span></code></a>, fully documented and open-sourced to facilitate better evaluation of LLMs in general prediction-market environments.</p></li>
 </ul>
@@ -144,8 +144,8 @@ BS = \frac{1}{N} \sum_{i=1}^{N} BS_i
 <p>It’s worth noting that popular real-world forecasting platforms, such as <a class="reference external" href="https://www.gjopen.com/">Good Judgment Open</a>, also widely adopt variations of the Brier score, showing its long-established practicality in prediction markets. Several recent academic works have also explored the application of scoring rules in LLMs, such as in designing RL reward functions [1] and confidence elicitation [2].</p>
 <p>While the Brier score serves as our default scoring method due to its interpretability and robustness, we also make other proper scoring rules, such as the logarithmic (log) and spherical scores, availabe in the <code class="docutils literal notranslate"><span class="pre">pm_rank</span></code> package. The intuitive interpretation of the Brier score makes it our primary evaluation metric.</p>
 </section>
-<section id="money-earning-what-practitioners-might-care-about">
-<h2>Money Earning: what practitioners might care about<a class="headerlink" href="#money-earning-what-practitioners-might-care-about" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#money-earning-what-practitioners-might-care-about'">¶</a></h2>
+<section id="expected-return-what-practitioners-might-care-about">
+<h2>Expected Return: what practitioners might care about<a class="headerlink" href="#expected-return-what-practitioners-might-care-about" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#expected-return-what-practitioners-might-care-about'">¶</a></h2>
 <p>In real-world prediction markets, practitioners care deeply about <strong>actionable insights</strong>—specifically, how much money one could earn by faithfully following an LLM’s probabilistic predictions. However, LLMs only provide probabilistic estimates rather than direct recommendations for betting actions. Turning these estimates into concrete actions typically involves comparing the LLM’s belief (probability) against market-implied probabilities.</p>
 <p>To address this, we’ve introduced a novel approach rooted in <strong>constant-relative-risk-aversion (CRRA) utility theory</strong>. Specifically, we assume a hypothetical scenario where a human fully trusts the LLM’s probabilities as their true beliefs and makes decisions guided solely by their personal risk aversion, captured by the CRRA utility function:</p>
 <div class="amsmath math notranslate nohighlight">
@@ -168,16 +168,35 @@ U_\gamma(w)=
 <li><p><strong>Logarithmic utility (<span class="math notranslate nohighlight">\(\gamma=1\)</span>)</strong> bettors allocate their budget proportionally according to the LLM’s probabilities, i.e. <span class="math notranslate nohighlight">\(a_{ik}^* \propto p_{ik}\)</span>.</p></li>
 <li><p><strong>Intermediate risk aversions (<span class="math notranslate nohighlight">\(0 &lt; \gamma &lt; 1\)</span>)</strong> smoothly interpolate between these two extremes, providing flexible yet clearly interpretable betting strategies.</p></li>
 </ul>
-<p>Our money-earning metric then measures the long-term rate of return by following the optimal betting strategy <span class="math notranslate nohighlight">\(a_i^*\)</span> across all events. Specifically, we define the <strong>money-earning score (MES)</strong> as:</p>
+<p>Our expected return metric then measures the long-term rate of return by following the optimal betting strategy <span class="math notranslate nohighlight">\(a_i^*\)</span> across all events. Specifically, we define the <strong>expected return score (ERS)</strong> as:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{equation*}
-MES := \frac{\sum_{i=1}^{N} \text{payoff from } i\text{-th } \text{event under } a_i^*}{N}.
+ERS := \frac{\sum_{i=1}^{N} \text{payoff from } i\text{-th } \text{event under } a_i^*}{N}.
 \end{equation*}\]</div>
-<p>We need to specify the hyperparameter <span class="math notranslate nohighlight">\(\gamma\)</span> to compute the MES. By default, we follow the risk-neutral case (<span class="math notranslate nohighlight">\(\gamma=0\)</span>), but our platform also allows users to vary this factor (perhaps based on their own risk preferences). Below we show three moving MES metrics over time (as more and more prediction events are closed) for four LLMs and <span class="math notranslate nohighlight">\(\gamma = 0, 0.5, 1\)</span>:</p>
+<p>where the payoff is simply <span class="math notranslate nohighlight">\(a_{ik}^*\)</span> whenever outcome <span class="math notranslate nohighlight">\(k\)</span> occurs. We need to specify the hyperparameter <span class="math notranslate nohighlight">\(\gamma\)</span> to compute the ERS. By default, we follow the risk-neutral case (<span class="math notranslate nohighlight">\(\gamma=0\)</span>), but our platform also allows users to vary this factor (perhaps based on their own risk preferences). Below we show three moving ERS metrics over time (as more and more prediction events are closed) for four LLMs and <span class="math notranslate nohighlight">\(\gamma = 0, 0.5, 1\)</span>:</p>
 <p align="center">
-<img alt="Money Earning Score" src="../_static/prophet_arena_risk_curves_0717.png" width="800"/>
-</p>
+<img alt="Expected Return Score" src="../_static/prophet_arena_risk_curves_0717.png" title="Expected return curves for LLMs, generated with `pm_rank`." width="800"/>
 <p>Creating such plots is straightforward and efficient using the built-in functions in the <code class="docutils literal notranslate"><span class="pre">pm_rank</span></code> package.</p>
+</p>
+<section id="absolute-versus-relative-metrics">
+<h3>💭 Absolute versus relative metrics<a class="headerlink" href="#absolute-versus-relative-metrics" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#absolute-versus-relative-metrics'">¶</a></h3>
+<p>It is now the right time to reflect and compare the two important metrics introduced so far. Despite the obvious differences in their mathematical formulations, a more high-level distinction to keep in mind is that: the Brier score is an <strong>absolute metric</strong>, while the expected return score is a <strong>relative metric</strong>. To elaborate:</p>
+<ul class="simple">
+<li><p>When we calculate the Brier score (or any other proper scoring rule), we measure how the LLM’s probabilistic predictions align with the observed outcomes. A good score means that the LLM can effectively synthesize the provided information and make accurate &amp; well-calibrated predictions through reasoning. The market odds, which can be interpreted as the human-consensus probabilities, <strong>do not enter into the calculation</strong>.</p></li>
+<li><p>On the other hand, the expected return depends on the observed outcome and the strategy <span class="math notranslate nohighlight">\(a_i^*\)</span>, which in turn is determined by <strong>both the LLM’s probabilities and the market odds</strong>. It is thus a <strong>relative metric</strong> in the sense that achieving a good score requires the LLM to perform “relatively better” than most human bettors to create arbitrage opportunities.</p></li>
+</ul>
+<details>
+<summary>🤔 Follow-up: when would rankings based on these two metrics differ?</summary>
+<p>Imagine the following stylized setup:</p>
+<ul class="simple">
+<li><p>There are two LLMs, <span class="math notranslate nohighlight">\(A\)</span> and <span class="math notranslate nohighlight">\(B\)</span>, and all events fall under two categories, <code class="docutils literal notranslate"><span class="pre">finance</span></code> and <code class="docutils literal notranslate"><span class="pre">sports</span></code> (50-50 proportion).</p></li>
+<li><p>For human market, it is relatively more “predictable” in the <code class="docutils literal notranslate"><span class="pre">sports</span></code> category, while the <code class="docutils literal notranslate"><span class="pre">finance</span></code> events require more information aggregation and are thus harder to predict.</p></li>
+<li><p>For LLM <span class="math notranslate nohighlight">\(A\)</span>, it is substantially better at predicting the <code class="docutils literal notranslate"><span class="pre">sports</span></code> events than <span class="math notranslate nohighlight">\(B\)</span>, while it is slightly worse at predicting the <code class="docutils literal notranslate"><span class="pre">finance</span></code> events.</p></li>
+<li><p>Now, LLM <span class="math notranslate nohighlight">\(A\)</span> will have better Brier score than <span class="math notranslate nohighlight">\(B\)</span> because overall it has better predictive capabilities in the <strong>absolute sense</strong> (ignoring market odds).</p></li>
+<li><p>However, if we consider the expected return score, we will find that LLM <span class="math notranslate nohighlight">\(B\)</span> will have a better score than <span class="math notranslate nohighlight">\(A\)</span> because it is able to make more money in the <code class="docutils literal notranslate"><span class="pre">finance</span></code> events where humans are more inferior at. Despite its strong predictive capabilities in the <code class="docutils literal notranslate"><span class="pre">sports</span></code> events, LLM <span class="math notranslate nohighlight">\(A\)</span> is not able to create arbitrage opportunities there since humans are also very good at these problems.</p></li>
+</ul>
+</details>
+</section>
 </section>
 <section id="irt-bradley-terry-lens-of-statistical-modeling">
 <h2>IRT &amp; Bradley-Terry: lens of statistical modeling<a class="headerlink" href="#irt-bradley-terry-lens-of-statistical-modeling" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#irt-bradley-terry-lens-of-statistical-modeling'">¶</a></h2>
@@ -214,7 +233,10 @@ MES := \frac{\sum_{i=1}^{N} \text{payoff from } i\text{-th } \text{event under }
 <ul>
 <li><a :data-current="activeSection === '#tl-dr-for-readers-in-a-hurry'" class="reference internal" href="#tl-dr-for-readers-in-a-hurry">TL;DR (for readers in a hurry)</a></li>
 <li><a :data-current="activeSection === '#scoring-rules-grounded-metric-for-probabilistic-predictions'" class="reference internal" href="#scoring-rules-grounded-metric-for-probabilistic-predictions">Scoring Rules: grounded metric for probabilistic predictions</a></li>
-<li><a :data-current="activeSection === '#money-earning-what-practitioners-might-care-about'" class="reference internal" href="#money-earning-what-practitioners-might-care-about">Money Earning: what practitioners might care about</a></li>
+<li><a :data-current="activeSection === '#expected-return-what-practitioners-might-care-about'" class="reference internal" href="#expected-return-what-practitioners-might-care-about">Expected Return: what practitioners might care about</a><ul>
+<li><a :data-current="activeSection === '#absolute-versus-relative-metrics'" class="reference internal" href="#absolute-versus-relative-metrics">💭 Absolute versus relative metrics</a></li>
+</ul>
+</li>
 <li><a :data-current="activeSection === '#irt-bradley-terry-lens-of-statistical-modeling'" class="reference internal" href="#irt-bradley-terry-lens-of-statistical-modeling">IRT &amp; Bradley-Terry: lens of statistical modeling</a><ul>
 <li><a :data-current="activeSection === '#item-response-theory-irt'" class="reference internal" href="#item-response-theory-irt">Item Response Theory (IRT)</a></li>
 <li><a :data-current="activeSection === '#generalized-bradleyterry-bt-model'" class="reference internal" href="#generalized-bradleyterry-bt-model">Generalized Bradley–Terry (BT) Model</a></li>
