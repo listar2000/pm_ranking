@@ -106,6 +106,7 @@ It is now the right time to reflect and compare the two important metrics introd
 
 - On the other hand, the expected return depends on the observed outcome and the strategy $a_i^*$, which in turn is determined by **both the LLM's probabilities and the market odds**. It is thus a **relative metric** in the sense that achieving a good score requires the LLM to perform "relatively better" than most human bettors to create arbitrage opportunities.
 
+<br>
 <details>
 <summary>🤔 Follow-up: when would rankings based on these two metrics differ?</summary>
 
