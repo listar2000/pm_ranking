@@ -21,7 +21,7 @@ especially for those who want to integrate handy scoring/ranking algorithms into
 Below we will provide a quick overview of core concepts (e.g. models, dataclass interfaces, etc.) in :code:`pm_rank`. Please refer to:
 
 - :doc:`autoapi/src/pm_rank/index` for detailed API documentation.
-- :ref:`demo` for a quick demo using the package to load prediction market data and obtain some interesting insights.
+- `Colab Demo <https://colab.research.google.com/drive/1gAXhNQySdCP1L9HjVQA8vyLz5393pjdI?usp=sharing>`_ for a quick demo using the package to load prediction market data and obtain some interesting insights.
 - :doc:`blogpost/ranking_llm_250727` for blogposts
 
 .. toctree::
@@ -46,13 +46,13 @@ Quick Installation Guide
 
 .. code-block:: bash
 
-    pip install pm_rank==0.2.1
+    pip install pm_rank==0.2.3
 
 The default version uses minimal dependencies (i.e. no :code:`pytorch`), so some ranking models (e.g. :code:`IRT`) are not available.
 
 To install the full version, you can install the :code:`full` dependency::
 
-    pip install pm_rank[full]==0.2.1
+    pip install pm_rank[full]==0.2.3
 
 .. note::
    **For potential developers:**  
@@ -60,7 +60,7 @@ To install the full version, you can install the :code:`full` dependency::
 
    .. code-block:: bash
 
-      pip install pm_rank[docs]==0.2.1
+      pip install pm_rank[docs]==0.2.3
 
    Then you can build the documentation by running:
 

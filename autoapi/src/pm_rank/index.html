@@ -7,9 +7,9 @@
 <meta content="white" media="(prefers-color-scheme: light)" name="theme-color"/>
 <meta content="black" media="(prefers-color-scheme: dark)" name="theme-color"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>src.pm_rank | PM-RANK 0.2.1 documentation</title>
-<meta content="src.pm_rank | PM-RANK 0.2.1 documentation" property="og:title"/>
-<meta content="src.pm_rank | PM-RANK 0.2.1 documentation" name="twitter:title"/>
+<title>src.pm_rank | PM-RANK 0.2.3 documentation</title>
+<meta content="src.pm_rank | PM-RANK 0.2.3 documentation" property="og:title"/>
+<meta content="src.pm_rank | PM-RANK 0.2.3 documentation" name="twitter:title"/>
 <link href="../../../_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
 <link href="../../../_static/theme.css?v=42baaae4" rel="stylesheet" type="text/css"/>
 <link href="../../../_static/graphviz.css?v=4ae1632d" rel="stylesheet" type="text/css"/>
@@ -35,7 +35,7 @@
       Skip to content
     </a><header class="sticky top-0 z-40 w-full border-b shadow-sm border-border supports-backdrop-blur:bg-background/60 bg-background/95 backdrop-blur"><div class="container flex items-center h-14">
 <div class="hidden mr-4 md:flex">
-<a class="flex items-center mr-6" href="../../../index.html"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">PM-RANK 0.2.1 documentation</span>
+<a class="flex items-center mr-6" href="../../../index.html"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">PM-RANK 0.2.3 documentation</span>
 </a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
 <svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
 <path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
@@ -72,7 +72,7 @@
 </div>
 </header>
 <div class="flex-1"><div class="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full shrink-0 overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
-<a class="!justify-start text-sm md:!hidden bg-background" href="../../../index.html"><span class="font-bold text-clip whitespace-nowrap">PM-RANK 0.2.1 documentation</span>
+<a class="!justify-start text-sm md:!hidden bg-background" href="../../../index.html"><span class="font-bold text-clip whitespace-nowrap">PM-RANK 0.2.3 documentation</span>
 </a>
 <div class="relative overflow-hidden md:overflow-auto my-4 md:my-0 h-[calc(100vh-8rem)] md:h-auto">
 <div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
@@ -102,7 +102,7 @@
 <div class="w-full min-w-0 mx-auto">
 <nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
 <a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="../../../index.html">
-<span class="hidden md:inline">PM-RANK 0.2.1 documentation</span>
+<span class="hidden md:inline">PM-RANK 0.2.3 documentation</span>
 <svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
 <path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
 </svg>
@@ -150,17 +150,11 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.GeneralizedBT" title="src.pm_rank.GeneralizedBT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GeneralizedBT</span></code></a></p></td>
 <td><p>Generalized Bradley-Terry model for ranking forecasters in prediction markets.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.IRTModel" title="src.pm_rank.IRTModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IRTModel</span></code></a></p></td>
-<td><p>Item Response Theory model for ranking forecasters using Pyro.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.SVIConfig" title="src.pm_rank.SVIConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SVIConfig</span></code></a></p></td>
-<td><p>Configuration for SVI (Stochastic Variational Inference) optimization.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.MCMCConfig" title="src.pm_rank.MCMCConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCMCConfig</span></code></a></p></td>
-<td><p>Configuration for MCMC (Markov Chain Monte Carlo) inference using NUTS sampler.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.BrierScoringRule" title="src.pm_rank.BrierScoringRule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BrierScoringRule</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.BrierScoringRule" title="src.pm_rank.BrierScoringRule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BrierScoringRule</span></code></a></p></td>
 <td><p>Brier scoring rule for evaluating probabilistic forecasts.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.LogScoringRule" title="src.pm_rank.LogScoringRule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LogScoringRule</span></code></a></p></td>
+<td><p>Logarithmic scoring rule for evaluating probabilistic forecasts.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.SphericalScoringRule" title="src.pm_rank.SphericalScoringRule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SphericalScoringRule</span></code></a></p></td>
 <td><p>Spherical scoring rule for evaluating probabilistic forecasts.</p></td>
@@ -555,188 +549,6 @@ the relative predictive ability of each forecaster.</p>
 </dd></dl>
 </dd></dl>
 <dl class="py class">
-<dt class="sig sig-object py" id="src.pm_rank.IRTModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">IRTModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_empirical_quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.IRTModel" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel'"><span>¶</span></a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Item Response Theory model for ranking forecasters using Pyro.</p>
-<p>This class implements an IRT model that estimates latent abilities of forecasters
-and difficulty/discrimination parameters of prediction problems. The model uses
-discretized scoring bins and supports both SVI and MCMC inference methods.</p>
-<p>The IRT model assumes that the probability of a forecaster achieving a certain
-score on a problem depends on their latent ability (θ), the problem’s difficulty (b),
-the problem’s discrimination (a), and category parameters (p) for the scoring bins.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>n_bins</strong> – Number of bins for discretizing continuous scores (default: 6).</p></li>
-<li><p><strong>use_empirical_quantiles</strong> – Whether to use empirical quantiles for binning
-instead of uniform bins (default: False).</p></li>
-<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
-</ul>
-</dd>
-</dl>
-<p>Initialize the IRT model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>n_bins</strong> – Number of bins for discretizing continuous scores (default: 6).</p></li>
-<li><p><strong>use_empirical_quantiles</strong> – Whether to use empirical quantiles for binning
-instead of uniform bins (default: False).</p></li>
-<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.IRTModel.n_bins">
-<span class="sig-name descname"><span class="pre">n_bins</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#src.pm_rank.IRTModel.n_bins" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.n_bins'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.IRTModel.use_empirical_quantiles">
-<span class="sig-name descname"><span class="pre">use_empirical_quantiles</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#src.pm_rank.IRTModel.use_empirical_quantiles" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.use_empirical_quantiles'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.IRTModel.irt_obs">
-<span class="sig-name descname"><span class="pre">irt_obs</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#src.pm_rank.IRTModel.irt_obs" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.irt_obs'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.IRTModel.method">
-<span class="sig-name descname"><span class="pre">method</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#src.pm_rank.IRTModel.method" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.method'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.IRTModel.verbose">
-<span class="sig-name descname"><span class="pre">verbose</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#src.pm_rank.IRTModel.verbose" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.verbose'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.IRTModel.logger">
-<span class="sig-name descname"><span class="pre">logger</span></span><a class="headerlink" href="#src.pm_rank.IRTModel.logger" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.logger'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="src.pm_rank.IRTModel.fit">
-<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="data/base/index.html#src.pm_rank.data.base.ForecastProblem" title="src.pm_rank.data.base.ForecastProblem"><span class="pre">pm_rank.data.base.ForecastProblem</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'SVI'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'NUTS'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'SVI'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.pm_rank.MCMCConfig" title="src.pm_rank.MCMCConfig"><span class="pre">MCMCConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#src.pm_rank.SVIConfig" title="src.pm_rank.SVIConfig"><span class="pre">SVIConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.IRTModel.fit" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.fit'"><span>¶</span></a></dt>
-<dd><p>Fit the IRT model to the given problems and return rankings.</p>
-<p>This method fits the IRT model using either SVI or MCMC inference, depending on
-the specified method. The model estimates latent abilities for each forecaster
-and difficulty/discrimination parameters for each problem.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>problems</strong> – List of ForecastProblem instances to fit the model to.</p></li>
-<li><p><strong>include_scores</strong> – Whether to include scores in the results (default: True).</p></li>
-<li><p><strong>method</strong> – Inference method to use (“SVI” for fast approximate inference
-or “NUTS” for exact MCMC inference) (default: “SVI”).</p></li>
-<li><p><strong>config</strong> – Configuration object for the chosen inference method.
-Must be MCMCConfig for “NUTS” or SVIConfig for “SVI”.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>If include_scores=True, returns a tuple of (scores_dict, rankings_dict).
-If include_scores=False, returns only rankings_dict.
-scores_dict maps forecaster IDs to their estimated abilities.
-rankings_dict maps forecaster IDs to their ranks (1-based).</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p>AssertionError if method is invalid or config is not provided.</p>
-</dd>
-</dl>
-</dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="src.pm_rank.IRTModel.get_problem_level_parameters">
-<span class="sig-name descname"><span class="pre">get_problem_level_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.IRTModel.get_problem_level_parameters" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.get_problem_level_parameters'"><span>¶</span></a></dt>
-<dd><p>Get problem difficulty and discrimination parameters.</p>
-<p>Returns the estimated difficulty and discrimination parameters for each problem
-after the model has been fitted. These parameters provide insights into how
-challenging each problem is and how well it distinguishes between forecasters
-of different abilities.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A tuple of (difficulties_dict, discriminations_dict).
-difficulties_dict maps problem IDs to their difficulty parameters (b).
-discriminations_dict maps problem IDs to their discrimination parameters (a).</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p>AssertionError if the model has not been fitted yet.</p>
-</dd>
-</dl>
-</dd></dl>
-</dd></dl>
-<dl class="py class">
-<dt class="sig sig-object py" id="src.pm_rank.SVIConfig">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">SVIConfig</span></span><a class="headerlink" href="#src.pm_rank.SVIConfig" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SVIConfig'"><span>¶</span></a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
-<p>Configuration for SVI (Stochastic Variational Inference) optimization.</p>
-<p>This configuration class defines parameters for running variational inference
-using stochastic gradient descent, which provides fast approximate posterior
-inference for the IRT model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>optimizer</strong> – The optimizer to use for the SVI engine (“Adam” or “SGD”) (default: “Adam”).</p></li>
-<li><p><strong>num_steps</strong> – The number of steps to run for the SVI engine (default: 1000).</p></li>
-<li><p><strong>learning_rate</strong> – The learning rate to use for the SVI engine (default: 0.01).</p></li>
-<li><p><strong>device</strong> – The device to use for the SVI engine (“cpu” or “cuda”) (default: “cpu”).</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.SVIConfig.optimizer">
-<span class="sig-name descname"><span class="pre">optimizer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'Adam'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'SGD'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.SVIConfig.optimizer" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SVIConfig.optimizer'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.SVIConfig.num_steps">
-<span class="sig-name descname"><span class="pre">num_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.SVIConfig.num_steps" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SVIConfig.num_steps'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.SVIConfig.learning_rate">
-<span class="sig-name descname"><span class="pre">learning_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#src.pm_rank.SVIConfig.learning_rate" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SVIConfig.learning_rate'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.SVIConfig.device">
-<span class="sig-name descname"><span class="pre">device</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'cpu'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'cuda'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.SVIConfig.device" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SVIConfig.device'"><span>¶</span></a></dt>
-<dd></dd></dl>
-</dd></dl>
-<dl class="py class">
-<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">MCMCConfig</span></span><a class="headerlink" href="#src.pm_rank.MCMCConfig" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig'"><span>¶</span></a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
-<p>Configuration for MCMC (Markov Chain Monte Carlo) inference using NUTS sampler.</p>
-<p>This configuration class defines parameters for running Hamiltonian Monte Carlo
-sampling with the No-U-Turn Sampler (NUTS) algorithm, which provides exact
-posterior inference for the IRT model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>total_samples</strong> – The total number of samples to draw from the posterior distribution (default: 1000).</p></li>
-<li><p><strong>warmup_steps</strong> – The number of warmup steps to run before sampling (default: 100).</p></li>
-<li><p><strong>num_workers</strong> – The number of workers to use for parallelization. Note that we use a customized
-multiprocessing approach since the default implementation by Pyro can be very slow.
-This is why we don’t use the name <cite>num_chains</cite> (default: 1).</p></li>
-<li><p><strong>device</strong> – The device to use for the MCMC engine (“cpu” or “cuda”) (default: “cpu”).</p></li>
-<li><p><strong>save_result</strong> – Whether to save the result to a file (default: False).</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig.total_samples">
-<span class="sig-name descname"><span class="pre">total_samples</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.MCMCConfig.total_samples" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig.total_samples'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig.warmup_steps">
-<span class="sig-name descname"><span class="pre">warmup_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.MCMCConfig.warmup_steps" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig.warmup_steps'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig.num_workers">
-<span class="sig-name descname"><span class="pre">num_workers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.MCMCConfig.num_workers" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig.num_workers'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig.device">
-<span class="sig-name descname"><span class="pre">device</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'cpu'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'cuda'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.MCMCConfig.device" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig.device'"><span>¶</span></a></dt>
-<dd></dd></dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig.save_result">
-<span class="sig-name descname"><span class="pre">save_result</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.pm_rank.MCMCConfig.save_result" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig.save_result'"><span>¶</span></a></dt>
-<dd></dd></dl>
-</dd></dl>
-<dl class="py class">
 <dt class="sig sig-object py" id="src.pm_rank.BrierScoringRule">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">BrierScoringRule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">negate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.BrierScoringRule" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.BrierScoringRule'"><span>¶</span></a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">ScoringRule</span></code></p>
@@ -767,6 +579,37 @@ accuracy and calibration.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="src.pm_rank.BrierScoringRule.negate">
 <span class="sig-name descname"><span class="pre">negate</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#src.pm_rank.BrierScoringRule.negate" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.BrierScoringRule.negate'"><span>¶</span></a></dt>
+<dd></dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.LogScoringRule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">LogScoringRule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clip_prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.LogScoringRule" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.LogScoringRule'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">ScoringRule</span></code></p>
+<p>Logarithmic scoring rule for evaluating probabilistic forecasts.</p>
+<p>The logarithmic scoring rule is a proper scoring rule that rewards forecasters
+based on the logarithm of their predicted probability for the actual outcome.
+This rule heavily penalizes overconfident predictions and rewards well-calibrated
+forecasts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clip_prob</strong> – Minimum probability value to prevent log(0) (default: 0.01).</p></li>
+<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
+</ul>
+</dd>
+</dl>
+<p>Initialize the logarithmic scoring rule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clip_prob</strong> – Minimum probability value to prevent log(0) (default: 0.01).</p></li>
+<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.LogScoringRule.clip_prob">
+<span class="sig-name descname"><span class="pre">clip_prob</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.01</span></em><a class="headerlink" href="#src.pm_rank.LogScoringRule.clip_prob" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.LogScoringRule.clip_prob'"><span>¶</span></a></dt>
 <dd></dd></dl>
 </dd></dl>
 <dl class="py class">
@@ -973,34 +816,12 @@ Reference: <a class="reference external" href="https://en.wikipedia.org/wiki/Ken
 <li><a :data-current="activeSection === '#src.pm_rank.GeneralizedBT.fit'" class="reference internal" href="#src.pm_rank.GeneralizedBT.fit"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.fit()</span></code></a></li>
 </ul>
 </li>
-<li><a :data-current="activeSection === '#src.pm_rank.IRTModel'" class="reference internal" href="#src.pm_rank.IRTModel"><code class="docutils literal notranslate"><span class="pre">IRTModel</span></code></a><ul>
-<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.n_bins'" class="reference internal" href="#src.pm_rank.IRTModel.n_bins"><code class="docutils literal notranslate"><span class="pre">IRTModel.n_bins</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.use_empirical_quantiles'" class="reference internal" href="#src.pm_rank.IRTModel.use_empirical_quantiles"><code class="docutils literal notranslate"><span class="pre">IRTModel.use_empirical_quantiles</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.irt_obs'" class="reference internal" href="#src.pm_rank.IRTModel.irt_obs"><code class="docutils literal notranslate"><span class="pre">IRTModel.irt_obs</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.method'" class="reference internal" href="#src.pm_rank.IRTModel.method"><code class="docutils literal notranslate"><span class="pre">IRTModel.method</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.verbose'" class="reference internal" href="#src.pm_rank.IRTModel.verbose"><code class="docutils literal notranslate"><span class="pre">IRTModel.verbose</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.logger'" class="reference internal" href="#src.pm_rank.IRTModel.logger"><code class="docutils literal notranslate"><span class="pre">IRTModel.logger</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.fit'" class="reference internal" href="#src.pm_rank.IRTModel.fit"><code class="docutils literal notranslate"><span class="pre">IRTModel.fit()</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.get_problem_level_parameters'" class="reference internal" href="#src.pm_rank.IRTModel.get_problem_level_parameters"><code class="docutils literal notranslate"><span class="pre">IRTModel.get_problem_level_parameters()</span></code></a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#src.pm_rank.SVIConfig'" class="reference internal" href="#src.pm_rank.SVIConfig"><code class="docutils literal notranslate"><span class="pre">SVIConfig</span></code></a><ul>
-<li><a :data-current="activeSection === '#src.pm_rank.SVIConfig.optimizer'" class="reference internal" href="#src.pm_rank.SVIConfig.optimizer"><code class="docutils literal notranslate"><span class="pre">SVIConfig.optimizer</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.SVIConfig.num_steps'" class="reference internal" href="#src.pm_rank.SVIConfig.num_steps"><code class="docutils literal notranslate"><span class="pre">SVIConfig.num_steps</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.SVIConfig.learning_rate'" class="reference internal" href="#src.pm_rank.SVIConfig.learning_rate"><code class="docutils literal notranslate"><span class="pre">SVIConfig.learning_rate</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.SVIConfig.device'" class="reference internal" href="#src.pm_rank.SVIConfig.device"><code class="docutils literal notranslate"><span class="pre">SVIConfig.device</span></code></a></li>
-</ul>
-</li>
-<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig'" class="reference internal" href="#src.pm_rank.MCMCConfig"><code class="docutils literal notranslate"><span class="pre">MCMCConfig</span></code></a><ul>
-<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig.total_samples'" class="reference internal" href="#src.pm_rank.MCMCConfig.total_samples"><code class="docutils literal notranslate"><span class="pre">MCMCConfig.total_samples</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig.warmup_steps'" class="reference internal" href="#src.pm_rank.MCMCConfig.warmup_steps"><code class="docutils literal notranslate"><span class="pre">MCMCConfig.warmup_steps</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig.num_workers'" class="reference internal" href="#src.pm_rank.MCMCConfig.num_workers"><code class="docutils literal notranslate"><span class="pre">MCMCConfig.num_workers</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig.device'" class="reference internal" href="#src.pm_rank.MCMCConfig.device"><code class="docutils literal notranslate"><span class="pre">MCMCConfig.device</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig.save_result'" class="reference internal" href="#src.pm_rank.MCMCConfig.save_result"><code class="docutils literal notranslate"><span class="pre">MCMCConfig.save_result</span></code></a></li>
-</ul>
-</li>
 <li><a :data-current="activeSection === '#src.pm_rank.BrierScoringRule'" class="reference internal" href="#src.pm_rank.BrierScoringRule"><code class="docutils literal notranslate"><span class="pre">BrierScoringRule</span></code></a><ul>
 <li><a :data-current="activeSection === '#src.pm_rank.BrierScoringRule.negate'" class="reference internal" href="#src.pm_rank.BrierScoringRule.negate"><code class="docutils literal notranslate"><span class="pre">BrierScoringRule.negate</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.LogScoringRule'" class="reference internal" href="#src.pm_rank.LogScoringRule"><code class="docutils literal notranslate"><span class="pre">LogScoringRule</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.LogScoringRule.clip_prob'" class="reference internal" href="#src.pm_rank.LogScoringRule.clip_prob"><code class="docutils literal notranslate"><span class="pre">LogScoringRule.clip_prob</span></code></a></li>
 </ul>
 </li>
 <li><a :data-current="activeSection === '#src.pm_rank.SphericalScoringRule'" class="reference internal" href="#src.pm_rank.SphericalScoringRule"><code class="docutils literal notranslate"><span class="pre">SphericalScoringRule</span></code></a></li>
@@ -1031,7 +852,7 @@ Reference: <a class="reference external" href="https://en.wikipedia.org/wiki/Ken
 </div>
 </footer>
 </div>
-<script src="../../../_static/documentation_options.js?v=37f418d5"></script>
+<script src="../../../_static/documentation_options.js?v=a47416a6"></script>
 <script src="../../../_static/doctools.js?v=9bcbadda"></script>
 <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
 <script defer="defer" src="../../../_static/theme.js?v=073f68d9"></script>
