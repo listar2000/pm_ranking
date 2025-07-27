@@ -185,6 +185,7 @@ ERS := \frac{\sum_{i=1}^{N} \text{payoff from } i\text{-th } \text{event under }
 <li><p>When we calculate the Brier score (or any other proper scoring rule), we measure how the LLM’s probabilistic predictions align with the observed outcomes. A good score means that the LLM can effectively synthesize the provided information and make accurate &amp; well-calibrated predictions through reasoning. The market odds, which can be interpreted as the human-consensus probabilities, <strong>do not enter into the calculation</strong>.</p></li>
 <li><p>On the other hand, the expected return depends on the observed outcome and the strategy <span class="math notranslate nohighlight">\(a_i^*\)</span>, which in turn is determined by <strong>both the LLM’s probabilities and the market odds</strong>. It is thus a <strong>relative metric</strong> in the sense that achieving a good score requires the LLM to perform “relatively better” than most human bettors to create arbitrage opportunities.</p></li>
 </ul>
+<br/>
 <details>
 <summary>🤔 Follow-up: when would rankings based on these two metrics differ?</summary>
 <p>Imagine the following stylized setup:</p>
