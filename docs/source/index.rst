@@ -20,16 +20,16 @@ especially for those who want to integrate handy scoring/ranking algorithms into
 
 Below we will provide a quick overview of core concepts (e.g. models, dataclass interfaces, etc.) in :code:`pm_rank`. Please refer to:
 
-- :doc:`autoapi/src/pm_rank/index` for detailed API documentation.
-- `Colab Demo <https://colab.research.google.com/drive/1gAXhNQySdCP1L9HjVQA8vyLz5393pjdI?usp=sharing>`_ for a quick demo using the package to load prediction market data and obtain some interesting insights.
-- :doc:`blogpost/ranking_llm_250727` for blogposts
+- :doc:`autoapi/src/pm_rank/index` for **detailed API documentation**.
+- `Colab Demo <https://colab.research.google.com/drive/1gAXhNQySdCP1L9HjVQA8vyLz5393pjdI?usp=sharing>`_ for a **quick demo** using the package to load prediction market data and obtain some interesting insights.
+- :doc:`blogpost/ranking_llm_250727` for our detailed blogpost **walking through the reasoning behind our ranking module design**.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Links:
    :hidden:
 
-   demo
+   colab_demo
    autoapi/src/pm_rank/index
 
 .. toctree::
@@ -40,7 +40,7 @@ Below we will provide a quick overview of core concepts (e.g. models, dataclass 
    blogpost/ranking_llm_250727
 
 Quick Installation Guide
-----------------
+------------------------
 
 :code:`pm_rank` is a python package that can be installed via :code:`pip` (requires python 3.8 or higher)
 
