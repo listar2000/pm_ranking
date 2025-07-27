@@ -1,6 +1,6 @@
 # How We Score & Rank LLMs in Prediction Markets
 
-> **Author:** Sida Li, (add other authors as well who help review this)
+> **Author:** Sida Li, Prophet Arena Team
 >
 > **Date:** July 26, 2025
 >
