@@ -117,7 +117,6 @@ class GJOChallengeLoader(ChallengeLoader):
                 username=username,
                 timestamp=timestamp,
                 probs=probs,
-                correct_prob=probs[problem_id_to_correct_idx[problem_id]]
             )
 
             problem_id_to_forecast_events[problem_id].append(forecast_event)
@@ -131,7 +130,7 @@ class GJOChallengeLoader(ChallengeLoader):
                 title=str(row['title']),
                 problem_id=problem_id,
                 options=list(row['options']),
-                correct_option=str(row['correct_answer']),
+                correct_option_idx=problem_id_to_correct_idx[problem_id],
                 forecasts=problem_forecasts,
                 end_date=datetime.fromisoformat(
                     str(row['metadata']['end_date'])),
@@ -211,7 +210,10 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         for opt in options:
             info = market_info.get(opt, {})
             yes_ask = info.get('yes_ask', None)
-            if yes_ask is not None and yes_ask > 0:
+            if info.get('liquidity', None) is not None and info.get('liquidity', None) < 10:
+                asks.append(100)
+                continue
+            elif yes_ask is not None and yes_ask > 0:
                 if use_bid_for_odds:
                     if 'yes_bid' in info:
                         yes_bid = info['yes_bid']
@@ -225,14 +227,9 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                 logger.warning(warning_msg) if logger is not None else print(
                     warning_msg)
                 asks.append(None)
-        # normalize the implied probabilities to sum to 1
-        implied_probs = [(a / 100.0) if a is not None else 0.0 for a in asks]
-        total = sum(implied_probs)
 
-        if total > 0:
-            return [p / total for p in implied_probs]
-        else:
-            return None
+        implied_probs = [(a / 100.0) if a is not None else 1e-3 for a in asks]
+        return implied_probs
 
     def load_challenge(self) -> ForecastChallenge:
         """
@@ -272,11 +269,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             market_outcome = parse_json_or_eval(
                 first_row['market_outcome'], expect_type=dict)
 
-            correct_option = [opt for opt, val in (
-                market_outcome or {}).items() if int(val) == 1][0]
-
-            if correct_option not in options:
-                continue
+            correct_option_idx = [i for i, key in enumerate(market_outcome.keys()) if market_outcome[key] == 1]
 
             forecasts = []
             for _, row in group.iterrows():
@@ -285,19 +278,24 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     row['prediction'], expect_type=dict)
                 probs_dict = {d['market']: d['probability']
                               for d in prediction.get('probabilities', [])}
-                probs = [probs_dict.get(opt, 0.0) for opt in options]
+                unnormalized_probs = [probs_dict.get(opt, 0.0) for opt in options]
                 # make sure the probs sum to 1
-                if not math.isclose(sum(probs), 1.0, abs_tol=1e-6):
-                    continue
+                if not math.isclose(sum(unnormalized_probs), 1.0, abs_tol=1e-6):
+                    # we normalize the probs to sum to 1 if the sum > 0, and set to uniform if the sum == 0
+                    if sum(unnormalized_probs) > 0:
+                        probs = [p / sum(unnormalized_probs) for p in unnormalized_probs]
+                    else:
+                        probs = [1.0 / len(options) for _ in options]
+                else:
+                    probs = unnormalized_probs
+                               
                 timestamp = datetime.now()
-                correct_prob = probs[options.index(
-                    correct_option)] if correct_option in options else 0.0
                 forecasts.append(ForecastEvent(
                     problem_id=problem_id_counter,
                     username=username,
                     timestamp=timestamp,
                     probs=probs,
-                    correct_prob=correct_prob
+                    unnormalized_probs=unnormalized_probs,
                 ))
 
             if len(forecasts) > 0:
@@ -305,7 +303,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     title=title,
                     problem_id=problem_id_counter,
                     options=options,
-                    correct_option=correct_option,
+                    correct_option_idx=correct_option_idx,
                     forecasts=forecasts,
                     end_date=open_date,
                     num_forecasters=len(forecasts),

@@ -45,6 +45,7 @@ def _get_risk_neutral_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray
     # Create a (n, d) one-hot vector for the bets
     bets_one_hot = np.zeros((n, d))
     bets_one_hot[np.arange(n), edge_max] = bet_values
+
     return bets_one_hot
 
 
@@ -157,8 +158,8 @@ class AverageReturn:
                 forecast_probs, implied_probs, self.risk_aversion)
 
         # Calculate earnings based on correct outcome
-        correct_idx = problem.options.index(problem.correct_option)
-        earnings = bets[:, correct_idx] * self.num_money_per_round
+        correct_option_idx = problem.correct_option_idx
+        earnings = np.sum(bets[:, correct_option_idx] * self.num_money_per_round, axis=1)
 
         # Update forecaster data with earnings
         for i, forecast in enumerate(problem.forecasts):

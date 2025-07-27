@@ -127,11 +127,12 @@ class GeneralizedBT(object):
                 D_p_denom = 0
                 W_p_numer = np.zeros(len(problem.forecasts))
                 indicators = []
+                correct_option_first = problem.correct_option_idx[0]
                 for i, forecast in enumerate(problem.forecasts):
                     user_idx = unique_forecasters[forecast.username]
                     indicators.append(user_idx)
 
-                    W_p_numer[i] = thetas[user_idx] * forecast.correct_prob
+                    W_p_numer[i] = thetas[user_idx] * forecast.probs[correct_option_first]
                     D_p_denom += thetas[user_idx]
 
                 indicators = np.array(indicators)

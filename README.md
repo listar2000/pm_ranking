@@ -44,7 +44,7 @@ pip install -e .
     - `username`: an unique identifier for the forecaster
     - `timestamp`: the timestamp of the prediction. Note that this is not optional as we might want to **stream** the predictions in time. However, if the original data does not contain this information, we will use the current time as a placeholder.
     - `probs`: the probability distribution over the options -- given by the forecaster.
-        - `correct_prob`: the probability assigned to the correct answer.
+    - `unnormalized_probs`: the unnormalized probability distribution over the options -- given by the forecaster.
 
     </details>
 
@@ -59,7 +59,7 @@ pip install -e .
     - `title`: the title of the problem
     - `problem_id`: the id of the problem
     - `options`: the options for the problem
-    - `correct_option`: the correct option
+    - `correct_option_idx`: the index of the correct option
     - `forecasts`: the forecasts for the problem
     - `num_forecasters`: the number of forecasters
     - `url`: the URL of the problem

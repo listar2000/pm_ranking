@@ -16,7 +16,7 @@ class ForecastEvent(BaseModel):
     username: str = Field(description="The user name/id of the forecaster")
     timestamp: datetime = Field(description="The timestamp of the forecast")
     probs: List[float] = Field(description="The forecasted probabilities for each option")
-    correct_prob: float = Field(description="The probability assigned to the correct answer")
+    unnormalized_probs: List[float] | None = Field(None, description="The unnormalized forecasted probabilities for each option")
 
     @field_validator('probs')
     def validate_probabilities(cls, v):
@@ -29,13 +29,17 @@ class ForecastEvent(BaseModel):
             raise ValueError(f"Probabilities must sum to 1, got {sum(v)}")
         return v
 
-    @field_validator('correct_prob')
-    def validate_correct_probability(cls, v, info):
-        """Validate that correct_prob matches one of the probabilities."""
-        if info.data and 'probs' in info.data:
-            probs = info.data['probs']
-            if not any(math.isclose(v, p, abs_tol=1e-6) for p in probs):
-                raise ValueError(f"correct_prob {v} must match one of the probabilities {probs}")
+    @field_validator('unnormalized_probs')
+    def validate_unnormalized_probabilities(cls, v, info):
+        """Validate that unnormalized probabilities are non-negative.
+        we only require every number to be in [0, 1], and the vector dimension is the same as the number of options.
+        """
+        if v is None:
+            return v
+        
+        if not all(0 <= p <= 1 for p in v):
+            raise ValueError("All unnormalized probabilities must be in [0, 1]")
+     
         return v
 
 
@@ -44,18 +48,25 @@ class ForecastProblem(BaseModel):
     title: str = Field(description="The title of the problem")
     problem_id: int = Field(description="The id of the problem")
     options: List[str] = Field(description="The available options for the problem")
-    correct_option: str = Field(description="The correct answer")
+    correct_option_idx: List[int] = Field(description="The indices of the correct answer, might be multiple ones")
     forecasts: List[ForecastEvent] = Field(description="All forecasts for this problem")
     end_date: datetime = Field(description="The end date of the problem")
     num_forecasters: int = Field(description="The number of forecasters")
     url: str | None = Field(None, description="The URL of the problem")
     odds: List[float] | None = Field(None, description="The odds for each option")
 
-    @field_validator('correct_option')
-    def validate_correct_option(cls, v, info):
-        """Validate that correct_option is in the options list."""
-        if info.data and 'options' in info.data and v not in info.data['options']:
-            raise ValueError(f"correct_option '{v}' must be one of the options: {info.data['options']}")
+    @field_validator('correct_option_idx')
+    def validate_correct_option_idx(cls, v, info):
+        """Validate that correct_option_idx is in the options list."""
+        if not all(0 <= idx < len(info.data['options']) for idx in v):
+            raise ValueError(f"All correct_option_idx must be in [0, {len(info.data['options']) - 1}]")
+        
+        if not all(isinstance(idx, int) for idx in v):
+            raise ValueError("All correct_option_idx must be integers")
+        
+        if not len(set(v)) == len(v):
+            raise ValueError("All correct_option_idx must be unique")
+        
         return v
 
     @field_validator('forecasts')
@@ -77,6 +88,11 @@ class ForecastProblem(BaseModel):
         if v is not None and info.data and 'options' in info.data:
             if len(v) != len(info.data['options']):
                 raise ValueError(f"Number of odds ({len(v)}) must match number of options ({len(info.data['options'])})")
+
+        # check that odds each has to be in [0, 1]
+        if v is not None and not all(0 <= p <= 1 for p in v):
+            raise ValueError("All odds (implied probabilities) must be in [0, 1]")
+
         return v
 
     @property

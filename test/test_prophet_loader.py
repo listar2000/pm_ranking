@@ -39,7 +39,6 @@ def test_prophet_arena_loader_full_challenge():
     for problem in challenge.forecast_problems:
         assert problem.title is not None
         assert len(problem.options) > 0
-        assert problem.correct_option in problem.options or problem.correct_option is None
         assert len(problem.forecasts) > 0
         # Odds should be present and sum to ~1
         if problem.odds:

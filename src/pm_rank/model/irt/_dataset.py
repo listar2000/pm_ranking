@@ -68,7 +68,8 @@ def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6,
 
     for forecast_problem in forecast_problems:
         # we leverage the fact that for a single problem, `all_probs` have the same shape
-        correct_probs, all_probs = [], []
+        all_probs = []
+        correct_option_idx = forecast_problem.correct_option_idx
         for forecast in forecast_problem.forecasts:
             # get the forecaster id and problem id
             forecaster_id, problem_id = forecast.username, forecast_problem.problem_id
@@ -79,12 +80,11 @@ def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6,
 
             forecaster_ids.append(forecaster_id_to_idx[forecaster_id])
             problem_ids.append(problem_id_to_idx[problem_id])
-            correct_probs.append(forecast.correct_prob)
-            all_probs.append(forecast.probs)
+            all_probs.append(forecast.unnormalized_probs)
 
         # calculate the scores for this problem
         scores.extend(brier_scoring_rule._score_fn(
-            np.array(correct_probs), np.array(all_probs), negate=False))
+            np.array(correct_option_idx), np.array(all_probs), negate=False))
 
     # discretize the scores
     discretized_indices, bin_edges = _discretize_scoring_rules(

@@ -57,7 +57,7 @@ def test_gjo_loader_full_challenge():
     assert first_problem.title is not None
     assert first_problem.problem_id > 0
     assert len(first_problem.options) > 0
-    assert first_problem.correct_option in first_problem.options
+    assert first_problem.correct_option_idx[0] < len(first_problem.options)
     assert len(first_problem.forecasts) > 0
     
     # Test that forecasts are properly structured

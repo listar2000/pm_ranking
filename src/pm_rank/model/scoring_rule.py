@@ -57,14 +57,14 @@ class ScoringRule(ABC):
             self.logger.setLevel(logging.DEBUG)
 
     @abstractmethod
-    def _score_fn(self, correct_probs: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
+    def _score_fn(self, correct_option_idx: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
         """Implement the scoring function for the specific rule.
 
         This abstract method must be implemented by subclasses to define the
         specific mathematical formulation of the scoring rule.
 
-        :param correct_probs: Array of predicted probabilities for the actual outcomes.
-                             Shape (n,) where n is the number of forecasts.
+        :param correct_option_idx: Array of indices of the correct options.
+                             Shape (m,) where m is the number of correct options.
         :param all_probs: Array of all predicted probability distributions.
                          Shape (n, k) where n is number of forecasts, k is number of options.
 
@@ -123,20 +123,19 @@ class ScoringRule(ABC):
             problem_weights = np.ones(len(problems))
 
         for i, problem in enumerate(problems):
-            correct_probs, all_probs, usernames = [], [], []
+            all_probs, usernames = [], []
+            correct_option_idx = np.array(problem.correct_option_idx)
             for forecast in problem.forecasts:
                 username = forecast.username
                 if username not in forecaster_data:
                     forecaster_data[username] = []
                 usernames.append(username)
-                correct_probs.append(forecast.correct_prob)
-                all_probs.append(forecast.probs)
+                all_probs.append(forecast.unnormalized_probs)
 
-            correct_probs = np.array(correct_probs)
             all_probs = np.array(all_probs)
             # weight the scores by the problem weights
             scores = self._score_fn(
-                correct_probs, all_probs) * problem_weights[i]
+                correct_option_idx, all_probs) * problem_weights[i]
             # attribute the scores to the forecasters
             for username, score in zip(usernames, scores):
                 forecaster_data[username].append(score)
@@ -166,19 +165,18 @@ class ScoringRule(ABC):
             if self.verbose:
                 self.logger.debug(f"Processing batch {batch_id}")
             for problem in batch:
-                correct_probs, all_probs, usernames = [], [], []
+                all_probs, usernames = [], []
+                correct_option_idx = np.array(problem.correct_option_idx)
                 for forecast in problem.forecasts:
                     username = forecast.username
                     if username not in forecaster_data:
                         forecaster_data[username] = []
                     usernames.append(username)
-                    correct_probs.append(forecast.correct_prob)
-                    all_probs.append(forecast.probs)
+                    all_probs.append(forecast.unnormalized_probs)
 
                 # batch process the scores
-                correct_probs = np.array(correct_probs)
                 all_probs = np.array(all_probs)
-                scores = self._score_fn(correct_probs, all_probs)
+                scores = self._score_fn(correct_option_idx, all_probs)
 
                 for username, score in zip(usernames, scores):
                     forecaster_data[username].append(score)
@@ -217,21 +215,21 @@ class LogScoringRule(ScoringRule):
         self.logger.info(
             f"Initialized {self.__class__.__name__} with hyperparam: clip_prob={clip_prob}")
 
-    def _score_fn(self, correct_probs: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
+    def _score_fn(self, correct_option_idx: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
         """Calculate logarithmic scores for the forecasts.
 
         The logarithmic score is computed as log(p_correct), where p_correct is the
         predicted probability of the actual outcome. To prevent numerical issues,
         probabilities are clipped to a minimum value.
 
-        :param correct_probs: Array of predicted probabilities for the actual outcomes.
-                             Shape (n,) where n is the number of forecasts.
+        :param correct_option_idx: Array of indices of the correct options.
+                             Shape (m,) where m is the number of correct options.
         :param all_probs: Array of all predicted probability distributions.
                          Shape (n, k) where n is number of forecasts, k is number of options.
 
         :returns: Array of logarithmic scores. Shape (n,).
         """
-        return np.log(np.maximum(correct_probs, self.clip_prob))
+        return np.log(np.maximum(all_probs[:, correct_option_idx], self.clip_prob))
 
 
 class BrierScoringRule(ScoringRule):
@@ -259,19 +257,18 @@ class BrierScoringRule(ScoringRule):
         self.logger.info(
             f"Initialized {self.__class__.__name__} with hyperparam: negate={negate}")
 
-    def _score_fn(self, correct_probs: np.ndarray, all_probs: np.ndarray, negate: bool = True) -> np.ndarray:
+    def _score_fn(self, correct_option_idx: np.ndarray, all_probs: np.ndarray, negate: bool = True) -> np.ndarray:
         """Calculate Brier scores for the forecasts.
 
         The Brier score is computed as the average squared difference between
         predicted probabilities and actual outcomes. The formula is:
 
-        Brier Score = (1 - p_correct)² + Σ(p_incorrect)²
+        Brier Score = Σ(1 - p_correct)² for all correct options
 
-        where p_correct is the predicted probability of the actual outcome and
-        p_incorrect are the predicted probabilities of incorrect outcomes.
+        where p_correct is the predicted probability of the actual outcome.
 
-        :param correct_probs: Array of predicted probabilities for the actual outcomes.
-                             Shape (n,) where n is the number of forecasts.
+        :param correct_option_idx: Array of indices of the correct options.
+                             Shape (m,) where m is the number of correct options.
         :param all_probs: Array of all predicted probability distributions.
                          Shape (n, k) where n is number of forecasts, k is number of options.
         :param negate: Whether to negate the scores so that higher values are better
@@ -279,15 +276,14 @@ class BrierScoringRule(ScoringRule):
 
         :returns: Array of Brier scores. Shape (n,).
         """
-        # correct_probs is 1D with shape (n,), all_probs is 2D with shape (n, k)
-        # (1) we obtain (n,) correct_scores
-        correct_scores = (1 - correct_probs) ** 2 - correct_probs ** 2
-        # (2) we obtain (n,) incorrect scores
-        incorrect_scores = np.sum(all_probs ** 2, axis=1)
+        one_hot = np.zeros(all_probs.shape[1])
+        one_hot[correct_option_idx] = 1
+        # ignore above
+        brier_scores = 2 * np.sum((all_probs - one_hot) ** 2, axis=1)
         # (3) we obtain (n,) scores, rescaled so that it lies in [0, 1]
-        scores = (correct_scores + incorrect_scores) / 2
+        scores = brier_scores / all_probs.shape[1]
         # (4) negate the result since higher scores are better
-        return -scores if negate else scores
+        return 1 - scores if negate else scores
 
 
 class SphericalScoringRule(ScoringRule):
@@ -308,7 +304,7 @@ class SphericalScoringRule(ScoringRule):
         super().__init__(verbose=verbose)
         self.logger.info(f"Initialized {self.__class__.__name__}")
 
-    def _score_fn(self, correct_probs: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
+    def _score_fn(self, correct_option_idx: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
         """Calculate spherical scores for the forecasts.
 
         The spherical score is computed as the cosine similarity between the
@@ -319,22 +315,12 @@ class SphericalScoringRule(ScoringRule):
         where p_correct is the predicted probability of the actual outcome and
         $\\lVert p \\rVert$ is the L2 norm of the entire probability vector.
 
-        :param correct_probs: Array of predicted probabilities for the actual outcomes.
-                             Shape (n,) where n is the number of forecasts.
+        :param correct_option_idx: Array of indices of the correct options.
+                             Shape (m,) where m is the number of correct options.
         :param all_probs: Array of all predicted probability distributions.
                          Shape (n, k) where n is number of forecasts, k is number of options.
 
         :returns: Array of spherical scores. Shape (n,).
         """
         # formula: r_j / sum_i r_i where r_j is the correct probability of the j-th option
-        correct_scores = correct_probs / np.linalg.norm(all_probs, axis=1)
-        return correct_scores
-
-
-if __name__ == "__main__":
-    # check the implementation of the scoring rules
-    correct_probs = np.array([0, 0.5, 1])
-    all_probs = np.array([[0, 0.4, 0.6], [0.2, 0.5, 0.3], [0, 0, 1]])
-    print(LogScoringRule()._score_fn(correct_probs, all_probs))
-    print(BrierScoringRule()._score_fn(correct_probs, all_probs))
-    print(SphericalScoringRule()._score_fn(correct_probs, all_probs))
+        return np.sum(all_probs[:, correct_option_idx], axis=1) / np.linalg.norm(all_probs, axis=1)
