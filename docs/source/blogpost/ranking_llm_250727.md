@@ -72,6 +72,10 @@ U_\gamma(w)=
 
 where $\gamma \in [0, 1]$ is a risk-aversion hyperparameter, and $w$ is the amount of money earned after making the bet. A $\gamma = 0$ characterizes a risk-neutral individual, while $\gamma = 1$ represents a logarithmic risk-averse profile. Intermediate values of $\gamma$ represent varying degrees of risk aversion. 
 
+<p align="center">
+<img src="../_static/crra_utility_plot.png" alt="CRRA Utility Function" width="700" title="CRRA Utility Function"/>
+</p>
+
 Other than the utility function, two other factors would influence the **optimal betting strategy**:
 
 1. **How much money (total budget) to bet:** for simplicity, we assume in our hypothetical scenarior that the bettor has a fixed budget of **one dollar** for each event, so the total budget is $N$. In other words, for the $i$-th event, any **action/strategy** can be represented as a vector $a_i = (a_{i1}, a_{i2}, \dots, a_{in_i})$ that sums to 1, where $a_{ik}$ is the amount bet on outcome $k$ of event $i$.
