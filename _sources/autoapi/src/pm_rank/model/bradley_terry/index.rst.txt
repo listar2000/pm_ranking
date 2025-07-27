@@ -1,0 +1,109 @@
+src.pm_rank.model.bradley_terry
+===============================
+
+.. py:module:: src.pm_rank.model.bradley_terry
+
+.. autoapi-nested-parse::
+
+   Generalized Bradley-Terry Model for Ranking Forecasters in Prediction Markets.
+
+   This module implements the generalized Bradley-Terry model to rank forecasters based on their
+   probabilistic predictions. The Bradley-Terry model is a statistical method for modeling
+   pairwise comparisons, which we extend to handle prediction market scenarios where each
+   event outcome is viewed as a contest between winning and losing "teams" composed of
+   forecaster contributions.
+
+   Reference: https://www.jmlr.org/papers/v7/huang06a.html
+
+   Key Concepts:
+
+   - **Bradley-Terry Model**: A statistical model for analyzing pairwise comparisons that
+     estimates the relative strengths of competitors.
+   - **Generalized Extension**: Adapts the traditional pairwise model to prediction markets
+     by treating each event outcome as a contest between winning and losing teams.
+   - **Skill Parameters**: Each forecaster has a skill parameter (theta) that represents
+     their relative predictive ability.
+   - **Majorization-Minimization (MM)**: An iterative algorithm for fitting the model
+     parameters that guarantees convergence.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   src.pm_rank.model.bradley_terry.GeneralizedBT
+
+
+Module Contents
+---------------
+
+.. py:class:: GeneralizedBT(method: Literal['MM', 'Elo'] = 'MM', num_iter: int = 100, threshold: float = 0.001, verbose: bool = False)
+
+   Bases: :py:obj:`object`
+
+
+   Generalized Bradley-Terry model for ranking forecasters in prediction markets.
+
+   This class implements a generalization of the traditional Bradley-Terry model to
+   handle prediction market scenarios. Each event outcome is treated as a contest
+   between two "pseudo-teams": a winning team (the realized outcome) and a losing
+   team (all other outcomes). Each forecaster contributes fractions of their capability
+   proportional to their predicted probabilities.
+
+   The model estimates skill parameters for each forecaster using an iterative
+   Majorization-Minimization (MM) algorithm, which provides convergence guarantees
+   and intuitive comparative scores similar to Elo ratings.
+
+   :param method: Optimization method to use ("MM" for Majorization-Minimization).
+   :param num_iter: Maximum number of iterations for the MM algorithm (default: 100).
+   :param threshold: Convergence threshold for parameter updates (default: 1e-3).
+   :param verbose: Whether to enable verbose logging (default: False).
+
+   Initialize the generalized Bradley-Terry model.
+
+   :param method: Optimization method to use ("MM" for Majorization-Minimization).
+   :param num_iter: Maximum number of iterations for the MM algorithm (default: 100).
+   :param threshold: Convergence threshold for parameter updates (default: 1e-3).
+   :param verbose: Whether to enable verbose logging (default: False).
+
+
+   .. py:attribute:: method
+      :value: 'MM'
+
+
+
+   .. py:attribute:: num_iter
+      :value: 100
+
+
+
+   .. py:attribute:: threshold
+      :value: 0.001
+
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:attribute:: logger
+
+
+   .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
+
+      Fit the generalized Bradley-Terry model to the given problems.
+
+      This method estimates skill parameters for each forecaster using the MM algorithm
+      and returns rankings based on these parameters. The skill parameters represent
+      the relative predictive ability of each forecaster.
+
+      :param problems: List of ForecastProblem instances to evaluate.
+      :param include_scores: Whether to include scores in the results (default: True).
+
+      :returns: Ranking results, either as a tuple of (scores, rankings) or just rankings.
+
+
+

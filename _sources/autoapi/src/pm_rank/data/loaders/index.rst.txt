@@ -1,0 +1,111 @@
+src.pm_rank.data.loaders
+========================
+
+.. py:module:: src.pm_rank.data.loaders
+
+.. autoapi-nested-parse::
+
+   Concrete implementations of ChallengeLoader for different data sources.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   src.pm_rank.data.loaders.GJOChallengeLoader
+   src.pm_rank.data.loaders.ProphetArenaChallengeLoader
+
+
+Module Contents
+---------------
+
+.. py:class:: GJOChallengeLoader(predictions_df: Optional[pandas.DataFrame] = None, predictions_file: Optional[str] = None, metadata_file: Optional[str] = None, challenge_title: str = '')
+
+   Bases: :py:obj:`src.pm_rank.data.base.ChallengeLoader`
+
+
+   Load forecast challenges from GJO (Good Judgment Open) data format.
+
+   Initialize the GJOChallengeLoader. The challenge can be either loaded with a given `pd.DataFrame` or with             a combination of paths `predictions_file` and `metadata_file`.
+
+   Args:
+       predictions_df (pd.DataFrame): a pd.DataFrame containing the predictions. If provided,                 `predictions_file` and `metadata_file` will be ignored.
+       predictions_file (str): the path to the predictions file
+       metadata_file (str): the path to the metadata file
+       challenge_title (str): the title of the challenge
+
+
+   .. py:attribute:: challenge_title
+      :value: ''
+
+
+
+   .. py:attribute:: logger
+
+
+   .. py:method:: load_challenge(forecaster_filter: int = 0, problem_filter: int = 0) -> src.pm_rank.data.base.ForecastChallenge
+
+      Load challenge data from GJO format files.
+
+      Args:
+          forecaster_filter: minimum number of events for a forecaster to be included
+          problem_filter: minimum number of events for a problem to be included
+
+      Returns:
+          ForecastChallenge: a ForecastChallenge object containing the forecast problems and events
+
+
+
+   .. py:method:: get_challenge_metadata() -> Dict[str, Any]
+
+      Get basic metadata about the GJO challenge.
+
+
+
+.. py:class:: ProphetArenaChallengeLoader(predictions_df: Optional[pandas.DataFrame] = None, predictions_file: Optional[str] = None, challenge_title: str = '', use_bid_for_odds: bool = False)
+
+   Bases: :py:obj:`src.pm_rank.data.base.ChallengeLoader`
+
+
+   Load forecast challenges from Prophet Arena data format.
+
+   Initialize the ProphetArenaChallengeLoader.
+
+   The challenge can be either loaded with a given `pd.DataFrame` or with a path to a predictions file.
+
+   :param predictions_df: A pd.DataFrame containing the predictions. If provided, `predictions_file` will be ignored.
+   :param predictions_file: The path to the predictions file.
+   :param challenge_title: The title of the challenge.
+   :param use_bid_for_odds: Whether to use the `yes_bid` field for implied probability calculation.
+                           If True, the implied probability will be calculated as the (yes_bid + no_bid) / 2.
+                           If False, the implied probability will be simply `yes_ask` (normalized to sum to 1).
+
+
+   .. py:attribute:: challenge_title
+      :value: ''
+
+
+
+   .. py:attribute:: use_bid_for_odds
+      :value: False
+
+
+
+   .. py:attribute:: logger
+
+
+   .. py:method:: load_challenge() -> src.pm_rank.data.base.ForecastChallenge
+
+      Load challenge data from Prophet Arena data format.
+      Group by submission_id, then for each group, build the list of forecasts, then the ForecastProblem.
+
+
+
+   .. py:method:: get_challenge_metadata() -> Dict[str, Any]
+
+      Get basic metadata about the Prophet Arena challenge using pandas groupby (no full parsing).
+
+
+

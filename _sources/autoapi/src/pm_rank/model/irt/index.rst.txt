@@ -1,0 +1,274 @@
+src.pm_rank.model.irt
+=====================
+
+.. py:module:: src.pm_rank.model.irt
+
+.. autoapi-nested-parse::
+
+   Pyro-based Item Response Theory (IRT) Models for Ranking Forecasters.
+
+   This module implements Item Response Theory models using Pyro for probabilistic programming.
+   IRT models are used to estimate latent abilities of forecasters and difficulty/discrimination
+   parameters of prediction problems based on their performance patterns.
+
+   The module provides two inference methods:
+
+   - **SVI (Stochastic Variational Inference)**: Fast approximate inference using variational methods
+   - **NUTS (No-U-Turn Sampler)**: Exact inference using Hamiltonian Monte Carlo sampling
+
+   Key Concepts:
+
+   * **Item Response Theory**: A psychometric framework that models the relationship between
+     a person's latent ability and their probability of answering items correctly.
+
+   * **Forecaster Ability (θ)**: Latent parameter representing each forecaster's skill level.
+
+   * **Problem Difficulty (b)**: Parameter representing how difficult each prediction problem is.
+
+   * **Problem Discrimination (a)**: Parameter representing how well each problem distinguishes
+     between forecasters of different abilities.
+
+   * **Category Parameters (p)**: Parameters for the discretized scoring bins used in the model.
+
+   Reference: https://en.wikipedia.org/wiki/Item_response_theory
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   src.pm_rank.model.irt.IRTModel
+   src.pm_rank.model.irt.MCMCConfig
+   src.pm_rank.model.irt.SVIConfig
+   src.pm_rank.model.irt.IRTObs
+
+
+Package Contents
+----------------
+
+.. py:class:: IRTModel(n_bins: int = 6, use_empirical_quantiles: bool = False, verbose: bool = False)
+
+   Bases: :py:obj:`object`
+
+
+   Item Response Theory model for ranking forecasters using Pyro.
+
+   This class implements an IRT model that estimates latent abilities of forecasters
+   and difficulty/discrimination parameters of prediction problems. The model uses
+   discretized scoring bins and supports both SVI and MCMC inference methods.
+
+   The IRT model assumes that the probability of a forecaster achieving a certain
+   score on a problem depends on their latent ability (θ), the problem's difficulty (b),
+   the problem's discrimination (a), and category parameters (p) for the scoring bins.
+
+   :param n_bins: Number of bins for discretizing continuous scores (default: 6).
+   :param use_empirical_quantiles: Whether to use empirical quantiles for binning
+                                  instead of uniform bins (default: False).
+   :param verbose: Whether to enable verbose logging (default: False).
+
+   Initialize the IRT model.
+
+   :param n_bins: Number of bins for discretizing continuous scores (default: 6).
+   :param use_empirical_quantiles: Whether to use empirical quantiles for binning
+                                  instead of uniform bins (default: False).
+   :param verbose: Whether to enable verbose logging (default: False).
+
+
+   .. py:attribute:: n_bins
+      :value: 6
+
+
+
+   .. py:attribute:: use_empirical_quantiles
+      :value: False
+
+
+
+   .. py:attribute:: irt_obs
+      :value: None
+
+
+
+   .. py:attribute:: method
+      :value: None
+
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:attribute:: logger
+
+
+   .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True, method: Literal['SVI', 'NUTS'] = 'SVI', config: MCMCConfig | SVIConfig | None = None) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
+
+      Fit the IRT model to the given problems and return rankings.
+
+      This method fits the IRT model using either SVI or MCMC inference, depending on
+      the specified method. The model estimates latent abilities for each forecaster
+      and difficulty/discrimination parameters for each problem.
+
+      :param problems: List of ForecastProblem instances to fit the model to.
+      :param include_scores: Whether to include scores in the results (default: True).
+      :param method: Inference method to use ("SVI" for fast approximate inference
+                     or "NUTS" for exact MCMC inference) (default: "SVI").
+      :param config: Configuration object for the chosen inference method.
+                     Must be MCMCConfig for "NUTS" or SVIConfig for "SVI".
+
+      :returns: If include_scores=True, returns a tuple of (scores_dict, rankings_dict).
+                If include_scores=False, returns only rankings_dict.
+                scores_dict maps forecaster IDs to their estimated abilities.
+                rankings_dict maps forecaster IDs to their ranks (1-based).
+
+      :raises: AssertionError if method is invalid or config is not provided.
+
+
+
+   .. py:method:: get_problem_level_parameters() -> Tuple[Dict[str, float], Dict[str, float]]
+
+      Get problem difficulty and discrimination parameters.
+
+      Returns the estimated difficulty and discrimination parameters for each problem
+      after the model has been fitted. These parameters provide insights into how
+      challenging each problem is and how well it distinguishes between forecasters
+      of different abilities.
+
+      :returns: A tuple of (difficulties_dict, discriminations_dict).
+                difficulties_dict maps problem IDs to their difficulty parameters (b).
+                discriminations_dict maps problem IDs to their discrimination parameters (a).
+
+      :raises: AssertionError if the model has not been fitted yet.
+
+
+
+.. py:class:: MCMCConfig
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Configuration for MCMC (Markov Chain Monte Carlo) inference using NUTS sampler.
+
+   This configuration class defines parameters for running Hamiltonian Monte Carlo
+   sampling with the No-U-Turn Sampler (NUTS) algorithm, which provides exact
+   posterior inference for the IRT model.
+
+   :param total_samples: The total number of samples to draw from the posterior distribution (default: 1000).
+   :param warmup_steps: The number of warmup steps to run before sampling (default: 100).
+   :param num_workers: The number of workers to use for parallelization. Note that we use a customized
+                       multiprocessing approach since the default implementation by Pyro can be very slow.
+                       This is why we don't use the name `num_chains` (default: 1).
+   :param device: The device to use for the MCMC engine ("cpu" or "cuda") (default: "cpu").
+   :param save_result: Whether to save the result to a file (default: False).
+
+
+   .. py:attribute:: total_samples
+      :type:  int
+
+
+   .. py:attribute:: warmup_steps
+      :type:  int
+
+
+   .. py:attribute:: num_workers
+      :type:  int
+
+
+   .. py:attribute:: device
+      :type:  Literal['cpu', 'cuda']
+
+
+   .. py:attribute:: save_result
+      :type:  bool
+
+
+.. py:class:: SVIConfig
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Configuration for SVI (Stochastic Variational Inference) optimization.
+
+   This configuration class defines parameters for running variational inference
+   using stochastic gradient descent, which provides fast approximate posterior
+   inference for the IRT model.
+
+   :param optimizer: The optimizer to use for the SVI engine ("Adam" or "SGD") (default: "Adam").
+   :param num_steps: The number of steps to run for the SVI engine (default: 1000).
+   :param learning_rate: The learning rate to use for the SVI engine (default: 0.01).
+   :param device: The device to use for the SVI engine ("cpu" or "cuda") (default: "cpu").
+
+
+   .. py:attribute:: optimizer
+      :type:  Literal['Adam', 'SGD']
+
+
+   .. py:attribute:: num_steps
+      :type:  int
+
+
+   .. py:attribute:: learning_rate
+      :type:  float
+
+
+   .. py:attribute:: device
+      :type:  Literal['cpu', 'cuda']
+
+
+.. py:class:: IRTObs
+
+   An internal, helper class that handles the transformation of data from the `ForecastProblem` level to an internal format
+
+   The `forecaster_id_to_idx` and `problem_id_to_idx` are used to map the forecaster and problem ids to indices.
+   This is useful for the `pyro` library, which requires the data to be in a certain format.
+
+   :param forecaster_ids: A tensor of shape `(k,)` with the forecaster ids
+   :param problem_ids: A tensor of shape `(k,)` with the problem ids
+   :param forecaster_id_to_idx: A dictionary with the forecaster ids as keys and the indices as values
+   :param problem_id_to_idx: A dictionary with the problem ids as keys and the indices as values
+   :param scores: A tensor of shape `(k,)` with the scores of the forecasts (discretized from scoring rules)
+   :param discretized_scores: A tensor of shape `(k,)` with the discretized scores of the forecasts
+   :param anchor_points: A tensor of shape `(n_bins,)` with the anchor points of the discretized scores
+
+
+   .. py:attribute:: forecaster_ids
+      :type:  torch.Tensor
+
+
+   .. py:attribute:: problem_ids
+      :type:  torch.Tensor
+
+
+   .. py:attribute:: forecaster_id_to_idx
+      :type:  Dict[str, int]
+
+
+   .. py:attribute:: problem_id_to_idx
+      :type:  Dict[str, int]
+
+
+   .. py:attribute:: scores
+      :type:  torch.Tensor
+
+
+   .. py:attribute:: discretized_scores
+      :type:  torch.Tensor
+
+
+   .. py:attribute:: anchor_points
+      :type:  torch.Tensor
+
+
+   .. py:property:: forecaster_idx_to_id
+      :type: Dict[int, str]
+
+
+
+   .. py:property:: problem_idx_to_id
+      :type: Dict[int, str]
+
+
+

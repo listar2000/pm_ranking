@@ -1,0 +1,114 @@
+src.pm_rank.model.average_return
+================================
+
+.. py:module:: src.pm_rank.model.average_return
+
+.. autoapi-nested-parse::
+
+   Average Return Model for Prediction Market Ranking.
+
+   This module implements ranking algorithms based on the average returns that forecasters
+   can achieve from prediction markets. The model calculates expected earnings based on
+   different risk aversion profiles and market odds.
+
+   Note: The forecast problem needs to have the field `odds` in order to use this
+   model for evaluation.
+
+   IMPORTANT DEFINITIONS:
+
+   - `implied_probs`: The implied probabilities calculated from the market odds across
+     all functions below. In our setting, a $p_i$ implied prob for the outcome $i$ signifies
+     that a buy contract will cost $p_i$ dollars and pay out 1 dollar if the outcome is $i$.
+
+   - `number of bets`: The number of contracts (see above) to buy for each outcome.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   src.pm_rank.model.average_return.AverageReturn
+
+
+Module Contents
+---------------
+
+.. py:class:: AverageReturn(num_money_per_round: int = 1, risk_aversion: float = 0.0, verbose: bool = False)
+
+   Average Return Model for ranking forecasters based on their expected market returns.
+
+   This class implements a ranking algorithm that evaluates forecasters based on how much
+   money they could earn from prediction markets using different risk aversion strategies.
+   The model calculates expected returns for each forecaster and ranks them accordingly.
+
+   Initialize the AverageReturn model.
+
+   :param num_money_per_round: Amount of money to bet per round (default: 1).
+   :param risk_aversion: Risk aversion parameter between 0 and 1 (default: 0.0).
+   :param verbose: Whether to enable verbose logging (default: False).
+
+   :raises AssertionError: If risk_aversion is not between 0 and 1.
+
+
+   .. py:attribute:: num_money_per_round
+      :value: 1
+
+
+
+   .. py:attribute:: risk_aversion
+      :value: 0.0
+
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:attribute:: logger
+
+
+   .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
+
+      Fit the average return model to the given problems.
+
+      This method processes all problems at once and returns the final rankings
+      based on average returns across all problems.
+
+      :param problems: List of ForecastProblem instances to process.
+      :param include_scores: Whether to include scores in the results (default: True).
+
+      :returns: Ranking results, either as a tuple of (scores, rankings) or just rankings.
+
+
+
+   .. py:method:: fit_stream(problem_iter: Iterator[List[pm_rank.data.base.ForecastProblem]], include_scores: bool = True) -> Dict[int, Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]]
+
+      Fit the model to streaming problems and return incremental results.
+
+      This method processes problems as they arrive and returns rankings after each batch,
+      allowing for incremental analysis of forecaster performance.
+
+      :param problem_iter: Iterator over batches of ForecastProblem instances.
+      :param include_scores: Whether to include scores in the results (default: True).
+
+      :returns: Mapping of batch indices to ranking results.
+
+
+
+   .. py:method:: fit_stream_with_timestamp(problem_time_iter: Iterator[Tuple[str, List[pm_rank.data.base.ForecastProblem]]], include_scores: bool = True) -> collections.OrderedDict
+
+      Fit the model to streaming problems with timestamps and return incremental results.
+
+      This method processes problems with associated timestamps and returns rankings
+      after each batch, maintaining chronological order.
+
+      :param problem_time_iter: Iterator over (timestamp, problems) tuples.
+      :param include_scores: Whether to include scores in the results (default: True).
+
+      :returns: Chronologically ordered mapping of timestamps to ranking results.
+
+
+

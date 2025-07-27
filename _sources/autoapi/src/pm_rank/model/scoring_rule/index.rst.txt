@@ -1,0 +1,197 @@
+src.pm_rank.model.scoring_rule
+==============================
+
+.. py:module:: src.pm_rank.model.scoring_rule
+
+.. autoapi-nested-parse::
+
+   Scoring Rules for Ranking Forecasters in Prediction Markets.
+
+   This module implements proper scoring rules to evaluate and rank forecasters based on their
+   probabilistic predictions. Proper scoring rules are essential for ensuring that forecasters
+   are incentivized to report their true beliefs, as they are rewarded for accuracy and
+   calibration rather than just getting the highest probability outcome correct.
+
+   Reference: https://www.cis.upenn.edu/~aaroth/courses/slides/agt17/lect23.pdf
+
+   Key Concepts:
+
+   * **Proper Scoring Rules**: Mathematical functions that incentivize honest reporting of
+     probabilistic beliefs by rewarding accuracy and calibration.
+
+   * **Brier Score**: A quadratic scoring rule that measures the squared difference between
+     predicted probabilities and actual outcomes.
+
+   * **Logarithmic Score**: A scoring rule based on the logarithm of the predicted probability
+     of the actual outcome.
+
+   * **Spherical Score**: A scoring rule that normalizes predictions to unit vectors and
+     measures the cosine similarity with the actual outcome.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   src.pm_rank.model.scoring_rule.MAX_PROBLEM_WEIGHT_QUANTILE
+   src.pm_rank.model.scoring_rule.MIN_PROBLEM_WEIGHT_QUANTILE
+   src.pm_rank.model.scoring_rule.correct_probs
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   src.pm_rank.model.scoring_rule.ScoringRule
+   src.pm_rank.model.scoring_rule.LogScoringRule
+   src.pm_rank.model.scoring_rule.BrierScoringRule
+   src.pm_rank.model.scoring_rule.SphericalScoringRule
+
+
+Module Contents
+---------------
+
+.. py:data:: MAX_PROBLEM_WEIGHT_QUANTILE
+   :value: 0.75
+
+
+.. py:data:: MIN_PROBLEM_WEIGHT_QUANTILE
+   :value: 0.25
+
+
+.. py:class:: ScoringRule(verbose: bool = False)
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   Abstract base class for proper scoring rules.
+
+   This class provides the foundation for implementing various proper scoring rules
+   used to evaluate probabilistic forecasts. Proper scoring rules ensure that
+   forecasters are incentivized to report their true beliefs by rewarding both
+   accuracy and calibration.
+
+   :param verbose: Whether to enable verbose logging (default: False).
+
+   Initialize the scoring rule.
+
+   :param verbose: Whether to enable verbose logging (default: False).
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:attribute:: logger
+
+
+   .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], problem_discriminations: numpy.ndarray | List[float] | None = None, include_scores: bool = True) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
+
+      Fit the scoring rule to the given problems and return rankings.
+
+      This method processes all problems and calculates scores for each forecaster
+      using the implemented scoring rule. Optionally, problem weights can be applied
+      based on discrimination parameters to give more importance to more informative
+      problems.
+
+      :param problems: List of ForecastProblem instances to evaluate.
+      :param problem_discriminations: Optional array of discrimination parameters for
+                                     weighting problems. If None, all problems are weighted equally.
+      :param include_scores: Whether to include scores in the results (default: True).
+
+      :returns: Ranking results, either as a tuple of (scores, rankings) or just rankings.
+
+
+
+   .. py:method:: fit_stream(problem_iter: Iterator[List[pm_rank.data.base.ForecastProblem]], include_scores: bool = True) -> Dict[int, Tuple[Dict[str, Any], Dict[str, int]]]
+
+      Fit the scoring rule to streaming problems and return incremental results.
+
+      This method processes problems as they arrive and returns rankings after each batch,
+      allowing for incremental analysis of forecaster performance over time.
+
+      :param problem_iter: Iterator over batches of ForecastProblem instances.
+      :param include_scores: Whether to include scores in the results (default: True).
+
+      :returns: Mapping of batch indices to ranking results.
+
+
+
+.. py:class:: LogScoringRule(clip_prob: float = 0.01, verbose: bool = False)
+
+   Bases: :py:obj:`ScoringRule`
+
+
+   Logarithmic scoring rule for evaluating probabilistic forecasts.
+
+   The logarithmic scoring rule is a proper scoring rule that rewards forecasters
+   based on the logarithm of their predicted probability for the actual outcome.
+   This rule heavily penalizes overconfident predictions and rewards well-calibrated
+   forecasts.
+
+   :param clip_prob: Minimum probability value to prevent log(0) (default: 0.01).
+   :param verbose: Whether to enable verbose logging (default: False).
+
+   Initialize the logarithmic scoring rule.
+
+   :param clip_prob: Minimum probability value to prevent log(0) (default: 0.01).
+   :param verbose: Whether to enable verbose logging (default: False).
+
+
+   .. py:attribute:: clip_prob
+      :value: 0.01
+
+
+
+.. py:class:: BrierScoringRule(negate: bool = True, verbose: bool = False)
+
+   Bases: :py:obj:`ScoringRule`
+
+
+   Brier scoring rule for evaluating probabilistic forecasts.
+
+   The Brier score is a quadratic proper scoring rule that measures the squared
+   difference between predicted probabilities and actual outcomes. It is widely
+   used in prediction markets and provides a good balance between rewarding
+   accuracy and calibration.
+
+   :param negate: Whether to negate the scores so that higher values are better
+                  (default: True).
+   :param verbose: Whether to enable verbose logging (default: False).
+
+   Initialize the Brier scoring rule.
+
+   :param negate: Whether to negate the scores so that higher values are better
+                  (default: True).
+   :param verbose: Whether to enable verbose logging (default: False).
+
+
+   .. py:attribute:: negate
+      :value: True
+
+
+
+.. py:class:: SphericalScoringRule(verbose: bool = False)
+
+   Bases: :py:obj:`ScoringRule`
+
+
+   Spherical scoring rule for evaluating probabilistic forecasts.
+
+   The spherical scoring rule normalizes probability vectors to unit vectors and
+   measures the cosine similarity with the actual outcome. This rule is less
+   sensitive to extreme probability values compared to the logarithmic rule.
+
+   :param verbose: Whether to enable verbose logging (default: False).
+
+   Initialize the spherical scoring rule.
+
+   :param verbose: Whether to enable verbose logging (default: False).
+
+
+.. py:data:: correct_probs
+

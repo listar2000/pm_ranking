@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+
+<html :class="{'dark': darkMode === 'dark' || (darkMode === 'system' &amp;&amp; window.matchMedia('(prefers-color-scheme: dark)').matches)}" class="scroll-smooth" data-content_root="../../../" lang="en" x-data="{ darkMode: localStorage.getItem('darkMode') || localStorage.setItem('darkMode', 'system'), activeSection: '' }" x-init="$watch('darkMode', val =&gt; localStorage.setItem('darkMode', val))">
+<head>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/>
+<meta content="white" media="(prefers-color-scheme: light)" name="theme-color"/>
+<meta content="black" media="(prefers-color-scheme: dark)" name="theme-color"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>src.pm_rank | PM-RANK 0.2.1 documentation</title>
+<meta content="src.pm_rank | PM-RANK 0.2.1 documentation" property="og:title"/>
+<meta content="src.pm_rank | PM-RANK 0.2.1 documentation" name="twitter:title"/>
+<link href="../../../_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
+<link href="../../../_static/theme.css?v=42baaae4" rel="stylesheet" type="text/css"/>
+<link href="../../../_static/graphviz.css?v=4ae1632d" rel="stylesheet" type="text/css"/>
+<link href="../../../search.html" rel="search" title="Search"/>
+<link href="../../../genindex.html" rel="index" title="Index"/>
+<link href="data/index.html" rel="next" title="src.pm_rank.data"/>
+<link href="../../../demo.html" rel="prev" title="Demo"/>
+<script>
+    <!-- Prevent Flash of wrong theme -->
+      const userPreference = localStorage.getItem('darkMode');
+      let mode;
+      if (userPreference === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        mode = 'dark';
+        document.documentElement.classList.add('dark');
+      } else {
+        mode = 'light';
+      }
+      if (!userPreference) {localStorage.setItem('darkMode', mode)}
+    </script>
+</head>
+<body :class="{ 'overflow-hidden': showSidebar }" class="min-h-screen font-sans antialiased bg-background text-foreground" x-data="{ showSidebar: false, showScrollTop: false }">
+<div @click.self="showSidebar = false" class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden" x-cloak="" x-show="showSidebar"></div><div class="relative flex flex-col min-h-screen" id="page"><a class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100" href="#content">
+      Skip to content
+    </a><header class="sticky top-0 z-40 w-full border-b shadow-sm border-border supports-backdrop-blur:bg-background/60 bg-background/95 backdrop-blur"><div class="container flex items-center h-14">
+<div class="hidden mr-4 md:flex">
+<a class="flex items-center mr-6" href="../../../index.html"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">PM-RANK 0.2.1 documentation</span>
+</a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
+<svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
+</svg>
+<span class="sr-only">Toggle navigation menu</span>
+</button>
+<div class="flex items-center justify-between flex-1 space-x-2 sm:space-x-4 md:justify-end">
+<div class="flex-1 w-full md:w-auto md:flex-none"><form @keydown.k.window.meta="$refs.search.focus()" action="../../../search.html" class="relative flex items-center group" id="searchbox" method="get">
+<input aria-label="Search the docs" class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" id="search-input" name="q" placeholder="Search ..." type="search" x-ref="search"/>
+<kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
+<span class="text-xs">⌘</span>
+    K
+  </kbd>
+</form>
+</div>
+<nav class="flex items-center space-x-1">
+<a href="https://github.com/listar2000/pm_ranking" rel="noopener nofollow" title="Visit GitHub">
+<div class="inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:pointer-events-none hover:bg-accent hover:text-accent-foreground h-9 w-9">
+<svg style="height: 1.75em; width: 1.75em; vertical-align: -0.125em;" viewbox="0 0 496 512">
+<path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70.7 1.4-85.9-35.4 0 0-11.4-29.7-27.8-37.4 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z" fill="currentColor"></path>
+</svg>
+</div>
+</a>
+<button @click="darkMode = darkMode === 'light' ? 'dark' : 'light'" aria-label="Color theme switcher" class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9" type="button">
+<svg class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z"></path>
+</svg>
+<svg class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z"></path>
+</svg>
+</button>
+</nav>
+</div>
+</div>
+</header>
+<div class="flex-1"><div class="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full shrink-0 overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
+<a class="!justify-start text-sm md:!hidden bg-background" href="../../../index.html"><span class="font-bold text-clip whitespace-nowrap">PM-RANK 0.2.1 documentation</span>
+</a>
+<div class="relative overflow-hidden md:overflow-auto my-4 md:my-0 h-[calc(100vh-8rem)] md:h-auto">
+<div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../demo.html">Demo</a></li>
+<li class="toctree-l1 current" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="current reference internal expandable" href="#">src.pm_rank<button @click.prevent.stop="expanded = !expanded" type="button"><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-show="expanded">
+<li class="toctree-l2"><a class="reference internal" href="data/index.html">src.pm_rank.data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model/index.html">src.pm_rank.model</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Blogposts:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../blogpost/ranking_llm_250727.html">How We Score &amp; Rank LLMs in Prediction Markets</a></li>
+</ul>
+</nav>
+</div>
+</div>
+<button @click="showSidebar = false" class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" type="button">
+<svg class="h-4 w-4" fill="currentColor" height="24" stroke="none" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z"></path>
+</svg>
+</button>
+</aside>
+<main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+<div class="w-full min-w-0 mx-auto">
+<nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+<a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="../../../index.html">
+<span class="hidden md:inline">PM-RANK 0.2.1 documentation</span>
+<svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
+</svg>
+</a>
+<div class="mr-1">/</div>
+<span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
+    src.pm_rank
+  </span>
+</nav>
+<div id="content" role="main">
+<section id="module-src.pm_rank">
+<span id="src-pm-rank"></span><h1>src.pm_rank<a class="headerlink" href="#module-src.pm_rank" title="Link to this heading"><span>¶</span></a></h1>
+<p><cite>pm_rank</cite>: A toolkit for scoring and ranking prediction market forecasters.</p>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#submodules'"><span>¶</span></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="data/index.html">src.pm_rank.data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model/index.html">src.pm_rank.model</a></li>
+</ul>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#classes'"><span>¶</span></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.ForecastEvent" title="src.pm_rank.ForecastEvent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ForecastEvent</span></code></a></p></td>
+<td><p>Individual forecast from a user for a specific problem.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.ForecastProblem" title="src.pm_rank.ForecastProblem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ForecastProblem</span></code></a></p></td>
+<td><p>A prediction problem with multiple options and forecasts.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.ForecastChallenge" title="src.pm_rank.ForecastChallenge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ForecastChallenge</span></code></a></p></td>
+<td><p>A collection of forecast problems with validation and computed properties.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.ChallengeLoader" title="src.pm_rank.ChallengeLoader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ChallengeLoader</span></code></a></p></td>
+<td><p>Abstract base class for loading forecast challenges from different data sources.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.GJOChallengeLoader" title="src.pm_rank.GJOChallengeLoader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GJOChallengeLoader</span></code></a></p></td>
+<td><p>Load forecast challenges from GJO (Good Judgment Open) data format.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.ProphetArenaChallengeLoader" title="src.pm_rank.ProphetArenaChallengeLoader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProphetArenaChallengeLoader</span></code></a></p></td>
+<td><p>Load forecast challenges from Prophet Arena data format.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.GeneralizedBT" title="src.pm_rank.GeneralizedBT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GeneralizedBT</span></code></a></p></td>
+<td><p>Generalized Bradley-Terry model for ranking forecasters in prediction markets.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.IRTModel" title="src.pm_rank.IRTModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IRTModel</span></code></a></p></td>
+<td><p>Item Response Theory model for ranking forecasters using Pyro.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.SVIConfig" title="src.pm_rank.SVIConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SVIConfig</span></code></a></p></td>
+<td><p>Configuration for SVI (Stochastic Variational Inference) optimization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.MCMCConfig" title="src.pm_rank.MCMCConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MCMCConfig</span></code></a></p></td>
+<td><p>Configuration for MCMC (Markov Chain Monte Carlo) inference using NUTS sampler.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.BrierScoringRule" title="src.pm_rank.BrierScoringRule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BrierScoringRule</span></code></a></p></td>
+<td><p>Brier scoring rule for evaluating probabilistic forecasts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.SphericalScoringRule" title="src.pm_rank.SphericalScoringRule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SphericalScoringRule</span></code></a></p></td>
+<td><p>Spherical scoring rule for evaluating probabilistic forecasts.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.AverageReturn" title="src.pm_rank.AverageReturn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AverageReturn</span></code></a></p></td>
+<td><p>Average Return Model for ranking forecasters based on their expected market returns.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#functions'"><span>¶</span></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.spearman_correlation" title="src.pm_rank.spearman_correlation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spearman_correlation</span></code></a>(→ float)</p></td>
+<td><p>Compute the Spearman correlation between two rankings.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.kendall_correlation" title="src.pm_rank.kendall_correlation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kendall_correlation</span></code></a>(→ float)</p></td>
+<td><p>Compute the Kendall correlation between two rankings.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="package-contents">
+<h2>Package Contents<a class="headerlink" href="#package-contents" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#package-contents'"><span>¶</span></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastEvent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">ForecastEvent</span></span><a class="headerlink" href="#src.pm_rank.ForecastEvent" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastEvent'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<p>Individual forecast from a user for a specific problem.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastEvent.problem_id">
+<span class="sig-name descname"><span class="pre">problem_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.ForecastEvent.problem_id" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastEvent.problem_id'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastEvent.username">
+<span class="sig-name descname"><span class="pre">username</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.pm_rank.ForecastEvent.username" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastEvent.username'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastEvent.timestamp">
+<span class="sig-name descname"><span class="pre">timestamp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime.datetime</span></em><a class="headerlink" href="#src.pm_rank.ForecastEvent.timestamp" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastEvent.timestamp'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastEvent.probs">
+<span class="sig-name descname"><span class="pre">probs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.ForecastEvent.probs" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastEvent.probs'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastEvent.correct_prob">
+<span class="sig-name descname"><span class="pre">correct_prob</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#src.pm_rank.ForecastEvent.correct_prob" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastEvent.correct_prob'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastEvent.validate_probabilities">
+<span class="sig-name descname"><span class="pre">validate_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.ForecastEvent.validate_probabilities" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastEvent.validate_probabilities'"><span>¶</span></a></dt>
+<dd><p>Validate that probabilities sum to 1 and are non-negative.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastEvent.validate_correct_probability">
+<span class="sig-name descname"><span class="pre">validate_correct_probability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.ForecastEvent.validate_correct_probability" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastEvent.validate_correct_probability'"><span>¶</span></a></dt>
+<dd><p>Validate that correct_prob matches one of the probabilities.</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">ForecastProblem</span></span><a class="headerlink" href="#src.pm_rank.ForecastProblem" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<p>A prediction problem with multiple options and forecasts.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.title">
+<span class="sig-name descname"><span class="pre">title</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.title" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.title'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.problem_id">
+<span class="sig-name descname"><span class="pre">problem_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.problem_id" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.problem_id'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.options">
+<span class="sig-name descname"><span class="pre">options</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.options" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.options'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.correct_option">
+<span class="sig-name descname"><span class="pre">correct_option</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.correct_option" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.correct_option'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.forecasts">
+<span class="sig-name descname"><span class="pre">forecasts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#src.pm_rank.ForecastEvent" title="src.pm_rank.ForecastEvent"><span class="pre">ForecastEvent</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.forecasts" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.forecasts'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.end_date">
+<span class="sig-name descname"><span class="pre">end_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime.datetime</span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.end_date" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.end_date'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.num_forecasters">
+<span class="sig-name descname"><span class="pre">num_forecasters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.num_forecasters" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.num_forecasters'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.url">
+<span class="sig-name descname"><span class="pre">url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.url" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.url'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.odds">
+<span class="sig-name descname"><span class="pre">odds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.odds" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.odds'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.validate_correct_option">
+<span class="sig-name descname"><span class="pre">validate_correct_option</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.ForecastProblem.validate_correct_option" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.validate_correct_option'"><span>¶</span></a></dt>
+<dd><p>Validate that correct_option is in the options list.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.validate_forecasts">
+<span class="sig-name descname"><span class="pre">validate_forecasts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.ForecastProblem.validate_forecasts" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.validate_forecasts'"><span>¶</span></a></dt>
+<dd><p>Validate that all forecasts have correct number of probabilities.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.validate_odds">
+<span class="sig-name descname"><span class="pre">validate_odds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.ForecastProblem.validate_odds" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.validate_odds'"><span>¶</span></a></dt>
+<dd><p>Validate that odds match the number of options if provided.</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.has_odds">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_odds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.has_odds" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.has_odds'"><span>¶</span></a></dt>
+<dd><p>Check if the problem has odds data.</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.crowd_probs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">crowd_probs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.crowd_probs" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.crowd_probs'"><span>¶</span></a></dt>
+<dd><p>Calculate crowd probabilities from the forecasts.</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastProblem.unique_forecasters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unique_forecasters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.ForecastProblem.unique_forecasters" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastProblem.unique_forecasters'"><span>¶</span></a></dt>
+<dd><p>Get list of unique forecasters for this problem.</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">ForecastChallenge</span></span><a class="headerlink" href="#src.pm_rank.ForecastChallenge" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<p>A collection of forecast problems with validation and computed properties.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.title">
+<span class="sig-name descname"><span class="pre">title</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.pm_rank.ForecastChallenge.title" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.title'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.forecast_problems">
+<span class="sig-name descname"><span class="pre">forecast_problems</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#src.pm_rank.ForecastProblem" title="src.pm_rank.ForecastProblem"><span class="pre">ForecastProblem</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.ForecastChallenge.forecast_problems" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.forecast_problems'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.validate_problems">
+<span class="sig-name descname"><span class="pre">validate_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.ForecastChallenge.validate_problems" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.validate_problems'"><span>¶</span></a></dt>
+<dd><p>Validate that there are problems and they have unique IDs.</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.forecaster_map">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forecaster_map</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#src.pm_rank.ForecastEvent" title="src.pm_rank.ForecastEvent"><span class="pre">ForecastEvent</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.ForecastChallenge.forecaster_map" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.forecaster_map'"><span>¶</span></a></dt>
+<dd><p>Map from forecaster username to their forecasts across all problems.</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.num_forecasters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_forecasters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.ForecastChallenge.num_forecasters" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.num_forecasters'"><span>¶</span></a></dt>
+<dd><p>Total number of unique forecasters across all problems.</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.unique_forecasters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unique_forecasters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.ForecastChallenge.unique_forecasters" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.unique_forecasters'"><span>¶</span></a></dt>
+<dd><p>List of unique forecaster usernames.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.get_forecaster_problems">
+<span class="sig-name descname"><span class="pre">get_forecaster_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#src.pm_rank.ForecastProblem" title="src.pm_rank.ForecastProblem"><span class="pre">ForecastProblem</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.ForecastChallenge.get_forecaster_problems" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.get_forecaster_problems'"><span>¶</span></a></dt>
+<dd><p>Get all problems that a specific forecaster participated in.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.get_problem_by_id">
+<span class="sig-name descname"><span class="pre">get_problem_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference internal" href="#src.pm_rank.ForecastProblem" title="src.pm_rank.ForecastProblem"><span class="pre">ForecastProblem</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#src.pm_rank.ForecastChallenge.get_problem_by_id" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.get_problem_by_id'"><span>¶</span></a></dt>
+<dd><p>Get a specific problem by its ID.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.get_problems">
+<span class="sig-name descname"><span class="pre">get_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nums</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#src.pm_rank.ForecastProblem" title="src.pm_rank.ForecastProblem"><span class="pre">ForecastProblem</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.ForecastChallenge.get_problems" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.get_problems'"><span>¶</span></a></dt>
+<dd><p>Get a list of problems. If nums is -1, return all problems.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.stream_problems">
+<span class="sig-name descname"><span class="pre">stream_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'sequential'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'random'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'time'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sequential'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#src.pm_rank.ForecastProblem" title="src.pm_rank.ForecastProblem"><span class="pre">ForecastProblem</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.ForecastChallenge.stream_problems" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.stream_problems'"><span>¶</span></a></dt>
+<dd><p>Stream the problems in the challenge. Either by random or by the problem end time.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>order: The order in which to stream the problems.
+increment: The number of problems to stream in each iteration.</p>
+</dd>
+<dt>Returns:</dt><dd><p>An iterator of lists of problems.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.stream_problems_over_time">
+<span class="sig-name descname"><span class="pre">stream_problems_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">increment_by</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'day'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'week'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'month'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'day'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_bucket_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#src.pm_rank.ForecastProblem" title="src.pm_rank.ForecastProblem"><span class="pre">ForecastProblem</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.ForecastChallenge.stream_problems_over_time" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.stream_problems_over_time'"><span>¶</span></a></dt>
+<dd><p>Stream all problems in chronological buckets.</p>
+<p>Each bucket covers a contiguous time window of length <em>increment_by</em> (day, week, or
+month).  If the window does <strong>not</strong> yet contain <em>min_bucket_size</em> problems, the
+window is repeatedly extended by another <em>increment_by</em> until the size
+requirement is met <strong>or</strong> no problems remain.  All problems whose <code class="docutils literal notranslate"><span class="pre">end_date</span></code> is
+<strong>strictly after</strong> the previous bucket boundary <em>and</em> <strong>≤</strong> the current bucket
+boundary are included.</p>
+<p>The timestamp returned for a bucket is the <em>inclusive</em> upper‐bound boundary
+expressed in ISO‑8601 (YYYY‑MM‑DD).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>increment_by: The time interval to stream problems in a bucket.
+min_bucket_size: The minimum number of problems to stream in each bucket.</p>
+</dd>
+<dt>Returns:</dt><dd><p>An iterator where each element is a bucket of (timestamp, list of problems).</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ForecastChallenge.fill_problem_with_fair_odds">
+<span class="sig-name descname"><span class="pre">fill_problem_with_fair_odds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.pm_rank.ForecastChallenge.fill_problem_with_fair_odds" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ForecastChallenge.fill_problem_with_fair_odds'"><span>¶</span></a></dt>
+<dd><p>Certain challenge do not have odds data, we can fill in fair/uniform odds for each problem.
+If <cite>force</cite> is True, we will not check whether the problem already has odds data.</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.ChallengeLoader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">ChallengeLoader</span></span><a class="headerlink" href="#src.pm_rank.ChallengeLoader" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ChallengeLoader'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract base class for loading forecast challenges from different data sources.
+This separates the loading logic from the data model.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ChallengeLoader.load_challenge">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_challenge</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference internal" href="#src.pm_rank.ForecastChallenge" title="src.pm_rank.ForecastChallenge"><span class="pre">ForecastChallenge</span></a></span></span><a class="headerlink" href="#src.pm_rank.ChallengeLoader.load_challenge" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ChallengeLoader.load_challenge'"><span>¶</span></a></dt>
+<dd><p>Load and return a ForecastChallenge from the data source.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ChallengeLoader.get_challenge_metadata">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_challenge_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.ChallengeLoader.get_challenge_metadata" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ChallengeLoader.get_challenge_metadata'"><span>¶</span></a></dt>
+<dd><p>Get metadata about the challenge without loading all data.</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.GJOChallengeLoader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">GJOChallengeLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predictions_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictions_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">challenge_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.GJOChallengeLoader" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GJOChallengeLoader'"><span>¶</span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="data/base/index.html#src.pm_rank.data.base.ChallengeLoader" title="src.pm_rank.data.base.ChallengeLoader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">src.pm_rank.data.base.ChallengeLoader</span></code></a></p>
+<p>Load forecast challenges from GJO (Good Judgment Open) data format.</p>
+<p>Initialize the GJOChallengeLoader. The challenge can be either loaded with a given <cite>pd.DataFrame</cite> or with             a combination of paths <cite>predictions_file</cite> and <cite>metadata_file</cite>.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>predictions_df (pd.DataFrame): a pd.DataFrame containing the predictions. If provided,                 <cite>predictions_file</cite> and <cite>metadata_file</cite> will be ignored.
+predictions_file (str): the path to the predictions file
+metadata_file (str): the path to the metadata file
+challenge_title (str): the title of the challenge</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.GJOChallengeLoader.challenge_title">
+<span class="sig-name descname"><span class="pre">challenge_title</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#src.pm_rank.GJOChallengeLoader.challenge_title" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GJOChallengeLoader.challenge_title'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.GJOChallengeLoader.logger">
+<span class="sig-name descname"><span class="pre">logger</span></span><a class="headerlink" href="#src.pm_rank.GJOChallengeLoader.logger" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GJOChallengeLoader.logger'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.GJOChallengeLoader.load_challenge">
+<span class="sig-name descname"><span class="pre">load_challenge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecaster_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference internal" href="data/base/index.html#src.pm_rank.data.base.ForecastChallenge" title="src.pm_rank.data.base.ForecastChallenge"><span class="pre">src.pm_rank.data.base.ForecastChallenge</span></a></span></span><a class="headerlink" href="#src.pm_rank.GJOChallengeLoader.load_challenge" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GJOChallengeLoader.load_challenge'"><span>¶</span></a></dt>
+<dd><p>Load challenge data from GJO format files.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>forecaster_filter: minimum number of events for a forecaster to be included
+problem_filter: minimum number of events for a problem to be included</p>
+</dd>
+<dt>Returns:</dt><dd><p>ForecastChallenge: a ForecastChallenge object containing the forecast problems and events</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.GJOChallengeLoader.get_challenge_metadata">
+<span class="sig-name descname"><span class="pre">get_challenge_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.GJOChallengeLoader.get_challenge_metadata" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GJOChallengeLoader.get_challenge_metadata'"><span>¶</span></a></dt>
+<dd><p>Get basic metadata about the GJO challenge.</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.ProphetArenaChallengeLoader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">ProphetArenaChallengeLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predictions_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictions_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">challenge_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_bid_for_odds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.ProphetArenaChallengeLoader" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ProphetArenaChallengeLoader'"><span>¶</span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="data/base/index.html#src.pm_rank.data.base.ChallengeLoader" title="src.pm_rank.data.base.ChallengeLoader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">src.pm_rank.data.base.ChallengeLoader</span></code></a></p>
+<p>Load forecast challenges from Prophet Arena data format.</p>
+<p>Initialize the ProphetArenaChallengeLoader.</p>
+<p>The challenge can be either loaded with a given <cite>pd.DataFrame</cite> or with a path to a predictions file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>predictions_df</strong> – A pd.DataFrame containing the predictions. If provided, <cite>predictions_file</cite> will be ignored.</p></li>
+<li><p><strong>predictions_file</strong> – The path to the predictions file.</p></li>
+<li><p><strong>challenge_title</strong> – The title of the challenge.</p></li>
+<li><p><strong>use_bid_for_odds</strong> – Whether to use the <cite>yes_bid</cite> field for implied probability calculation.
+If True, the implied probability will be calculated as the (yes_bid + no_bid) / 2.
+If False, the implied probability will be simply <cite>yes_ask</cite> (normalized to sum to 1).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ProphetArenaChallengeLoader.challenge_title">
+<span class="sig-name descname"><span class="pre">challenge_title</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#src.pm_rank.ProphetArenaChallengeLoader.challenge_title" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ProphetArenaChallengeLoader.challenge_title'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ProphetArenaChallengeLoader.use_bid_for_odds">
+<span class="sig-name descname"><span class="pre">use_bid_for_odds</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#src.pm_rank.ProphetArenaChallengeLoader.use_bid_for_odds" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ProphetArenaChallengeLoader.use_bid_for_odds'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.ProphetArenaChallengeLoader.logger">
+<span class="sig-name descname"><span class="pre">logger</span></span><a class="headerlink" href="#src.pm_rank.ProphetArenaChallengeLoader.logger" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ProphetArenaChallengeLoader.logger'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ProphetArenaChallengeLoader.load_challenge">
+<span class="sig-name descname"><span class="pre">load_challenge</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference internal" href="data/base/index.html#src.pm_rank.data.base.ForecastChallenge" title="src.pm_rank.data.base.ForecastChallenge"><span class="pre">src.pm_rank.data.base.ForecastChallenge</span></a></span></span><a class="headerlink" href="#src.pm_rank.ProphetArenaChallengeLoader.load_challenge" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ProphetArenaChallengeLoader.load_challenge'"><span>¶</span></a></dt>
+<dd><p>Load challenge data from Prophet Arena data format.
+Group by submission_id, then for each group, build the list of forecasts, then the ForecastProblem.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.ProphetArenaChallengeLoader.get_challenge_metadata">
+<span class="sig-name descname"><span class="pre">get_challenge_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.ProphetArenaChallengeLoader.get_challenge_metadata" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.ProphetArenaChallengeLoader.get_challenge_metadata'"><span>¶</span></a></dt>
+<dd><p>Get basic metadata about the Prophet Arena challenge using pandas groupby (no full parsing).</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.GeneralizedBT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">GeneralizedBT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'MM'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'Elo'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'MM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_iter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.GeneralizedBT" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GeneralizedBT'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generalized Bradley-Terry model for ranking forecasters in prediction markets.</p>
+<p>This class implements a generalization of the traditional Bradley-Terry model to
+handle prediction market scenarios. Each event outcome is treated as a contest
+between two “pseudo-teams”: a winning team (the realized outcome) and a losing
+team (all other outcomes). Each forecaster contributes fractions of their capability
+proportional to their predicted probabilities.</p>
+<p>The model estimates skill parameters for each forecaster using an iterative
+Majorization-Minimization (MM) algorithm, which provides convergence guarantees
+and intuitive comparative scores similar to Elo ratings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> – Optimization method to use (“MM” for Majorization-Minimization).</p></li>
+<li><p><strong>num_iter</strong> – Maximum number of iterations for the MM algorithm (default: 100).</p></li>
+<li><p><strong>threshold</strong> – Convergence threshold for parameter updates (default: 1e-3).</p></li>
+<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
+</ul>
+</dd>
+</dl>
+<p>Initialize the generalized Bradley-Terry model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> – Optimization method to use (“MM” for Majorization-Minimization).</p></li>
+<li><p><strong>num_iter</strong> – Maximum number of iterations for the MM algorithm (default: 100).</p></li>
+<li><p><strong>threshold</strong> – Convergence threshold for parameter updates (default: 1e-3).</p></li>
+<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.GeneralizedBT.method">
+<span class="sig-name descname"><span class="pre">method</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'MM'</span></em><a class="headerlink" href="#src.pm_rank.GeneralizedBT.method" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GeneralizedBT.method'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.GeneralizedBT.num_iter">
+<span class="sig-name descname"><span class="pre">num_iter</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></em><a class="headerlink" href="#src.pm_rank.GeneralizedBT.num_iter" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GeneralizedBT.num_iter'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.GeneralizedBT.threshold">
+<span class="sig-name descname"><span class="pre">threshold</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></em><a class="headerlink" href="#src.pm_rank.GeneralizedBT.threshold" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GeneralizedBT.threshold'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.GeneralizedBT.verbose">
+<span class="sig-name descname"><span class="pre">verbose</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#src.pm_rank.GeneralizedBT.verbose" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GeneralizedBT.verbose'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.GeneralizedBT.logger">
+<span class="sig-name descname"><span class="pre">logger</span></span><a class="headerlink" href="#src.pm_rank.GeneralizedBT.logger" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GeneralizedBT.logger'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.GeneralizedBT.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="data/base/index.html#src.pm_rank.data.base.ForecastProblem" title="src.pm_rank.data.base.ForecastProblem"><span class="pre">pm_rank.data.base.ForecastProblem</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.GeneralizedBT.fit" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.GeneralizedBT.fit'"><span>¶</span></a></dt>
+<dd><p>Fit the generalized Bradley-Terry model to the given problems.</p>
+<p>This method estimates skill parameters for each forecaster using the MM algorithm
+and returns rankings based on these parameters. The skill parameters represent
+the relative predictive ability of each forecaster.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problems</strong> – List of ForecastProblem instances to evaluate.</p></li>
+<li><p><strong>include_scores</strong> – Whether to include scores in the results (default: True).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Ranking results, either as a tuple of (scores, rankings) or just rankings.</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.IRTModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">IRTModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_empirical_quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.IRTModel" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Item Response Theory model for ranking forecasters using Pyro.</p>
+<p>This class implements an IRT model that estimates latent abilities of forecasters
+and difficulty/discrimination parameters of prediction problems. The model uses
+discretized scoring bins and supports both SVI and MCMC inference methods.</p>
+<p>The IRT model assumes that the probability of a forecaster achieving a certain
+score on a problem depends on their latent ability (θ), the problem’s difficulty (b),
+the problem’s discrimination (a), and category parameters (p) for the scoring bins.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_bins</strong> – Number of bins for discretizing continuous scores (default: 6).</p></li>
+<li><p><strong>use_empirical_quantiles</strong> – Whether to use empirical quantiles for binning
+instead of uniform bins (default: False).</p></li>
+<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
+</ul>
+</dd>
+</dl>
+<p>Initialize the IRT model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_bins</strong> – Number of bins for discretizing continuous scores (default: 6).</p></li>
+<li><p><strong>use_empirical_quantiles</strong> – Whether to use empirical quantiles for binning
+instead of uniform bins (default: False).</p></li>
+<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.IRTModel.n_bins">
+<span class="sig-name descname"><span class="pre">n_bins</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#src.pm_rank.IRTModel.n_bins" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.n_bins'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.IRTModel.use_empirical_quantiles">
+<span class="sig-name descname"><span class="pre">use_empirical_quantiles</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#src.pm_rank.IRTModel.use_empirical_quantiles" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.use_empirical_quantiles'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.IRTModel.irt_obs">
+<span class="sig-name descname"><span class="pre">irt_obs</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#src.pm_rank.IRTModel.irt_obs" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.irt_obs'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.IRTModel.method">
+<span class="sig-name descname"><span class="pre">method</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#src.pm_rank.IRTModel.method" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.method'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.IRTModel.verbose">
+<span class="sig-name descname"><span class="pre">verbose</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#src.pm_rank.IRTModel.verbose" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.verbose'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.IRTModel.logger">
+<span class="sig-name descname"><span class="pre">logger</span></span><a class="headerlink" href="#src.pm_rank.IRTModel.logger" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.logger'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.IRTModel.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="data/base/index.html#src.pm_rank.data.base.ForecastProblem" title="src.pm_rank.data.base.ForecastProblem"><span class="pre">pm_rank.data.base.ForecastProblem</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'SVI'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'NUTS'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'SVI'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.pm_rank.MCMCConfig" title="src.pm_rank.MCMCConfig"><span class="pre">MCMCConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#src.pm_rank.SVIConfig" title="src.pm_rank.SVIConfig"><span class="pre">SVIConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.IRTModel.fit" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.fit'"><span>¶</span></a></dt>
+<dd><p>Fit the IRT model to the given problems and return rankings.</p>
+<p>This method fits the IRT model using either SVI or MCMC inference, depending on
+the specified method. The model estimates latent abilities for each forecaster
+and difficulty/discrimination parameters for each problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problems</strong> – List of ForecastProblem instances to fit the model to.</p></li>
+<li><p><strong>include_scores</strong> – Whether to include scores in the results (default: True).</p></li>
+<li><p><strong>method</strong> – Inference method to use (“SVI” for fast approximate inference
+or “NUTS” for exact MCMC inference) (default: “SVI”).</p></li>
+<li><p><strong>config</strong> – Configuration object for the chosen inference method.
+Must be MCMCConfig for “NUTS” or SVIConfig for “SVI”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>If include_scores=True, returns a tuple of (scores_dict, rankings_dict).
+If include_scores=False, returns only rankings_dict.
+scores_dict maps forecaster IDs to their estimated abilities.
+rankings_dict maps forecaster IDs to their ranks (1-based).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p>AssertionError if method is invalid or config is not provided.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.IRTModel.get_problem_level_parameters">
+<span class="sig-name descname"><span class="pre">get_problem_level_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.IRTModel.get_problem_level_parameters" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.IRTModel.get_problem_level_parameters'"><span>¶</span></a></dt>
+<dd><p>Get problem difficulty and discrimination parameters.</p>
+<p>Returns the estimated difficulty and discrimination parameters for each problem
+after the model has been fitted. These parameters provide insights into how
+challenging each problem is and how well it distinguishes between forecasters
+of different abilities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple of (difficulties_dict, discriminations_dict).
+difficulties_dict maps problem IDs to their difficulty parameters (b).
+discriminations_dict maps problem IDs to their discrimination parameters (a).</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p>AssertionError if the model has not been fitted yet.</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.SVIConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">SVIConfig</span></span><a class="headerlink" href="#src.pm_rank.SVIConfig" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SVIConfig'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<p>Configuration for SVI (Stochastic Variational Inference) optimization.</p>
+<p>This configuration class defines parameters for running variational inference
+using stochastic gradient descent, which provides fast approximate posterior
+inference for the IRT model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>optimizer</strong> – The optimizer to use for the SVI engine (“Adam” or “SGD”) (default: “Adam”).</p></li>
+<li><p><strong>num_steps</strong> – The number of steps to run for the SVI engine (default: 1000).</p></li>
+<li><p><strong>learning_rate</strong> – The learning rate to use for the SVI engine (default: 0.01).</p></li>
+<li><p><strong>device</strong> – The device to use for the SVI engine (“cpu” or “cuda”) (default: “cpu”).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.SVIConfig.optimizer">
+<span class="sig-name descname"><span class="pre">optimizer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'Adam'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'SGD'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.SVIConfig.optimizer" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SVIConfig.optimizer'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.SVIConfig.num_steps">
+<span class="sig-name descname"><span class="pre">num_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.SVIConfig.num_steps" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SVIConfig.num_steps'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.SVIConfig.learning_rate">
+<span class="sig-name descname"><span class="pre">learning_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#src.pm_rank.SVIConfig.learning_rate" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SVIConfig.learning_rate'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.SVIConfig.device">
+<span class="sig-name descname"><span class="pre">device</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'cpu'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'cuda'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.SVIConfig.device" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SVIConfig.device'"><span>¶</span></a></dt>
+<dd></dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">MCMCConfig</span></span><a class="headerlink" href="#src.pm_rank.MCMCConfig" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<p>Configuration for MCMC (Markov Chain Monte Carlo) inference using NUTS sampler.</p>
+<p>This configuration class defines parameters for running Hamiltonian Monte Carlo
+sampling with the No-U-Turn Sampler (NUTS) algorithm, which provides exact
+posterior inference for the IRT model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>total_samples</strong> – The total number of samples to draw from the posterior distribution (default: 1000).</p></li>
+<li><p><strong>warmup_steps</strong> – The number of warmup steps to run before sampling (default: 100).</p></li>
+<li><p><strong>num_workers</strong> – The number of workers to use for parallelization. Note that we use a customized
+multiprocessing approach since the default implementation by Pyro can be very slow.
+This is why we don’t use the name <cite>num_chains</cite> (default: 1).</p></li>
+<li><p><strong>device</strong> – The device to use for the MCMC engine (“cpu” or “cuda”) (default: “cpu”).</p></li>
+<li><p><strong>save_result</strong> – Whether to save the result to a file (default: False).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig.total_samples">
+<span class="sig-name descname"><span class="pre">total_samples</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.MCMCConfig.total_samples" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig.total_samples'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig.warmup_steps">
+<span class="sig-name descname"><span class="pre">warmup_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.MCMCConfig.warmup_steps" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig.warmup_steps'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig.num_workers">
+<span class="sig-name descname"><span class="pre">num_workers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.pm_rank.MCMCConfig.num_workers" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig.num_workers'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig.device">
+<span class="sig-name descname"><span class="pre">device</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'cpu'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'cuda'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#src.pm_rank.MCMCConfig.device" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig.device'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.MCMCConfig.save_result">
+<span class="sig-name descname"><span class="pre">save_result</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.pm_rank.MCMCConfig.save_result" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.MCMCConfig.save_result'"><span>¶</span></a></dt>
+<dd></dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.BrierScoringRule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">BrierScoringRule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">negate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.BrierScoringRule" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.BrierScoringRule'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">ScoringRule</span></code></p>
+<p>Brier scoring rule for evaluating probabilistic forecasts.</p>
+<p>The Brier score is a quadratic proper scoring rule that measures the squared
+difference between predicted probabilities and actual outcomes. It is widely
+used in prediction markets and provides a good balance between rewarding
+accuracy and calibration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>negate</strong> – Whether to negate the scores so that higher values are better
+(default: True).</p></li>
+<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
+</ul>
+</dd>
+</dl>
+<p>Initialize the Brier scoring rule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>negate</strong> – Whether to negate the scores so that higher values are better
+(default: True).</p></li>
+<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.BrierScoringRule.negate">
+<span class="sig-name descname"><span class="pre">negate</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#src.pm_rank.BrierScoringRule.negate" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.BrierScoringRule.negate'"><span>¶</span></a></dt>
+<dd></dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.SphericalScoringRule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">SphericalScoringRule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.SphericalScoringRule" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.SphericalScoringRule'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">ScoringRule</span></code></p>
+<p>Spherical scoring rule for evaluating probabilistic forecasts.</p>
+<p>The spherical scoring rule normalizes probability vectors to unit vectors and
+measures the cosine similarity with the actual outcome. This rule is less
+sensitive to extreme probability values compared to the logarithmic rule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p>
+</dd>
+</dl>
+<p>Initialize the spherical scoring rule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.AverageReturn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">AverageReturn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_money_per_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">risk_aversion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.AverageReturn" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.AverageReturn'"><span>¶</span></a></dt>
+<dd><p>Average Return Model for ranking forecasters based on their expected market returns.</p>
+<p>This class implements a ranking algorithm that evaluates forecasters based on how much
+money they could earn from prediction markets using different risk aversion strategies.
+The model calculates expected returns for each forecaster and ranks them accordingly.</p>
+<p>Initialize the AverageReturn model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_money_per_round</strong> – Amount of money to bet per round (default: 1).</p></li>
+<li><p><strong>risk_aversion</strong> – Risk aversion parameter between 0 and 1 (default: 0.0).</p></li>
+<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If risk_aversion is not between 0 and 1.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.AverageReturn.num_money_per_round">
+<span class="sig-name descname"><span class="pre">num_money_per_round</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#src.pm_rank.AverageReturn.num_money_per_round" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.AverageReturn.num_money_per_round'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.AverageReturn.risk_aversion">
+<span class="sig-name descname"><span class="pre">risk_aversion</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="headerlink" href="#src.pm_rank.AverageReturn.risk_aversion" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.AverageReturn.risk_aversion'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.AverageReturn.verbose">
+<span class="sig-name descname"><span class="pre">verbose</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#src.pm_rank.AverageReturn.verbose" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.AverageReturn.verbose'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.AverageReturn.logger">
+<span class="sig-name descname"><span class="pre">logger</span></span><a class="headerlink" href="#src.pm_rank.AverageReturn.logger" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.AverageReturn.logger'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.AverageReturn.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="data/base/index.html#src.pm_rank.data.base.ForecastProblem" title="src.pm_rank.data.base.ForecastProblem"><span class="pre">pm_rank.data.base.ForecastProblem</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.AverageReturn.fit" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.AverageReturn.fit'"><span>¶</span></a></dt>
+<dd><p>Fit the average return model to the given problems.</p>
+<p>This method processes all problems at once and returns the final rankings
+based on average returns across all problems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problems</strong> – List of ForecastProblem instances to process.</p></li>
+<li><p><strong>include_scores</strong> – Whether to include scores in the results (default: True).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Ranking results, either as a tuple of (scores, rankings) or just rankings.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.AverageReturn.fit_stream">
+<span class="sig-name descname"><span class="pre">fit_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem_iter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="data/base/index.html#src.pm_rank.data.base.ForecastProblem" title="src.pm_rank.data.base.ForecastProblem"><span class="pre">pm_rank.data.base.ForecastProblem</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.AverageReturn.fit_stream" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.AverageReturn.fit_stream'"><span>¶</span></a></dt>
+<dd><p>Fit the model to streaming problems and return incremental results.</p>
+<p>This method processes problems as they arrive and returns rankings after each batch,
+allowing for incremental analysis of forecaster performance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problem_iter</strong> – Iterator over batches of ForecastProblem instances.</p></li>
+<li><p><strong>include_scores</strong> – Whether to include scores in the results (default: True).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping of batch indices to ranking results.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.AverageReturn.fit_stream_with_timestamp">
+<span class="sig-name descname"><span class="pre">fit_stream_with_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem_time_iter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="data/base/index.html#src.pm_rank.data.base.ForecastProblem" title="src.pm_rank.data.base.ForecastProblem"><span class="pre">pm_rank.data.base.ForecastProblem</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">collections.OrderedDict</span></span></span><a class="headerlink" href="#src.pm_rank.AverageReturn.fit_stream_with_timestamp" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.AverageReturn.fit_stream_with_timestamp'"><span>¶</span></a></dt>
+<dd><p>Fit the model to streaming problems with timestamps and return incremental results.</p>
+<p>This method processes problems with associated timestamps and returns rankings
+after each batch, maintaining chronological order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problem_time_iter</strong> – Iterator over (timestamp, problems) tuples.</p></li>
+<li><p><strong>include_scores</strong> – Whether to include scores in the results (default: True).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Chronologically ordered mapping of timestamps to ranking results.</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.pm_rank.spearman_correlation">
+<span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">spearman_correlation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rank_dict_a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank_dict_b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#src.pm_rank.spearman_correlation" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.spearman_correlation'"><span>¶</span></a></dt>
+<dd><p>Compute the Spearman correlation between two rankings.
+Reference: <a class="reference external" href="https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient">https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient</a></p>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.pm_rank.kendall_correlation">
+<span class="sig-prename descclassname"><span class="pre">src.pm_rank.</span></span><span class="sig-name descname"><span class="pre">kendall_correlation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rank_dict_a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank_dict_b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#src.pm_rank.kendall_correlation" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.kendall_correlation'"><span>¶</span></a></dt>
+<dd><p>Compute the Kendall correlation between two rankings.
+Reference: <a class="reference external" href="https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient">https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient</a></p>
+</dd></dl>
+</section>
+</section>
+</div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
+<div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
+<ul>
+<li><a :data-current="activeSection === '#submodules'" class="reference internal" href="#submodules">Submodules</a></li>
+<li><a :data-current="activeSection === '#classes'" class="reference internal" href="#classes">Classes</a></li>
+<li><a :data-current="activeSection === '#functions'" class="reference internal" href="#functions">Functions</a></li>
+<li><a :data-current="activeSection === '#package-contents'" class="reference internal" href="#package-contents">Package Contents</a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastEvent'" class="reference internal" href="#src.pm_rank.ForecastEvent"><code class="docutils literal notranslate"><span class="pre">ForecastEvent</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastEvent.problem_id'" class="reference internal" href="#src.pm_rank.ForecastEvent.problem_id"><code class="docutils literal notranslate"><span class="pre">ForecastEvent.problem_id</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastEvent.username'" class="reference internal" href="#src.pm_rank.ForecastEvent.username"><code class="docutils literal notranslate"><span class="pre">ForecastEvent.username</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastEvent.timestamp'" class="reference internal" href="#src.pm_rank.ForecastEvent.timestamp"><code class="docutils literal notranslate"><span class="pre">ForecastEvent.timestamp</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastEvent.probs'" class="reference internal" href="#src.pm_rank.ForecastEvent.probs"><code class="docutils literal notranslate"><span class="pre">ForecastEvent.probs</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastEvent.correct_prob'" class="reference internal" href="#src.pm_rank.ForecastEvent.correct_prob"><code class="docutils literal notranslate"><span class="pre">ForecastEvent.correct_prob</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastEvent.validate_probabilities'" class="reference internal" href="#src.pm_rank.ForecastEvent.validate_probabilities"><code class="docutils literal notranslate"><span class="pre">ForecastEvent.validate_probabilities()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastEvent.validate_correct_probability'" class="reference internal" href="#src.pm_rank.ForecastEvent.validate_correct_probability"><code class="docutils literal notranslate"><span class="pre">ForecastEvent.validate_correct_probability()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem'" class="reference internal" href="#src.pm_rank.ForecastProblem"><code class="docutils literal notranslate"><span class="pre">ForecastProblem</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.title'" class="reference internal" href="#src.pm_rank.ForecastProblem.title"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.title</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.problem_id'" class="reference internal" href="#src.pm_rank.ForecastProblem.problem_id"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.problem_id</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.options'" class="reference internal" href="#src.pm_rank.ForecastProblem.options"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.options</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.correct_option'" class="reference internal" href="#src.pm_rank.ForecastProblem.correct_option"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.correct_option</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.forecasts'" class="reference internal" href="#src.pm_rank.ForecastProblem.forecasts"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.forecasts</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.end_date'" class="reference internal" href="#src.pm_rank.ForecastProblem.end_date"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.end_date</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.num_forecasters'" class="reference internal" href="#src.pm_rank.ForecastProblem.num_forecasters"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.num_forecasters</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.url'" class="reference internal" href="#src.pm_rank.ForecastProblem.url"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.url</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.odds'" class="reference internal" href="#src.pm_rank.ForecastProblem.odds"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.odds</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.validate_correct_option'" class="reference internal" href="#src.pm_rank.ForecastProblem.validate_correct_option"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.validate_correct_option()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.validate_forecasts'" class="reference internal" href="#src.pm_rank.ForecastProblem.validate_forecasts"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.validate_forecasts()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.validate_odds'" class="reference internal" href="#src.pm_rank.ForecastProblem.validate_odds"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.validate_odds()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.has_odds'" class="reference internal" href="#src.pm_rank.ForecastProblem.has_odds"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.has_odds</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.crowd_probs'" class="reference internal" href="#src.pm_rank.ForecastProblem.crowd_probs"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.crowd_probs</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastProblem.unique_forecasters'" class="reference internal" href="#src.pm_rank.ForecastProblem.unique_forecasters"><code class="docutils literal notranslate"><span class="pre">ForecastProblem.unique_forecasters</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge'" class="reference internal" href="#src.pm_rank.ForecastChallenge"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.title'" class="reference internal" href="#src.pm_rank.ForecastChallenge.title"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.title</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.forecast_problems'" class="reference internal" href="#src.pm_rank.ForecastChallenge.forecast_problems"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.forecast_problems</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.validate_problems'" class="reference internal" href="#src.pm_rank.ForecastChallenge.validate_problems"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.validate_problems()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.forecaster_map'" class="reference internal" href="#src.pm_rank.ForecastChallenge.forecaster_map"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.forecaster_map</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.num_forecasters'" class="reference internal" href="#src.pm_rank.ForecastChallenge.num_forecasters"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.num_forecasters</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.unique_forecasters'" class="reference internal" href="#src.pm_rank.ForecastChallenge.unique_forecasters"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.unique_forecasters</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.get_forecaster_problems'" class="reference internal" href="#src.pm_rank.ForecastChallenge.get_forecaster_problems"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.get_forecaster_problems()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.get_problem_by_id'" class="reference internal" href="#src.pm_rank.ForecastChallenge.get_problem_by_id"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.get_problem_by_id()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.get_problems'" class="reference internal" href="#src.pm_rank.ForecastChallenge.get_problems"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.get_problems()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.stream_problems'" class="reference internal" href="#src.pm_rank.ForecastChallenge.stream_problems"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.stream_problems()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.stream_problems_over_time'" class="reference internal" href="#src.pm_rank.ForecastChallenge.stream_problems_over_time"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.stream_problems_over_time()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ForecastChallenge.fill_problem_with_fair_odds'" class="reference internal" href="#src.pm_rank.ForecastChallenge.fill_problem_with_fair_odds"><code class="docutils literal notranslate"><span class="pre">ForecastChallenge.fill_problem_with_fair_odds()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.ChallengeLoader'" class="reference internal" href="#src.pm_rank.ChallengeLoader"><code class="docutils literal notranslate"><span class="pre">ChallengeLoader</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.ChallengeLoader.load_challenge'" class="reference internal" href="#src.pm_rank.ChallengeLoader.load_challenge"><code class="docutils literal notranslate"><span class="pre">ChallengeLoader.load_challenge()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ChallengeLoader.get_challenge_metadata'" class="reference internal" href="#src.pm_rank.ChallengeLoader.get_challenge_metadata"><code class="docutils literal notranslate"><span class="pre">ChallengeLoader.get_challenge_metadata()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.GJOChallengeLoader'" class="reference internal" href="#src.pm_rank.GJOChallengeLoader"><code class="docutils literal notranslate"><span class="pre">GJOChallengeLoader</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.GJOChallengeLoader.challenge_title'" class="reference internal" href="#src.pm_rank.GJOChallengeLoader.challenge_title"><code class="docutils literal notranslate"><span class="pre">GJOChallengeLoader.challenge_title</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.GJOChallengeLoader.logger'" class="reference internal" href="#src.pm_rank.GJOChallengeLoader.logger"><code class="docutils literal notranslate"><span class="pre">GJOChallengeLoader.logger</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.GJOChallengeLoader.load_challenge'" class="reference internal" href="#src.pm_rank.GJOChallengeLoader.load_challenge"><code class="docutils literal notranslate"><span class="pre">GJOChallengeLoader.load_challenge()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.GJOChallengeLoader.get_challenge_metadata'" class="reference internal" href="#src.pm_rank.GJOChallengeLoader.get_challenge_metadata"><code class="docutils literal notranslate"><span class="pre">GJOChallengeLoader.get_challenge_metadata()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.ProphetArenaChallengeLoader'" class="reference internal" href="#src.pm_rank.ProphetArenaChallengeLoader"><code class="docutils literal notranslate"><span class="pre">ProphetArenaChallengeLoader</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.ProphetArenaChallengeLoader.challenge_title'" class="reference internal" href="#src.pm_rank.ProphetArenaChallengeLoader.challenge_title"><code class="docutils literal notranslate"><span class="pre">ProphetArenaChallengeLoader.challenge_title</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ProphetArenaChallengeLoader.use_bid_for_odds'" class="reference internal" href="#src.pm_rank.ProphetArenaChallengeLoader.use_bid_for_odds"><code class="docutils literal notranslate"><span class="pre">ProphetArenaChallengeLoader.use_bid_for_odds</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ProphetArenaChallengeLoader.logger'" class="reference internal" href="#src.pm_rank.ProphetArenaChallengeLoader.logger"><code class="docutils literal notranslate"><span class="pre">ProphetArenaChallengeLoader.logger</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ProphetArenaChallengeLoader.load_challenge'" class="reference internal" href="#src.pm_rank.ProphetArenaChallengeLoader.load_challenge"><code class="docutils literal notranslate"><span class="pre">ProphetArenaChallengeLoader.load_challenge()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.ProphetArenaChallengeLoader.get_challenge_metadata'" class="reference internal" href="#src.pm_rank.ProphetArenaChallengeLoader.get_challenge_metadata"><code class="docutils literal notranslate"><span class="pre">ProphetArenaChallengeLoader.get_challenge_metadata()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.GeneralizedBT'" class="reference internal" href="#src.pm_rank.GeneralizedBT"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.GeneralizedBT.method'" class="reference internal" href="#src.pm_rank.GeneralizedBT.method"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.method</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.GeneralizedBT.num_iter'" class="reference internal" href="#src.pm_rank.GeneralizedBT.num_iter"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.num_iter</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.GeneralizedBT.threshold'" class="reference internal" href="#src.pm_rank.GeneralizedBT.threshold"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.threshold</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.GeneralizedBT.verbose'" class="reference internal" href="#src.pm_rank.GeneralizedBT.verbose"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.verbose</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.GeneralizedBT.logger'" class="reference internal" href="#src.pm_rank.GeneralizedBT.logger"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.logger</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.GeneralizedBT.fit'" class="reference internal" href="#src.pm_rank.GeneralizedBT.fit"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.fit()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.IRTModel'" class="reference internal" href="#src.pm_rank.IRTModel"><code class="docutils literal notranslate"><span class="pre">IRTModel</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.n_bins'" class="reference internal" href="#src.pm_rank.IRTModel.n_bins"><code class="docutils literal notranslate"><span class="pre">IRTModel.n_bins</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.use_empirical_quantiles'" class="reference internal" href="#src.pm_rank.IRTModel.use_empirical_quantiles"><code class="docutils literal notranslate"><span class="pre">IRTModel.use_empirical_quantiles</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.irt_obs'" class="reference internal" href="#src.pm_rank.IRTModel.irt_obs"><code class="docutils literal notranslate"><span class="pre">IRTModel.irt_obs</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.method'" class="reference internal" href="#src.pm_rank.IRTModel.method"><code class="docutils literal notranslate"><span class="pre">IRTModel.method</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.verbose'" class="reference internal" href="#src.pm_rank.IRTModel.verbose"><code class="docutils literal notranslate"><span class="pre">IRTModel.verbose</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.logger'" class="reference internal" href="#src.pm_rank.IRTModel.logger"><code class="docutils literal notranslate"><span class="pre">IRTModel.logger</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.fit'" class="reference internal" href="#src.pm_rank.IRTModel.fit"><code class="docutils literal notranslate"><span class="pre">IRTModel.fit()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.IRTModel.get_problem_level_parameters'" class="reference internal" href="#src.pm_rank.IRTModel.get_problem_level_parameters"><code class="docutils literal notranslate"><span class="pre">IRTModel.get_problem_level_parameters()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.SVIConfig'" class="reference internal" href="#src.pm_rank.SVIConfig"><code class="docutils literal notranslate"><span class="pre">SVIConfig</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.SVIConfig.optimizer'" class="reference internal" href="#src.pm_rank.SVIConfig.optimizer"><code class="docutils literal notranslate"><span class="pre">SVIConfig.optimizer</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.SVIConfig.num_steps'" class="reference internal" href="#src.pm_rank.SVIConfig.num_steps"><code class="docutils literal notranslate"><span class="pre">SVIConfig.num_steps</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.SVIConfig.learning_rate'" class="reference internal" href="#src.pm_rank.SVIConfig.learning_rate"><code class="docutils literal notranslate"><span class="pre">SVIConfig.learning_rate</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.SVIConfig.device'" class="reference internal" href="#src.pm_rank.SVIConfig.device"><code class="docutils literal notranslate"><span class="pre">SVIConfig.device</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig'" class="reference internal" href="#src.pm_rank.MCMCConfig"><code class="docutils literal notranslate"><span class="pre">MCMCConfig</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig.total_samples'" class="reference internal" href="#src.pm_rank.MCMCConfig.total_samples"><code class="docutils literal notranslate"><span class="pre">MCMCConfig.total_samples</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig.warmup_steps'" class="reference internal" href="#src.pm_rank.MCMCConfig.warmup_steps"><code class="docutils literal notranslate"><span class="pre">MCMCConfig.warmup_steps</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig.num_workers'" class="reference internal" href="#src.pm_rank.MCMCConfig.num_workers"><code class="docutils literal notranslate"><span class="pre">MCMCConfig.num_workers</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig.device'" class="reference internal" href="#src.pm_rank.MCMCConfig.device"><code class="docutils literal notranslate"><span class="pre">MCMCConfig.device</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.MCMCConfig.save_result'" class="reference internal" href="#src.pm_rank.MCMCConfig.save_result"><code class="docutils literal notranslate"><span class="pre">MCMCConfig.save_result</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.BrierScoringRule'" class="reference internal" href="#src.pm_rank.BrierScoringRule"><code class="docutils literal notranslate"><span class="pre">BrierScoringRule</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.BrierScoringRule.negate'" class="reference internal" href="#src.pm_rank.BrierScoringRule.negate"><code class="docutils literal notranslate"><span class="pre">BrierScoringRule.negate</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.SphericalScoringRule'" class="reference internal" href="#src.pm_rank.SphericalScoringRule"><code class="docutils literal notranslate"><span class="pre">SphericalScoringRule</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.AverageReturn'" class="reference internal" href="#src.pm_rank.AverageReturn"><code class="docutils literal notranslate"><span class="pre">AverageReturn</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.AverageReturn.num_money_per_round'" class="reference internal" href="#src.pm_rank.AverageReturn.num_money_per_round"><code class="docutils literal notranslate"><span class="pre">AverageReturn.num_money_per_round</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.AverageReturn.risk_aversion'" class="reference internal" href="#src.pm_rank.AverageReturn.risk_aversion"><code class="docutils literal notranslate"><span class="pre">AverageReturn.risk_aversion</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.AverageReturn.verbose'" class="reference internal" href="#src.pm_rank.AverageReturn.verbose"><code class="docutils literal notranslate"><span class="pre">AverageReturn.verbose</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.AverageReturn.logger'" class="reference internal" href="#src.pm_rank.AverageReturn.logger"><code class="docutils literal notranslate"><span class="pre">AverageReturn.logger</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.AverageReturn.fit'" class="reference internal" href="#src.pm_rank.AverageReturn.fit"><code class="docutils literal notranslate"><span class="pre">AverageReturn.fit()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.AverageReturn.fit_stream'" class="reference internal" href="#src.pm_rank.AverageReturn.fit_stream"><code class="docutils literal notranslate"><span class="pre">AverageReturn.fit_stream()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.AverageReturn.fit_stream_with_timestamp'" class="reference internal" href="#src.pm_rank.AverageReturn.fit_stream_with_timestamp"><code class="docutils literal notranslate"><span class="pre">AverageReturn.fit_stream_with_timestamp()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.spearman_correlation'" class="reference internal" href="#src.pm_rank.spearman_correlation"><code class="docutils literal notranslate"><span class="pre">spearman_correlation()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.kendall_correlation'" class="reference internal" href="#src.pm_rank.kendall_correlation"><code class="docutils literal notranslate"><span class="pre">kendall_correlation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</aside>
+</main>
+</div>
+</div><footer class="py-6 border-t border-border md:py-0">
+<div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+<div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+<p class="text-sm leading-loose text-center text-muted-foreground md:text-left">© 2025, Prophet Arena Team Built with <a class="font-medium underline underline-offset-4" href="https://www.sphinx-doc.org" rel="noreferrer">Sphinx 8.1.3</a></p>
+</div>
+</div>
+</footer>
+</div>
+<script src="../../../_static/documentation_options.js?v=37f418d5"></script>
+<script src="../../../_static/doctools.js?v=9bcbadda"></script>
+<script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+<script defer="defer" src="../../../_static/theme.js?v=073f68d9"></script>
+<script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+src.pm_rank.data.utils
+======================
+
+.. py:module:: src.pm_rank.data.utils
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   src.pm_rank.data.utils.parse_json_or_eval
+   src.pm_rank.data.utils.get_logger
+
+
+Module Contents
+---------------
+
+.. py:function:: parse_json_or_eval(val, expect_type=None)
+
+   Try to parse a value as JSON, then as a Python literal, and check type.
+   If parsing fails or type does not match, return None.
+
+
+.. py:function:: get_logger(name: str = 'pm_rank.data')
+

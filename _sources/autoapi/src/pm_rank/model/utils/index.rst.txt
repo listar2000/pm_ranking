@@ -1,0 +1,63 @@
+src.pm_rank.model.utils
+=======================
+
+.. py:module:: src.pm_rank.model.utils
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   src.pm_rank.model.utils.AGGREGATE_FNS
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   src.pm_rank.model.utils.get_logger
+   src.pm_rank.model.utils.forecaster_data_to_rankings
+   src.pm_rank.model.utils.spearman_correlation
+   src.pm_rank.model.utils.kendall_correlation
+   src.pm_rank.model.utils.log_ranking_table
+
+
+Module Contents
+---------------
+
+.. py:function:: get_logger(name: str = 'pm_rank.model')
+
+.. py:data:: AGGREGATE_FNS
+
+.. py:function:: forecaster_data_to_rankings(forecaster_data: Dict[str, List[float]], include_scores: bool = True, ascending: bool = True, aggregate: Literal['mean', 'median', 'max', 'min'] = 'mean')
+
+   Convert the forecaster data to rankings.
+   A forecaster data is a dictionary that maps forecaster name to a list of scores.
+
+   Args:
+       forecaster_data: a dictionary that maps forecaster name to a list of scores.
+       include_scores: whether to include the scores in the rankings.
+       ascending: if true, the score is smaller, the better; otherwise, the score is larger, the better.
+   Returns:
+       A dictionary that maps forecaster name to a list of rankings.
+
+
+.. py:function:: spearman_correlation(rank_dict_a: Dict[str, int], rank_dict_b: Dict[str, int]) -> float
+
+   Compute the Spearman correlation between two rankings.
+   Reference: https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient
+
+
+.. py:function:: kendall_correlation(rank_dict_a: Dict[str, int], rank_dict_b: Dict[str, int]) -> float
+
+   Compute the Kendall correlation between two rankings.
+   Reference: https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient
+
+
+.. py:function:: log_ranking_table(logger: logging.Logger, ranking_result: Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int], max_rows: int = 20)
+
+   Take in any model's ranking result, which might or might not include scores, and log the table.
+
+
