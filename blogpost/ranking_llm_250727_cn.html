@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html :class="{'dark': darkMode === 'dark' || (darkMode === 'system' &amp;&amp; window.matchMedia('(prefers-color-scheme: dark)').matches)}" class="scroll-smooth" data-content_root="../" lang="en" x-data="{ darkMode: localStorage.getItem('darkMode') || localStorage.setItem('darkMode', 'system'), activeSection: '' }" x-init="$watch('darkMode', val =&gt; localStorage.setItem('darkMode', val))">
+<head>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/>
+<meta content="white" media="(prefers-color-scheme: light)" name="theme-color"/>
+<meta content="black" media="(prefers-color-scheme: dark)" name="theme-color"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>我们如何在预测市场中对大语言模型（LLM）进行评分与排名 | PM-RANK 0.2.3 documentation</title>
+<meta content="我们如何在预测市场中对大语言模型（LLM）进行评分与排名 | PM-RANK 0.2.3 documentation" property="og:title"/>
+<meta content="我们如何在预测市场中对大语言模型（LLM）进行评分与排名 | PM-RANK 0.2.3 documentation" name="twitter:title"/>
+<link href="../_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
+<link href="../_static/theme.css?v=42baaae4" rel="stylesheet" type="text/css"/>
+<link href="../_static/graphviz.css?v=4ae1632d" rel="stylesheet" type="text/css"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="../genindex.html" rel="index" title="Index"/>
+<script>
+    <!-- Prevent Flash of wrong theme -->
+      const userPreference = localStorage.getItem('darkMode');
+      let mode;
+      if (userPreference === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        mode = 'dark';
+        document.documentElement.classList.add('dark');
+      } else {
+        mode = 'light';
+      }
+      if (!userPreference) {localStorage.setItem('darkMode', mode)}
+    </script>
+</head>
+<body :class="{ 'overflow-hidden': showSidebar }" class="min-h-screen font-sans antialiased bg-background text-foreground" x-data="{ showSidebar: false, showScrollTop: false }">
+<div @click.self="showSidebar = false" class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden" x-cloak="" x-show="showSidebar"></div><div class="relative flex flex-col min-h-screen" id="page"><a class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100" href="#content">
+      Skip to content
+    </a><header class="sticky top-0 z-40 w-full border-b shadow-sm border-border supports-backdrop-blur:bg-background/60 bg-background/95 backdrop-blur"><div class="container flex items-center h-14">
+<div class="hidden mr-4 md:flex">
+<a class="flex items-center mr-6" href="../index.html"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">PM-RANK 0.2.3 documentation</span>
+</a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
+<svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
+</svg>
+<span class="sr-only">Toggle navigation menu</span>
+</button>
+<div class="flex items-center justify-between flex-1 space-x-2 sm:space-x-4 md:justify-end">
+<div class="flex-1 w-full md:w-auto md:flex-none"><form @keydown.k.window.meta="$refs.search.focus()" action="../search.html" class="relative flex items-center group" id="searchbox" method="get">
+<input aria-label="Search the docs" class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" id="search-input" name="q" placeholder="Search ..." type="search" x-ref="search"/>
+<kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
+<span class="text-xs">⌘</span>
+    K
+  </kbd>
+</form>
+</div>
+<nav class="flex items-center space-x-1">
+<a href="https://github.com/listar2000/pm_ranking" rel="noopener nofollow" title="Visit GitHub">
+<div class="inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:pointer-events-none hover:bg-accent hover:text-accent-foreground h-9 w-9">
+<svg style="height: 1.75em; width: 1.75em; vertical-align: -0.125em;" viewbox="0 0 496 512">
+<path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70.7 1.4-85.9-35.4 0 0-11.4-29.7-27.8-37.4 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z" fill="currentColor"></path>
+</svg>
+</div>
+</a>
+<button @click="darkMode = darkMode === 'light' ? 'dark' : 'light'" aria-label="Color theme switcher" class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9" type="button">
+<svg class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z"></path>
+</svg>
+<svg class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z"></path>
+</svg>
+</button>
+</nav>
+</div>
+</div>
+</header>
+<div class="flex-1"><div class="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full shrink-0 overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
+<a class="!justify-start text-sm md:!hidden bg-background" href="../index.html"><span class="font-bold text-clip whitespace-nowrap">PM-RANK 0.2.3 documentation</span>
+</a>
+<div class="relative overflow-hidden md:overflow-auto my-4 md:my-0 h-[calc(100vh-8rem)] md:h-auto">
+<div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
+<p class="caption" role="heading"><span class="caption-text">Links:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../colab_demo.html">Colab Demo</a></li>
+<li class="toctree-l1" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="../autoapi/src/pm_rank/index.html">src.pm_rank<button @click.prevent.stop="expanded = !expanded" type="button"><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-show="expanded">
+<li class="toctree-l2"><a class="reference internal" href="../autoapi/src/pm_rank/data/index.html">src.pm_rank.data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../autoapi/src/pm_rank/model/index.html">src.pm_rank.model</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Blogposts:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ranking_llm_250727.html">How We Score &amp; Rank LLMs in Prediction Markets</a></li>
+</ul>
+</nav>
+</div>
+</div>
+<button @click="showSidebar = false" class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" type="button">
+<svg class="h-4 w-4" fill="currentColor" height="24" stroke="none" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z"></path>
+</svg>
+</button>
+</aside>
+<main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+<div class="w-full min-w-0 mx-auto">
+<nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+<a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="../index.html">
+<span class="hidden md:inline">PM-RANK 0.2.3 documentation</span>
+<svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
+</svg>
+</a>
+<div class="mr-1">/</div>
+<span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
+    我们如何在预测市场中对大语言模型（LLM）进行评分与排名
+  </span>
+</nav>
+<div id="content" role="main">
+<section id="llm">
+<h1>我们如何在预测市场中对大语言模型（LLM）进行评分与排名<a class="headerlink" href="#llm" title="Link to this heading"><span>¶</span></a></h1>
+<blockquote>
+<div><p><strong>作者：</strong> Sida Li, Prophet Arena 团队</p>
+<p><strong>日期：</strong> 2025年7月26日</p>
+<p><strong>预计阅读时间：</strong> 9分钟</p>
+</div></blockquote>
+<hr class="docutils"/>
+<p>创建用于评估大语言模型（LLMs）的基准和竞技场通常是一个劳动密集且细致的过程。然而，当涉及到评估所使用的指标时，指导原则通常是为特定任务找到一种简单直观的评分方法。例如，在涉及成对比较的问题（“哪个LLM回答得更好？”）中，Elo评分系统提供了一种简洁而优雅的解决方案。同样，对于专注于可验证、客观答案的基准测试，评估可以简单地通过对所有问题的二元正确性取平均值来得到一个准确率指标。</p>
+<p>然而，<strong>如何基于LLM的概率性预测对其进行评分和排名</strong>这一问题引入了更多的复杂性和细微差别。选择合适的指标成为一个非平凡但又引人入胜的挑战。我们平台 <code class="docutils literal notranslate"><span class="pre">ProphetArena</span></code> 的一个独特优势，正是在于我们全面的评分与排名模块。该模块实现了多种基于统计建模、效用理论和心理测量学原理的指标。</p>
+<p>在本文中，我们将引导您了解我们选择这些指标背后的逻辑，并解释这些指标如何帮助我们在预测市场场景中稳健地评估LLM的表现。</p>
+<section id="tl-dr">
+<h2>TL;DR（给时间紧迫的读者）<a class="headerlink" href="#tl-dr" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#tl-dr'"><span>¶</span></a></h2>
+<ul>
+<li><p>我们在 <code class="docutils literal notranslate"><span class="pre">ProphetArena</span></code> 中的默认评分指标是 <strong>Brier score（布里尔分数）</strong>——一种广为人知的<a class="reference external" href="https://en.wikipedia.org/wiki/Scoring_rule">proper scoring rule（适当评分规则）</a>。Brier score 捕捉了核心问题：</p>
+<blockquote>
+<div><p><em>“预测的概率分布与现实（观察到的结果）匹配得有多好？”</em>
+它自然地推广到二元结果之外，同时评估准确性和校准性。</p>
+</div></blockquote>
+</li>
+<li><p>我们创新性地引入了一类 <strong>averaged return metrics（平均回报指标）</strong> 作为补充指标。直观上，这些指标模拟了某人持续纯粹基于LLM的概率估计进行投注的长期回报，每次事件使用相同的预算。</p></li>
+<li><p>我们还纳入了其他指标，例如 <strong>IRT（项目反应理论）分数</strong>，它联合建模每个LLM的预测能力以及事件特定的难度和区分度参数，以及一种 <strong>广义的 Bradley–Terry 模型</strong>，这是一种类似于Elo评分的评分系统，提供直观的比较分数。</p></li>
+<li><p>所有这些指标都已高效实现，并打包进我们独立的Python包 <a class="reference external" href="https://pypi.org/project/pm-rank/"><code class="docutils literal notranslate"><span class="pre">pm_rank</span></code></a> 中，完全文档化并开源，以促进在一般预测市场环境中对LLM进行更好的评估。</p></li>
+</ul>
+
+<p align="center">
+<img alt="pm_rank package" src="../_static/rank_overview.png" width="600"/>
+</p>
+</section>
+<section id="id1">
+<h2>评分规则：概率性预测的坚实指标<a class="headerlink" href="#id1" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id1'"><span>¶</span></a></h2>
+<p><strong>我们先设定一些背景：</strong> 我们希望对多个事件 <span class="math notranslate nohighlight">\(E_1,...,E_N\)</span> 的LLM概率性预测进行评分。在每个事件 <span class="math notranslate nohighlight">\(i\)</span> 中，有 <span class="math notranslate nohighlight">\(n_i\)</span> 个互斥的潜在结果（例如，对于“2026年NBA冠军”这一事件，<span class="math notranslate nohighlight">\(n_i = 30\)</span>）。LLM的预测表示为一个概率向量 <span class="math notranslate nohighlight">\((p_{i1}, p_{i2}, \dots, p_{in_i})\)</span>，其总和为1。一旦事件结果确定——比如结果 <span class="math notranslate nohighlight">\(j\)</span> 发生——我们使用评分规则（特别是Brier score）来计算预测的准确性：</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+BS_i \equiv \text{事件 } E_i \text{ 的Brier Score} = \frac{1}{n_i} \sum_{k=1}^{n_i}(p_{ik} - o_{ik})^2
+\end{equation*}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(o_{ik}\)</span> 在结果 <span class="math notranslate nohighlight">\(k\)</span> 发生时为1，否则为0。该指标提供了一个介于0和1之间的清晰数值分数，分数越低表示准确性和校准性越好。最终（平均）的Brier score 通过对所有事件计算得到：</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+BS = \frac{1}{N} \sum_{i=1}^{N} BS_i
+\end{equation*}\]</div>
+<p>并用于对LLM进行排名（越小越好）。</p>
+<p>与简单的准确率度量不同，像Brier score这样的评分规则提供了更丰富的信息，特别是在处理多个结果（<span class="math notranslate nohighlight">\(n_i &gt; 2\)</span>）时尤其有用。例如，当没有单一结果的分配概率超过0.5时，传统的准确率度量变得模糊——我们应该选择概率最高的选项，还是拒绝做出确定性猜测？评分规则通过直接衡量预测概率与观察结果的接近程度，巧妙地规避了这种模糊性。</p>
+<p>此外，适当的评分规则本质上会奖励那些既准确又校准良好的模型。简单来说，一个校准良好的预测者具有这样的特性：被预测为70%概率的结果实际上大约在70%的时间里发生（这里的70%只是一个方便的例子），这确保了在实际应用中的可靠性。</p>
+<p>值得注意的是，像 <a class="reference external" href="https://www.gjopen.com/">Good Judgment Open</a> 这样的流行现实世界预测平台也广泛采用Brier score的变体，这表明它在预测市场中具有长期确立的实用性。最近的一些学术工作也探讨了评分规则在LLM中的应用，例如在设计RL奖励函数 [1] 和置信度 elicitation [2] 中。</p>
+<p>尽管由于其可解释性和稳健性，Brier score 是我们的默认评分方法，但我们也在 <code class="docutils literal notranslate"><span class="pre">pm_rank</span></code> 包中提供了其他适当的评分规则，例如对数（log）和球面（spherical）分数。Brier score 的直观解释使其成为我们的主要评估指标。</p>
+</section>
+<section id="id2">
+<h2>平均回报：实践者可能关心的内容<a class="headerlink" href="#id2" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id2'"><span>¶</span></a></h2>
+<p>在现实世界的预测市场中，实践者非常关心 <strong>可操作的见解</strong>——具体来说，就是如果完全遵循LLM的概率性预测，一个人能赚多少钱。然而，LLM只提供概率性估计，而不是直接的投注建议。将这些估计转化为具体行动通常需要将LLM的信念（概率）与市场隐含概率进行比较。</p>
+<p>为了解决这个问题，我们引入了一种基于 <strong>恒定相对风险厌恶（CRRA）效用理论</strong> 的新方法。具体来说，我们假设一个假设场景：一个人完全信任LLM的概率作为他们的真实信念，并且仅根据其个人风险厌恶程度做出决策，该风险厌恶程度由CRRA效用函数捕捉：</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+U_\gamma(w)=
+\begin{cases}
+\dfrac{w^{1-\gamma}}{\,1-\gamma\,}, &amp; 0\le\gamma&lt;1, \\
+\log w, &amp; \gamma=1
+\end{cases}
+\end{equation*}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\gamma \in [0, 1]\)</span> 是一个风险厌恶超参数，<span class="math notranslate nohighlight">\(w\)</span> 是投注后赚取的金额。<span class="math notranslate nohighlight">\(\gamma = 0\)</span> 表示风险中性个体，而 <span class="math notranslate nohighlight">\(\gamma = 1\)</span> 表示对数风险厌恶。<span class="math notranslate nohighlight">\(\gamma\)</span> 的中间值代表不同程度的风险厌恶。</p>
+<p align="center">
+<img alt="CRRA Utility Function" src="../_static/crra_utility_plot.png" title="CRRA Utility Function" width="700"/>
+</p>
+<p>除了效用函数外，还有两个因素会影响 <strong>最优投注策略</strong>：</p>
+<ol class="arabic simple">
+<li><p><strong>投注多少钱（总预算）：</strong> 为简化起见，我们假设在我们的假设场景中，投注者每次事件有固定的 <strong>一美元</strong> 预算，因此总预算是 <span class="math notranslate nohighlight">\(N\)</span>。换句话说，对于第 <span class="math notranslate nohighlight">\(i\)</span> 个事件，任何 <strong>行动/策略</strong> 可以表示为一个向量 <span class="math notranslate nohighlight">\(a_i = (a_{i1}, a_{i2}, \dots, a_{in_i})\)</span>，其总和为1，其中 <span class="math notranslate nohighlight">\(a_{ik}\)</span> 是在事件 <span class="math notranslate nohighlight">\(i\)</span> 的结果 <span class="math notranslate nohighlight">\(k\)</span> 上下的赌注。</p></li>
+<li><p><strong>市场赔率/隐含概率：</strong> 这些是从（人类）市场价格中得出的结果概率，我们将其记为 <span class="math notranslate nohighlight">\(q_{ik}\)</span>，表示事件 <span class="math notranslate nohighlight">\(i\)</span> 的结果 <span class="math notranslate nohighlight">\(k\)</span>。简单来说，<span class="math notranslate nohighlight">\(q_{ik}\)</span> 是一份“全有或全无”合约的市场共识价格，如果结果 <span class="math notranslate nohighlight">\(k\)</span> 发生，该合约支付一美元，否则为零。在实践中，我们从人类预测市场（如 <a class="reference external" href="https://kalshi.com/">Kalshi</a>）获取此信息。</p></li>
+</ol>
+<p>一旦确定了这些因素，我们就可以通过解决一个优化问题来确定事件 <span class="math notranslate nohighlight">\(E_i\)</span> 的最优策略 <span class="math notranslate nohighlight">\(a_i^*\)</span>。这种“最优性”是根据最大化投注者的期望效用来定义的，给定他们的风险厌恶 <span class="math notranslate nohighlight">\(\gamma\)</span>，并将LLM的预测概率 <span class="math notranslate nohighlight">\(p_{ik}\)</span> 作为真实信念。虽然详细的推导超出了本文的范围，但根据风险厌恶 <span class="math notranslate nohighlight">\(\gamma\)</span>，解决方案可以以封闭且可解释的形式表达：</p>
+<ul class="simple">
+<li><p><strong>风险中性（线性效用）</strong> 个体（<span class="math notranslate nohighlight">\(\gamma=0\)</span>）会将全部赌注押在LLM概率与市场赔率之间差异最大的选项上（<span class="math notranslate nohighlight">\(k^* := \max_k \frac{p_{ik}}{q_{ik}}\)</span>，有时称为 <strong>edge（优势）</strong>）。</p></li>
+<li><p><strong>对数效用（<span class="math notranslate nohighlight">\(\gamma=1\)</span>）</strong> 的投注者会根据LLM的概率按比例分配他们的预算，即 <span class="math notranslate nohighlight">\(a_{ik}^* \propto p_{ik}\)</span>。</p></li>
+<li><p><strong>中间风险厌恶（<span class="math notranslate nohighlight">\(0 &lt; \gamma &lt; 1\)</span>）</strong> 在这两种极端情况之间平滑插值，提供灵活但清晰可解释的投注策略。</p></li>
+</ul>
+<p>然后，我们的平均回报指标通过遵循所有事件的最优投注策略 <span class="math notranslate nohighlight">\(a_i^*\)</span> 来衡量长期回报率。具体来说，我们将 <strong>平均回报分数（AVER）</strong> 定义为：</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+AVER := \frac{\sum_{i=1}^{N} \text{第 } i \text{ 个事件在 } a_i^* \text{ 下的收益}}{N}.
+\end{equation*}\]</div>
+<p>其中收益就是当结果 <span class="math notranslate nohighlight">\(k\)</span> 发生时的 <span class="math notranslate nohighlight">\(a_{ik}^*\)</span>。我们需要指定超参数 <span class="math notranslate nohighlight">\(\gamma\)</span> 来计算 AVER。默认情况下，我们采用风险中性情况（<span class="math notranslate nohighlight">\(\gamma=0\)</span>），但我们的平台也允许用户改变此因素（或许基于他们自己的风险偏好）。下图显示了四个LLM在 <span class="math notranslate nohighlight">\(\gamma = 0, 0.5, 1\)</span> 时，随着时间推移（随着越来越多的预测事件关闭）的三条移动 AVER 指标：</p>
+<p align="center">
+<img alt="Averaged Return Score" src="../_static/prophet_arena_risk_curves_0717.png" title="Averaged return curves for LLMs, generated with `pm_rank`." width="800"/>
+使用 `pm_rank` 包中的内置函数创建此类图表既简单又高效。
+</p>
+<section id="id3">
+<h3>💭 绝对指标与相对指标<a class="headerlink" href="#id3" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id3'"><span>¶</span></a></h3>
+<p>现在是时候反思并比较迄今为止介绍的两个重要指标了。尽管它们在数学公式上有明显差异，但更高级别的区别是：Brier score 是一种 <strong>绝对指标</strong>，而平均回报分数是一种 <strong>相对指标</strong>。详细说明如下：</p>
+<ul class="simple">
+<li><p>当我们计算Brier score（或其他适当的评分规则）时，我们衡量的是LLM的概率性预测与观察结果的对齐程度。一个好的分数意味着LLM能够有效综合提供的信息，并通过推理做出准确且校准良好的预测。市场赔率（可以解释为人类共识概率）<strong>不参与计算</strong>。</p></li>
+<li><p>另一方面，平均回报取决于观察结果和策略 $a_i^<em><span class="math notranslate nohighlight">\(，而策略 \)</span>a_i^</em>$ 又由 <strong>LLM的概率和市场赔率</strong> 共同决定。因此，它是一种 <strong>相对指标</strong>，因为获得一个好的分数要求LLM比大多数人类投注者表现得“相对更好”，从而创造套利机会。</p></li>
+</ul>
+<br/>
+<details>
+<summary>🤔 后续问题：在什么情况下基于这两个指标的排名会不同？</summary>
+想象以下简化设置：
+- 有两个LLM，$A$ 和 $B$，所有事件分为两类，`finance`（金融）和 `sports`（体育）（各占50%）。
+- 对于人类市场而言，`sports` 类别的事件相对更“可预测”，而 `finance` 事件需要更多的信息聚合，因此更难预测。
+- 对于LLM $A$，它在预测 `sports` 事件方面明显优于 $B$，而在预测 `finance` 事件方面略逊于 $B$。
+- 现在，LLM $A$ 的Brier score 会比 $B$ 好，因为总体上它在 **绝对意义上** 具有更强的预测能力（忽略市场赔率）。
+- 然而，如果我们考虑平均回报分数，我们会发现LLM $B$ 的分数会比 $A$ 好，因为它能在人类表现较差的 `finance` 事件中赚到更多的钱。尽管LLM $A$ 在 `sports` 事件中预测能力很强，但它无法在那里创造套利机会，因为人类在这些问题上也很擅长。
+</details>
+</section>
+</section>
+<section id="irt-bradley-terry">
+<h2>IRT 与 Bradley-Terry：统计建模的视角<a class="headerlink" href="#irt-bradley-terry" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#irt-bradley-terry'"><span>¶</span></a></h2>
+<p>除了前面提到的指标外，我们还纳入了基于统计的严谨方法，如 <strong>项目反应理论（IRT）</strong> 和 <strong>Bradley–Terry（BT）模型</strong>，以更深入地洞察LLM的表现。与更简单的指标不同，这些方法依赖于对数据进行统计模型拟合——因此它们通常需要更大的数据集和仔细的模型拟合程序。</p>
+<section id="irt">
+<h3>项目反应理论（IRT）<a class="headerlink" href="#irt" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#irt'"><span>¶</span></a></h3>
+<p>IRT 解决了简单评分方法中的一个关键局限性：对所有预测事件进行等权重处理。使用 [3] 的一种轻微变体 [3] 的<a class="reference external" href="https://assess.com/what-is-the-two-parameter-irt-2pl-model/">双参数逻辑（2-PL）IRT模型</a>，我们联合估计每个LLM的能力参数以及每个预测事件的 <strong>难度和区分度参数</strong>。较高的区分度参数表示那些能更有效区分强弱预测者的事件，从而隐式地为这些信息量更大的事件分配更高的权重。</p>
+<p>这种方法非常灵活。最终的评分可以是（i）IRT模型中直接拟合的LLM能力参数，或（ii）使用事件级区分度参数的加权评分规则（例如Brier score）。虽然传统的2-PL IRT模型假设二元结果（正确/错误），但我们的实现也支持连续响应，例如直接使用Brier score 作为数据。</p>
+<p>初步的实证结果表明：即使IRT模型拟合需要扩大预测事件数量和LLM数量，它仍提供了一个稳健且有原则的评估框架（即上述两种实现（i）和（ii）达到高度相关）。一旦我们获得足够的数据，预计 <strong>我们可能会将默认评分指标从当前的（未加权）Brier score 迁移到基于IRT的加权版本</strong>，并且我们可能会发布一篇独立的后续文章来详细介绍我们的实践。</p>
+</section>
+<section id="bradleyterry-bt">
+<h3>广义 Bradley–Terry（BT）模型<a class="headerlink" href="#bradleyterry-bt" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#bradleyterry-bt'"><span>¶</span></a></h3>
+<p>广义BT模型 [4] 将传统的成对比较方法——如 <a class="reference external" href="https://lmarena.ai/">LMArena</a> 使用的方法——扩展到我们的预测市场设置中。在这里，每个事件结果被视为两个“伪团队”之间的竞赛：一个获胜团队 <span class="math notranslate nohighlight">\(w_i\)</span>（对应于实际发生的结果）和一个失败团队 <span class="math notranslate nohighlight">\(l_i\)</span>。每个参与的LLM根据其预测概率贡献其能力的一部分，将 <span class="math notranslate nohighlight">\(p_{ik}\)</span> 分配给获胜团队，将 <span class="math notranslate nohighlight">\(1 - p_{ik}\)</span> 分配给失败团队。</p>
+<p>我们使用BT公式对 <span class="math notranslate nohighlight">\(E_i\)</span> 的获胜概率进行建模：</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}
+\frac{e^{\theta_{w_i}}}{e^{\theta_{w_i}} + e^{\theta_{l_i}}}
+\end{equation*}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\theta_{w_i}\)</span> 和 <span class="math notranslate nohighlight">\(\theta_{l_i}\)</span> 分别是获胜团队和失败团队的总和“分数”能力。尽管这种推广通过将非成对预测场景转化为成对框架引入了人为因素，但它提供了一种熟悉的比较评级方法。诚然，我们尚未彻底探索这种广义BT模型的统计特性和收敛保证，但它仍然是我们评估工具套件中的一个有价值的补充。</p>
+</section>
+<hr class="docutils"/>
+<section id="id4">
+<h3>参考文献：<a class="headerlink" href="#id4" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id4'"><span>¶</span></a></h3>
+<p>[1] Damani, Mehul, et al. “Beyond Binary Rewards: Training LMs to Reason About Their Uncertainty.” arXiv preprint arXiv:2507.16806 (2025).</p>
+<p>[2] Xu, Tianyang, et al. “Sayself: Teaching llms to express confidence with self-reflective rationales.” In Proceedings of the
+2024 Conference on Empirical Methods in Natural Language Processing, pp. 5985–5998 (2024).</p>
+<p>[3] Bo, Yuanchao Emily, et al. “An IRT forecasting model: Linking proper scoring rules to item response theory.” Judgment and Decision Making 12.2: 90-103 (2017).</p>
+<p>[4] Huang, Tzu-Kuo, et al. “Generalized Bradley-Terry Models and Multi-Class Probability Estimates.” Journal of Machine Learning Research 7.1 (2006).</p>
+</section>
+</section>
+</section>
+</div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
+<div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
+<ul>
+<li><a :data-current="activeSection === '#tl-dr'" class="reference internal" href="#tl-dr">TL;DR（给时间紧迫的读者）</a></li>
+<li><a :data-current="activeSection === '#id1'" class="reference internal" href="#id1">评分规则：概率性预测的坚实指标</a></li>
+<li><a :data-current="activeSection === '#id2'" class="reference internal" href="#id2">平均回报：实践者可能关心的内容</a><ul>
+<li><a :data-current="activeSection === '#id3'" class="reference internal" href="#id3">💭 绝对指标与相对指标</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#irt-bradley-terry'" class="reference internal" href="#irt-bradley-terry">IRT 与 Bradley-Terry：统计建模的视角</a><ul>
+<li><a :data-current="activeSection === '#irt'" class="reference internal" href="#irt">项目反应理论（IRT）</a></li>
+<li><a :data-current="activeSection === '#bradleyterry-bt'" class="reference internal" href="#bradleyterry-bt">广义 Bradley–Terry（BT）模型</a></li>
+<li><a :data-current="activeSection === '#id4'" class="reference internal" href="#id4">参考文献：</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</aside>
+</main>
+</div>
+</div><footer class="py-6 border-t border-border md:py-0">
+<div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+<div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+<p class="text-sm leading-loose text-center text-muted-foreground md:text-left">© 2025, Prophet Arena Team Built with <a class="font-medium underline underline-offset-4" href="https://www.sphinx-doc.org" rel="noreferrer">Sphinx 8.1.3</a></p>
+</div>
+</div>
+</footer>
+</div>
+<script src="../_static/documentation_options.js?v=a47416a6"></script>
+<script src="../_static/doctools.js?v=9bcbadda"></script>
+<script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+<script defer="defer" src="../_static/theme.js?v=073f68d9"></script>
+<script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</body>
+</html>
