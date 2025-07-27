@@ -7,9 +7,9 @@
 <meta content="white" media="(prefers-color-scheme: light)" name="theme-color"/>
 <meta content="black" media="(prefers-color-scheme: dark)" name="theme-color"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>PM-RANK Documentation | PM-RANK 0.2.3 documentation</title>
-<meta content="PM-RANK Documentation | PM-RANK 0.2.3 documentation" property="og:title"/>
-<meta content="PM-RANK Documentation | PM-RANK 0.2.3 documentation" name="twitter:title"/>
+<title>PM-RANK Documentation | PM-RANK 0.2.4 documentation</title>
+<meta content="PM-RANK Documentation | PM-RANK 0.2.4 documentation" property="og:title"/>
+<meta content="PM-RANK Documentation | PM-RANK 0.2.4 documentation" name="twitter:title"/>
 <link href="_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
 <link href="_static/theme.css?v=42baaae4" rel="stylesheet" type="text/css"/>
 <link href="_static/graphviz.css?v=4ae1632d" rel="stylesheet" type="text/css"/>
@@ -34,7 +34,7 @@
       Skip to content
     </a><header class="sticky top-0 z-40 w-full border-b shadow-sm border-border supports-backdrop-blur:bg-background/60 bg-background/95 backdrop-blur"><div class="container flex items-center h-14">
 <div class="hidden mr-4 md:flex">
-<a class="flex items-center mr-6" href="#"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">PM-RANK 0.2.3 documentation</span>
+<a class="flex items-center mr-6" href="#"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">PM-RANK 0.2.4 documentation</span>
 </a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
 <svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
 <path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
@@ -71,7 +71,7 @@
 </div>
 </header>
 <div class="flex-1"><div class="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full shrink-0 overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
-<a class="!justify-start text-sm md:!hidden bg-background" href="#"><span class="font-bold text-clip whitespace-nowrap">PM-RANK 0.2.3 documentation</span>
+<a class="!justify-start text-sm md:!hidden bg-background" href="#"><span class="font-bold text-clip whitespace-nowrap">PM-RANK 0.2.4 documentation</span>
 </a>
 <div class="relative overflow-hidden md:overflow-auto my-4 md:my-0 h-[calc(100vh-8rem)] md:h-auto">
 <div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
@@ -120,19 +120,19 @@ especially for those who want to integrate handy scoring/ranking algorithms into
 <section id="quick-installation-guide">
 <h2>Quick Installation Guide<a class="headerlink" href="#quick-installation-guide" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#quick-installation-guide'"><span>¶</span></a></h2>
 <p><code class="code docutils literal notranslate"><span class="pre">pm_rank</span></code> is a python package that can be installed via <code class="code docutils literal notranslate"><span class="pre">pip</span></code> (requires python 3.8 or higher)</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><code><span id="line-1">pip<span class="w"> </span>install<span class="w"> </span><span class="nv">pm_rank</span><span class="o">==</span><span class="m">0</span>.2.3
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><code><span id="line-1">pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pm_rank
 </span></code></pre></div>
 </div>
 <p>The default version uses minimal dependencies (i.e. no <code class="code docutils literal notranslate"><span class="pre">pytorch</span></code>), so some ranking models (e.g. <code class="code docutils literal notranslate"><span class="pre">IRT</span></code>) are not available.</p>
 <p>To install the full version, you can install the <code class="code docutils literal notranslate"><span class="pre">full</span></code> dependency:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="n">pip</span> <span class="n">install</span> <span class="n">pm_rank</span><span class="p">[</span><span class="n">full</span><span class="p">]</span><span class="o">==</span><span class="mf">0.2.3</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">pm_rank</span><span class="p">[</span><span class="n">full</span><span class="p">]</span>
 </span></code></pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>For potential developers:</strong>
 If you want to contribute to the documentation, you can install the <code class="code docutils literal notranslate"><span class="pre">docs</span></code> dependency:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><code><span id="line-1">pip<span class="w"> </span>install<span class="w"> </span>pm_rank<span class="o">[</span>docs<span class="o">]==</span><span class="m">0</span>.2.3
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><code><span id="line-1">pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pm_rank<span class="o">[</span>docs<span class="o">]</span>
 </span></code></pre></div>
 </div>
 <p>Then you can build the documentation by running:</p>
@@ -161,8 +161,8 @@ introduce the core concepts here:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">problem_id</span></code>: an unique identifier for the problem</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">username</span></code>: an unique identifier for the forecaster</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">timestamp</span></code>: the timestamp of the prediction. Note that this is not optional as we might want to <strong>stream</strong> the predictions in time. However, if the original data does not contain this information, we will use the current time as a placeholder.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">probs</span></code>: the probability distribution over the options – given by the forecaster.
-* <code class="docutils literal notranslate"><span class="pre">correct_prob</span></code>: the probability assigned to the correct answer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">probs</span></code>: the probability distribution over the options – given by the forecaster.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unnormalized_probs</span></code>: the unnormalized probability distribution over the options – given by the forecaster.</p></li>
 </ul>
 </li>
 <li><p><strong>ForecastProblem</strong>: this is a collection of <code class="docutils literal notranslate"><span class="pre">ForecastEvent</span></code>s for a single forecast problem. It validates keeps track of metadata for the problem like the options and the correct option. It is also a handy way to organize the dataset as we treat <code class="docutils literal notranslate"><span class="pre">ForecastProblem</span></code> as the basic unit of <strong>streaming prediction market data</strong>.</p>
@@ -172,7 +172,7 @@ introduce the core concepts here:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">title</span></code>: the title of the problem</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">problem_id</span></code>: the id of the problem</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">options</span></code>: the options for the problem</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">correct_option</span></code>: the correct option</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">correct_option_idx</span></code>: the index of the correct option</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">forecasts</span></code>: the forecasts for the problem</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">num_forecasters</span></code>: the number of forecasters</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">url</span></code>: the URL of the problem</p></li>
@@ -206,7 +206,7 @@ introduce the core concepts here:</p>
 </div>
 </footer>
 </div>
-<script src="_static/documentation_options.js?v=a47416a6"></script>
+<script src="_static/documentation_options.js?v=6ffd866b"></script>
 <script src="_static/doctools.js?v=9bcbadda"></script>
 <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
 <script defer="defer" src="_static/theme.js?v=073f68d9"></script>

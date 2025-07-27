@@ -37,7 +37,6 @@ Attributes
 
    src.pm_rank.model.scoring_rule.MAX_PROBLEM_WEIGHT_QUANTILE
    src.pm_rank.model.scoring_rule.MIN_PROBLEM_WEIGHT_QUANTILE
-   src.pm_rank.model.scoring_rule.correct_probs
 
 
 Classes
@@ -192,6 +191,4 @@ Module Contents
 
    :param verbose: Whether to enable verbose logging (default: False).
 
-
-.. py:data:: correct_probs
 

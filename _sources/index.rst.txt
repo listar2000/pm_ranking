@@ -46,13 +46,13 @@ Quick Installation Guide
 
 .. code-block:: bash
 
-    pip install pm_rank==0.2.3
+    pip install -U pm_rank
 
 The default version uses minimal dependencies (i.e. no :code:`pytorch`), so some ranking models (e.g. :code:`IRT`) are not available.
 
 To install the full version, you can install the :code:`full` dependency::
 
-    pip install pm_rank[full]==0.2.3
+    pip install -U pm_rank[full]
 
 .. note::
    **For potential developers:**  
@@ -60,7 +60,7 @@ To install the full version, you can install the :code:`full` dependency::
 
    .. code-block:: bash
 
-      pip install pm_rank[docs]==0.2.3
+      pip install -U pm_rank[docs]
 
    Then you can build the documentation by running:
 
@@ -94,7 +94,7 @@ introduce the core concepts here:
    * ``username``: an unique identifier for the forecaster
    * ``timestamp``: the timestamp of the prediction. Note that this is not optional as we might want to **stream** the predictions in time. However, if the original data does not contain this information, we will use the current time as a placeholder.
    * ``probs``: the probability distribution over the options -- given by the forecaster.
-     * ``correct_prob``: the probability assigned to the correct answer.
+   * ``unnormalized_probs``: the unnormalized probability distribution over the options -- given by the forecaster.
 
 2. **ForecastProblem**: this is a collection of ``ForecastEvent``\s for a single forecast problem. It validates keeps track of metadata for the problem like the options and the correct option. It is also a handy way to organize the dataset as we treat ``ForecastProblem`` as the basic unit of **streaming prediction market data**.
 
@@ -105,7 +105,7 @@ introduce the core concepts here:
    * ``title``: the title of the problem
    * ``problem_id``: the id of the problem
    * ``options``: the options for the problem
-   * ``correct_option``: the correct option
+   * ``correct_option_idx``: the index of the correct option
    * ``forecasts``: the forecasts for the problem
    * ``num_forecasters``: the number of forecasters
    * ``url``: the URL of the problem

@@ -59,8 +59,8 @@ Package Contents
       :type:  List[float]
 
 
-   .. py:attribute:: correct_prob
-      :type:  float
+   .. py:attribute:: unnormalized_probs
+      :type:  List[float] | None
 
 
    .. py:method:: validate_probabilities(v)
@@ -69,9 +69,10 @@ Package Contents
 
 
 
-   .. py:method:: validate_correct_probability(v, info)
+   .. py:method:: validate_unnormalized_probabilities(v, info)
 
-      Validate that correct_prob matches one of the probabilities.
+      Validate that unnormalized probabilities are non-negative.
+      we only require every number to be in [0, 1], and the vector dimension is the same as the number of options.
 
 
 
@@ -95,8 +96,8 @@ Package Contents
       :type:  List[str]
 
 
-   .. py:attribute:: correct_option
-      :type:  str
+   .. py:attribute:: correct_option_idx
+      :type:  List[int]
 
 
    .. py:attribute:: forecasts
@@ -119,9 +120,9 @@ Package Contents
       :type:  List[float] | None
 
 
-   .. py:method:: validate_correct_option(v, info)
+   .. py:method:: validate_correct_option_idx(v, info)
 
-      Validate that correct_option is in the options list.
+      Validate that correct_option_idx is in the options list.
 
 
 
