@@ -104,10 +104,13 @@ Module Contents
    .. py:attribute:: logger
 
 
-   .. py:method:: load_challenge() -> src.pm_rank.data.base.ForecastChallenge
+   .. py:method:: load_challenge(add_market_baseline: bool = False) -> src.pm_rank.data.base.ForecastChallenge
 
       Load challenge data from Prophet Arena data format.
       Group by submission_id, then for each group, build the list of forecasts, then the ForecastProblem.
+
+      :param add_market_baseline: Whether to add the market baseline as a forecaster
+      :return: A ForecastChallenge object containing the forecast problems and events.
 
 
 
