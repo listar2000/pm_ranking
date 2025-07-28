@@ -365,7 +365,9 @@ class BrierScoringRule(ScoringRule):
         :returns: Array of Brier scores. Shape (n,).
         """
         one_hot = np.zeros(all_probs.shape[1])
-        one_hot[correct_option_idx] = 1
+        # correct_option_idx might be an empty array
+        if len(correct_option_idx) > 0:
+            one_hot[correct_option_idx] = 1
         # ignore above
         brier_scores = 2 * np.sum((all_probs - one_hot) ** 2, axis=1)
         # (3) we obtain (n,) scores, rescaled so that it lies in [0, 1]

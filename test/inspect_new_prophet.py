@@ -18,7 +18,7 @@ brier_scoring_rule = BrierScoringRule()
 
 # use the AverageReturn to rank
 average_return = AverageReturn()
-average_return_results = average_return.fit_by_category(prophet_problems, include_scores=True)
+# average_return_results = average_return.fit_by_category(prophet_problems, include_scores=True)
 
 # print("--------------------------------")
 
@@ -42,7 +42,8 @@ average_return_results = average_return.fit_by_category(prophet_problems, includ
 #     print("--------------------------------")
 
 
-average_return_results_stream = average_return.fit_by_category(prophet_problems, include_scores=True, stream_with_timestamp=True, stream_increment_by="day", min_bucket_size=5)
+average_return_results_stream = average_return.fit_by_category(prophet_problems, include_scores=True, \
+    stream_with_timestamp=True, stream_increment_by="day", min_bucket_size=5)
 
 for category, results in average_return_results_stream.items():
     print("**" * 50)
@@ -53,6 +54,69 @@ for category, results in average_return_results_stream.items():
         avg_scores, avg_rankings = result
         for username, score in sorted(avg_scores.items(), key=lambda x: x[1], reverse=True):
             print(f"{username}: score {score}, rank {avg_rankings[username]}")
+
+"""
+{
+    "overall": {
+        "2025-01-01": {
+            "avg_scores": {
+                "user1": 0.5,
+                "user2": 0.3
+            },
+            "avg_rankings": {
+                "user1": 1,
+                "user2": 2
+            }
+        }
+    }
+    "A": {
+        "2025-01-01": {
+            "avg_scores": {
+                "user1": 0.5,
+                "user2": 0.3
+            },
+            "avg_rankings": {
+                "user1": 1,
+                "user2": 2
+            }
+        },
+        "2025-01-02": {
+            "avg_scores": {
+                "user1": 0.5,
+                "user2": 0.3
+            },
+            "avg_rankings": {
+                "user1": 1,
+                "user2": 2
+            }
+        }
+    },
+    "B": {
+        "2025-01-01": {
+            "avg_scores": {
+                "user1": 0.5,
+                "user2": 0.3
+            },
+            "avg_rankings": {
+                "user1": 1,
+                "user2": 2
+            }
+        }
+    },
+    "C": {
+        "2025-01-01": {
+            "avg_scores": {
+                "user1": 0.5,
+                "user2": 0.3
+            },
+            "avg_rankings": {
+                "user1": 1,
+                "user2": 2
+            }
+        }
+    }
+}
+"""
 
 
 # # and use the 100 oldest problems

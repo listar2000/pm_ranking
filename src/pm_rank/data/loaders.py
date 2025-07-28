@@ -247,6 +247,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             df = pd.read_csv(self.predictions_file)
 
         forecast_problems = []
+        categories = []
         problem_id_counter = 1
         grouped = df.groupby('submission_id')
 
@@ -271,7 +272,10 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                 end_time = datetime.fromisoformat(open_time.replace(
                     'Z', '+00:00')) if open_time else datetime.now()
             else:
-                close_time = first_option_info.get('close_time', None)
+                if 'close_time' in first_row:
+                    close_time = first_row['close_time']
+                else:
+                    close_time = first_option_info.get('close_time', None)
                 end_time = datetime.fromisoformat(close_time.replace(
                     'Z', '+00:00')) if close_time else datetime.now()
 
@@ -283,6 +287,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             correct_option_idx = [i for i, key in enumerate(market_outcome.keys()) if market_outcome[key] == 1]
 
             forecasts = []
+            category = first_row.get('category', None)
             for _, row in group.iterrows():
                 username = str(row['predictor_name'])
                 prediction: dict = parse_json_or_eval(
@@ -299,7 +304,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                         probs = [1.0 / len(options) for _ in options]
                 else:
                     probs = unnormalized_probs
-                               
+
                 timestamp = datetime.now()
                 forecasts.append(ForecastEvent(
                     problem_id=problem_id_counter,
@@ -308,6 +313,9 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     probs=probs,
                     unnormalized_probs=unnormalized_probs,
                 ))
+
+                if category is not None and category not in categories:
+                    categories.append(category)
 
             if len(forecasts) > 0:
                 forecast_problems.append(ForecastProblem(
@@ -319,13 +327,15 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     end_time=end_time,
                     num_forecasters=len(forecasts),
                     url=None,
-                    odds=odds
+                    odds=odds,
+                    category=category
                 ))
                 problem_id_counter += 1
 
         forecast_challenge = ForecastChallenge(
             title=self.challenge_title or "Prophet Arena Challenge",
-            forecast_problems=forecast_problems
+            forecast_problems=forecast_problems,
+            categories=categories
         )
         return forecast_challenge
 
