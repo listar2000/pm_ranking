@@ -301,10 +301,10 @@ class GJOProblemScraper:
                 metadata['status'] = status_element.get_text(strip=True)
 
             # Extract end date
-            end_date_element = row_element.find(
+            end_time_element = row_element.find(
                 'span', attrs={'data-localizable-timestamp': True})
-            if end_date_element:
-                metadata['end_date'] = end_date_element.get(
+            if end_time_element:
+                metadata['end_time'] = end_time_element.get(
                     'data-localizable-timestamp')
 
             # Extract number of forecasters

@@ -117,6 +117,7 @@ class GJOChallengeLoader(ChallengeLoader):
                 username=username,
                 timestamp=timestamp,
                 probs=probs,
+                unnormalized_probs=probs,
             )
 
             problem_id_to_forecast_events[problem_id].append(forecast_event)
@@ -132,7 +133,7 @@ class GJOChallengeLoader(ChallengeLoader):
                 options=list(row['options']),
                 correct_option_idx=problem_id_to_correct_idx[problem_id],
                 forecasts=problem_forecasts,
-                end_date=datetime.fromisoformat(
+                end_time=datetime.fromisoformat(
                     str(row['metadata']['end_date'])),
                 num_forecasters=len(problem_forecasts),
                 url=str(row['url']),
@@ -172,7 +173,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
     """Load forecast challenges from Prophet Arena data format."""
 
     def __init__(self, predictions_df: Optional[pd.DataFrame] = None, predictions_file: Optional[str] = None,
-                 challenge_title: str = "", use_bid_for_odds: bool = False):
+                 challenge_title: str = "", use_bid_for_odds: bool = False, use_open_time: bool = False):
         """Initialize the ProphetArenaChallengeLoader.
 
         The challenge can be either loaded with a given `pd.DataFrame` or with a path to a predictions file.
@@ -183,9 +184,13 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         :param use_bid_for_odds: Whether to use the `yes_bid` field for implied probability calculation.
                                 If True, the implied probability will be calculated as the (yes_bid + no_bid) / 2.
                                 If False, the implied probability will be simply `yes_ask` (normalized to sum to 1).
+        :param use_open_time: Whether to use the `open_time` field for the `end_time` of the problem.
+                                If True, the `end_time` will be the `open_time` of the problem.
+                                If False, the `end_time` will be the `close_time` of the problem.
         """
         self.challenge_title = challenge_title
         self.use_bid_for_odds = use_bid_for_odds
+        self.use_open_time = use_open_time
         self.logger = get_logger(
             f"pm_rank.data.loaders.{self.__class__.__name__}")
         if predictions_df is None:
@@ -245,10 +250,9 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         problem_id_counter = 1
         grouped = df.groupby('submission_id')
 
-        self.logger.info(
-            f"Currently, the Prophet Arena challenge is using the `open_time` in place of `close_time` for each problem.")
-        self.logger.info(
-            f"This is because the `close_time` are too far from each other, and the `open_time` is more consistent.")
+        if self.use_open_time:
+            self.logger.warning(
+                f"Currently, the Prophet Arena challenge is using the `open_time` in place of `close_time` for each problem.")
 
         for submission_id, group in grouped:
             first_row = group.iloc[0]
@@ -261,9 +265,16 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                 continue
             first_option_info = next(iter(market_info.values()))
             title = first_option_info.get('title', submission_id)
-            open_date_str = first_option_info.get('open_time', None)
-            open_date = datetime.fromisoformat(open_date_str.replace(
-                'Z', '+00:00')) if open_date_str else datetime.now()
+
+            if self.use_open_time:
+                open_time = first_option_info.get('open_time', None)
+                end_time = datetime.fromisoformat(open_time.replace(
+                    'Z', '+00:00')) if open_time else datetime.now()
+            else:
+                close_time = first_option_info.get('close_time', None)
+                end_time = datetime.fromisoformat(close_time.replace(
+                    'Z', '+00:00')) if close_time else datetime.now()
+
             odds = self._calculate_implied_probs_for_problem(
                 market_info, options, self.use_bid_for_odds, self.logger)
             market_outcome = parse_json_or_eval(
@@ -305,7 +316,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     options=options,
                     correct_option_idx=correct_option_idx,
                     forecasts=forecasts,
-                    end_date=open_date,
+                    end_time=end_time,
                     num_forecasters=len(forecasts),
                     url=None,
                     odds=odds

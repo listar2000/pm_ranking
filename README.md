@@ -156,7 +156,7 @@ scrapes the problem data from GJO website using `requests` and `BeautifulSoup`. 
     "url": "https://www.gjopen.com/questions/3940-who-will-win-the-nfl-most-valuable-player-award-for-the-2024-season",
     "metadata": {
         "status": "Closed",
-        "end_date": "2025-02-07T03:40:25Z",
+        "end_time": "2025-02-07T03:40:25Z",
         "num_forecasters": 61,
         "num_forecasts": 147
     },

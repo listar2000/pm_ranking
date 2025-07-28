@@ -25,8 +25,9 @@ Key Concepts:
 
 from abc import ABC, abstractmethod
 import numpy as np
-from typing import List, Iterator, Dict, Tuple, Any
-from pm_rank.data.base import ForecastProblem
+from typing import List, Iterator, Dict, Tuple, Any, Literal, Callable
+from collections import OrderedDict
+from pm_rank.data.base import ForecastProblem, ForecastChallenge
 from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
 import logging
 
@@ -146,24 +147,29 @@ class ScoringRule(ABC):
             log_ranking_table(self.logger, result)
         return result
 
-    def fit_stream(self, problem_iter: Iterator[List[ForecastProblem]], include_scores: bool = True) -> Dict[int, Tuple[Dict[str, Any], Dict[str, int]]]:
-        """Fit the scoring rule to streaming problems and return incremental results.
+    def _fit_stream_generic(self, batch_iter: Iterator, key_fn: Callable, include_scores: bool = True, use_ordered: bool = False):
+        """Generic streaming fit function for both index and timestamp keys.
 
-        This method processes problems as they arrive and returns rankings after each batch,
-        allowing for incremental analysis of forecaster performance over time.
+        This is a helper method that implements the common logic for streaming fits,
+        whether using batch indices or timestamps as keys.
 
-        :param problem_iter: Iterator over batches of ForecastProblem instances.
+        :param batch_iter: Iterator over batches of problems.
+        :param key_fn: Function to extract key and batch from iterator items.
         :param include_scores: Whether to include scores in the results (default: True).
+        :param use_ordered: Whether to use OrderedDict for results (default: False).
 
-        :returns: Mapping of batch indices to ranking results.
+        :returns: Mapping of keys to ranking results.
         """
         forecaster_data = {}
-        batch_results = {}
-        batch_id = 0
+        batch_results = OrderedDict() if use_ordered else {}
 
-        for batch in problem_iter:
+        for i, item in enumerate(batch_iter):
+            key, batch = key_fn(i, item)
             if self.verbose:
-                self.logger.debug(f"Processing batch {batch_id}")
+                msg = f"Processing batch {key}" if not use_ordered else f"Processing batch {i} at {key}"
+                self.logger.debug(msg)
+
+            # Process each problem in the batch
             for problem in batch:
                 all_probs, usernames = [], []
                 correct_option_idx = np.array(problem.correct_option_idx)
@@ -181,15 +187,97 @@ class ScoringRule(ABC):
                 for username, score in zip(usernames, scores):
                     forecaster_data[username].append(score)
 
-            batch_results[batch_id] = forecaster_data_to_rankings(
-                forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
-
+            # Generate rankings for this batch
+            batch_results[key] = forecaster_data_to_rankings(
+                forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean"
+            )
             if self.verbose:
-                log_ranking_table(self.logger, batch_results[batch_id])
-
-            batch_id += 1
+                log_ranking_table(self.logger, batch_results[key])
 
         return batch_results
+
+    def fit_stream(self, problem_iter: Iterator[List[ForecastProblem]], include_scores: bool = True) -> Dict[int, Tuple[Dict[str, Any], Dict[str, int]]]:
+        """Fit the scoring rule to streaming problems and return incremental results.
+
+        This method processes problems as they arrive and returns rankings after each batch,
+        allowing for incremental analysis of forecaster performance over time.
+
+        :param problem_iter: Iterator over batches of ForecastProblem instances.
+        :param include_scores: Whether to include scores in the results (default: True).
+
+        :returns: Mapping of batch indices to ranking results.
+        """
+        return self._fit_stream_generic(
+            problem_iter,
+            key_fn=lambda i, batch: (i, batch),
+            include_scores=include_scores,
+            use_ordered=False
+        )
+
+    def fit_stream_with_timestamp(self, problem_time_iter: Iterator[Tuple[str, List[ForecastProblem]]], include_scores: bool = True) -> OrderedDict:
+        """Fit the scoring rule to streaming problems with timestamps and return incremental results.
+
+        This method processes problems with associated timestamps and returns rankings
+        after each batch, maintaining chronological order.
+
+        :param problem_time_iter: Iterator over (timestamp, problems) tuples.
+        :param include_scores: Whether to include scores in the results (default: True).
+
+        :returns: Chronologically ordered mapping of timestamps to ranking results.
+        """
+        return self._fit_stream_generic(
+            problem_time_iter,
+            key_fn=lambda i, item: (item[0], item[1]),
+            include_scores=include_scores,
+            use_ordered=True
+        )
+
+    def fit_by_category(self, problems: List[ForecastProblem], include_scores: bool = True, stream_with_timestamp: bool = False,
+                        stream_increment_by: Literal["day", "week", "month"] = "day", min_bucket_size: int = 1) -> \
+            Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
+        """Fit the scoring rule to the given problems by category.
+
+        This method processes problems grouped by category and returns rankings for each category.
+        Optionally, it can stream problems within each category over time.
+
+        :param problems: List of ForecastProblem instances to process.
+        :param include_scores: Whether to include scores in the results (default: True).
+        :param stream_with_timestamp: Whether to stream problems with timestamps (default: False).
+        :param stream_increment_by: The increment by which to stream problems (default: "day").
+        :param min_bucket_size: The minimum number of problems to include in a bucket (default: 1).
+
+        :returns: Mapping of categories to ranking results.
+        """
+        category_to_problems = dict()
+        for problem in problems:
+            if problem.category not in category_to_problems:
+                category_to_problems[problem.category] = []
+            category_to_problems[problem.category].append(problem)
+
+        if not stream_with_timestamp:
+            # simply fit the model to each category
+            results_dict = dict()
+            for category, problems in category_to_problems.items():
+                results_dict[category] = self.fit(problems, include_scores=include_scores)
+            return results_dict
+        else:
+            # create a separate iterator for each category
+            results_dict = dict()
+            for category, problems in category_to_problems.items():
+                category_iterator = ForecastChallenge._stream_problems_over_time(
+                    problems=problems,
+                    increment_by=stream_increment_by,
+                    min_bucket_size=min_bucket_size
+                )
+
+                results_dict[category] = self._fit_stream_generic(
+                    category_iterator,
+                    key_fn=lambda i, item: (item[0], item[1]),
+                    include_scores=include_scores,
+                    use_ordered=True
+                )
+
+            return results_dict
 
 
 class LogScoringRule(ScoringRule):

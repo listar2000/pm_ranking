@@ -17,9 +17,9 @@ IMPORTANT DEFINITIONS:
 - `number of bets`: The number of contracts (see above) to buy for each outcome.
 """
 import numpy as np
-from typing import List, Dict, Any, Tuple, Iterator, Callable
+from typing import List, Dict, Any, Tuple, Iterator, Callable, Literal
 from collections import OrderedDict
-from pm_rank.data.base import ForecastProblem
+from pm_rank.data.base import ForecastProblem, ForecastChallenge
 from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
 import logging
 
@@ -261,3 +261,50 @@ class AverageReturn:
             include_scores=include_scores,
             use_ordered=True
         )
+
+    def fit_by_category(self, problems: List[ForecastProblem], include_scores: bool = True, stream_with_timestamp: bool = False,
+                        stream_increment_by: Literal["day", "week", "month"] = "day", min_bucket_size: int = 1) -> \
+            Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
+        """Fit the average return model to the given problems by category.
+
+        This method processes all problems at once and returns the final rankings
+        based on average returns across all problems.
+
+        :param problems: List of ForecastProblem instances to process.
+        :param include_scores: Whether to include scores in the results (default: True).
+        :param stream_with_timestamp: Whether to stream problems with timestamps (default: False).
+        :param stream_increment_by: The increment by which to stream problems (default: "day").
+        :param min_bucket_size: The minimum number of problems to include in a bucket (default: 1).
+        """
+        category_to_problems = dict()
+        for problem in problems:
+            if problem.category not in category_to_problems:
+                category_to_problems[problem.category] = []
+            category_to_problems[problem.category].append(problem)
+
+        if not stream_with_timestamp:
+            # simply fit the model to each category
+            results_dict = dict()
+            for category, problems in category_to_problems.items():
+                results_dict[category] = self.fit(problems, include_scores=include_scores)
+            return results_dict
+        else:
+            # create a separate iterator for each category
+            results_dict = dict()
+            for category, problems in category_to_problems.items():
+                category_iterator = ForecastChallenge._stream_problems_over_time(
+                    problems=problems,
+                    increment_by=stream_increment_by,
+                    min_bucket_size=min_bucket_size
+                )
+
+                results_dict[category] = self._fit_stream_generic(
+                    category_iterator,
+                    key_fn=lambda i, item: (item[0], item[1]),
+                    include_scores=include_scores,
+                    use_ordered=True
+                )
+
+            return results_dict
+
+            

@@ -4,8 +4,8 @@ from different types of data sources.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Iterator, Literal, Tuple
-from pydantic import BaseModel, Field, field_validator
+from typing import Dict, List, Any, Iterator, Literal, Tuple, Optional
+from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import datetime, timedelta
 from functools import cached_property
 import math, random
@@ -16,7 +16,7 @@ class ForecastEvent(BaseModel):
     username: str = Field(description="The user name/id of the forecaster")
     timestamp: datetime = Field(description="The timestamp of the forecast")
     probs: List[float] = Field(description="The forecasted probabilities for each option")
-    unnormalized_probs: List[float] | None = Field(None, description="The unnormalized forecasted probabilities for each option")
+    unnormalized_probs: Optional[List[float]] = Field(default=None, description="The unnormalized forecasted probabilities for each option")
 
     @field_validator('probs')
     def validate_probabilities(cls, v):
@@ -29,8 +29,15 @@ class ForecastEvent(BaseModel):
             raise ValueError(f"Probabilities must sum to 1, got {sum(v)}")
         return v
 
+    @model_validator(mode='after')
+    def set_unnormalized_probs_default(self):
+        """Set unnormalized_probs to probs if not provided."""
+        if self.unnormalized_probs is None:
+            self.unnormalized_probs = self.probs
+        return self
+
     @field_validator('unnormalized_probs')
-    def validate_unnormalized_probabilities(cls, v, info):
+    def validate_unnormalized_probabilities(cls, v):
         """Validate that unnormalized probabilities are non-negative.
         we only require every number to be in [0, 1], and the vector dimension is the same as the number of options.
         """
@@ -50,10 +57,11 @@ class ForecastProblem(BaseModel):
     options: List[str] = Field(description="The available options for the problem")
     correct_option_idx: List[int] = Field(description="The indices of the correct answer, might be multiple ones")
     forecasts: List[ForecastEvent] = Field(description="All forecasts for this problem")
-    end_date: datetime = Field(description="The end date of the problem")
+    end_time: datetime = Field(description="The end time of the problem")
     num_forecasters: int = Field(description="The number of forecasters")
-    url: str | None = Field(None, description="The URL of the problem")
-    odds: List[float] | None = Field(None, description="The odds for each option")
+    url: Optional[str] = Field(None, description="The URL of the problem")
+    odds: Optional[List[float]] = Field(None, description="The odds for each option")
+    category: Optional[str] = Field(None, description="The category of the problem")
 
     @field_validator('correct_option_idx')
     def validate_correct_option_idx(cls, v, info):
@@ -133,6 +141,7 @@ class ForecastChallenge(BaseModel):
     """
     title: str = Field(description="The title of the challenge")
     forecast_problems: List[ForecastProblem] = Field(description="The list of forecast problems")
+    categories: Optional[List[str]] = Field(None, description="The categories of the challenge")
 
     @field_validator('forecast_problems')
     def validate_problems(cls, v):
@@ -143,7 +152,19 @@ class ForecastChallenge(BaseModel):
         problem_ids = [p.problem_id for p in v]
         if len(problem_ids) != len(set(problem_ids)):
             raise ValueError("All problems must have unique IDs")
-        
+        return v
+
+    @field_validator('categories')
+    def validate_categories(cls, v, info):
+        """Validate that categories are a list of strings."""
+        if v is not None:
+            v_set = set(v)
+            if not len(v_set) == len(v):
+                raise ValueError("All categories must be unique")
+            # check all the `category` in the `forecast_problems` are in the `categories`
+            for problem in info.data['forecast_problems']:
+                if problem.category is not None and problem.category not in v_set:
+                    raise ValueError(f"Category {problem.category} is not in the categories list")
         return v
 
     @cached_property
@@ -174,7 +195,7 @@ class ForecastChallenge(BaseModel):
         }
         return [p for p in self.forecast_problems if p.problem_id in forecaster_problem_ids]
 
-    def get_problem_by_id(self, problem_id: int) -> ForecastProblem | None:
+    def get_problem_by_id(self, problem_id: int) -> Optional[ForecastProblem]:
         """Get a specific problem by its ID."""
         for problem in self.forecast_problems:
             if problem.problem_id == problem_id:
@@ -203,13 +224,24 @@ class ForecastChallenge(BaseModel):
         if order == "random":
             random.shuffle(full_problems)
         elif order == "time":
-            full_problems.sort(key=lambda x: x.end_date.replace(tzinfo=None))
+            full_problems.sort(key=lambda x: x.end_time.replace(tzinfo=None))
 
         for i in range(0, len(full_problems), increment):
             yield full_problems[i:i+increment]
 
     def stream_problems_over_time(
-        self, increment_by: Literal["day", "week", "month"] = "day",
+        self, increment_by: Literal["day", "week", "month"] = "day", min_bucket_size: int = 1,
+    ) -> Iterator[Tuple[str, List["ForecastProblem"]]]:
+        """Stream all problems in chronological buckets."""
+        return self._stream_problems_over_time(
+            problems=self.forecast_problems,
+            increment_by=increment_by,
+            min_bucket_size=min_bucket_size
+        )
+
+    @staticmethod
+    def _stream_problems_over_time(
+        problems: Optional[List[ForecastProblem]] = None, increment_by: Literal["day", "week", "month"] = "day",
         min_bucket_size: int = 1,
     ) -> Iterator[Tuple[str, List["ForecastProblem"]]]:
         """Stream all problems in chronological buckets.
@@ -217,7 +249,7 @@ class ForecastChallenge(BaseModel):
         Each bucket covers a contiguous time window of length *increment_by* (day, week, or
         month).  If the window does **not** yet contain *min_bucket_size* problems, the
         window is repeatedly extended by another *increment_by* until the size
-        requirement is met **or** no problems remain.  All problems whose ``end_date`` is
+        requirement is met **or** no problems remain.  All problems whose ``end_time`` is
         **strictly after** the previous bucket boundary *and* **≤** the current bucket
         boundary are included.
 
@@ -231,13 +263,12 @@ class ForecastChallenge(BaseModel):
         Returns:
             An iterator where each element is a bucket of (timestamp, list of problems).
         """
-
         assert min_bucket_size > 0, "min_bucket_size must be greater than 0"
-        if not self.forecast_problems:
+        if not problems:
             return  # Nothing to yield
 
         # 1. Sort once so we can consume the list with a monotone pointer.
-        full_problems = sorted(self.forecast_problems, key=lambda p: p.end_date)
+        full_problems = sorted(problems, key=lambda p: p.end_time)
 
         # 2. Helper that advances a *date* by the requested interval. We consciously use *relativedelta* for months to avoid the "30‑day" hack.
         if increment_by == "day":
@@ -251,7 +282,7 @@ class ForecastChallenge(BaseModel):
         n, idx = len(full_problems), 0
 
         # The lower boundary is exclusive. Start one microsecond before the first problem so that the first problem definitely falls into the first bucket.
-        prev_boundary = full_problems[0].end_date.date()  # earliest date present
+        prev_boundary = full_problems[0].end_time.date()  # earliest date present
         prev_boundary = prev_boundary - timedelta(microseconds=1)
 
         while idx < n:
@@ -261,7 +292,7 @@ class ForecastChallenge(BaseModel):
 
             while idx < n and len(bucket) < min_bucket_size:
                 # Consume problems whose date ≤ current upper_boundary.
-                while idx < n and full_problems[idx].end_date.date() <= upper_boundary:
+                while idx < n and full_problems[idx].end_time.date() <= upper_boundary:
                     bucket.append(full_problems[idx])
                     idx += 1
 
