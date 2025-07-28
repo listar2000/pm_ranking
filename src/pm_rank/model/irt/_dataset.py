@@ -122,7 +122,7 @@ def _discretize_scoring_rules(scores: np.ndarray, n_bins: int = 6, use_empirical
     """
     # make sure all scores are between 0 and 1
     assert np.all(scores >= 0) and np.all(
-        scores <= 1), "Scores must be between 0 and 1"
+        scores <= 1), f"Scores must be between 0 and 1, got {[score for score in scores if score < 0 or score > 1]}"
 
     if use_empirical_quantiles:
         anchor_points = np.quantile(scores, np.linspace(0, 1, n_bins))

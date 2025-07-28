@@ -282,13 +282,6 @@ class AverageReturn:
                 category_to_problems[problem.category] = []
             category_to_problems[problem.category].append(problem)
 
-        # create a separate iterator for overall problems
-        overall_iterator = ForecastChallenge._stream_problems_over_time(
-            problems=problems,
-            increment_by=stream_increment_by,
-            min_bucket_size=min_bucket_size
-        )
-
         if not stream_with_timestamp:
             # simply fit the model to each category
             results_dict = dict()
@@ -298,6 +291,13 @@ class AverageReturn:
             results_dict["overall"] = self.fit(problems, include_scores=include_scores)
             return results_dict
         else:
+            # create a separate iterator for overall problems
+            overall_iterator = ForecastChallenge._stream_problems_over_time(
+                problems=problems,
+                increment_by=stream_increment_by,
+                min_bucket_size=min_bucket_size
+            )
+
             # create a separate iterator for each category
             results_dict = dict()
             for category, category_problems in category_to_problems.items():

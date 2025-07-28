@@ -217,7 +217,6 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             yes_ask = info.get('yes_ask', None)
             if info.get('liquidity', None) is not None and info.get('liquidity', None) < 10:
                 asks.append(100)
-                continue
             elif yes_ask is not None and yes_ask > 0:
                 if use_bid_for_odds:
                     if 'yes_bid' in info:
@@ -236,10 +235,25 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         implied_probs = [(a / 100.0) if a is not None else 1e-3 for a in asks]
         return implied_probs
 
-    def load_challenge(self) -> ForecastChallenge:
+    @staticmethod
+    def _get_normalized_probs(unnormalized_probs: list) -> list:
+        """
+        Get normalized probabilities from unnormalized probabilities.
+        """
+        if not math.isclose(sum(unnormalized_probs), 1.0, abs_tol=1e-6):
+            if sum(unnormalized_probs) > 0:
+                return [p / sum(unnormalized_probs) for p in unnormalized_probs]
+            else:
+                return [1.0 / len(unnormalized_probs) for _ in unnormalized_probs]
+        return unnormalized_probs
+
+    def load_challenge(self, add_market_baseline: bool = False) -> ForecastChallenge:
         """
         Load challenge data from Prophet Arena data format.
         Group by submission_id, then for each group, build the list of forecasts, then the ForecastProblem.
+
+        :param add_market_baseline: Whether to add the market baseline as a forecaster
+        :return: A ForecastChallenge object containing the forecast problems and events.
         """
         if hasattr(self, 'predictions_df'):
             df = self.predictions_df
@@ -285,9 +299,24 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                 first_row['market_outcome'], expect_type=dict)
 
             correct_option_idx = [i for i, key in enumerate(market_outcome.keys()) if market_outcome[key] == 1]
+            timestamp = datetime.now()
 
             forecasts = []
+
+            if add_market_baseline:
+                # we will add a "market row" in this group, with (unnormalized) prob being simply the market odds
+                forecasts.append(ForecastEvent(
+                    problem_id=problem_id_counter,
+                    username="market-baseline",
+                    timestamp=timestamp,
+                    probs=self._get_normalized_probs(odds),
+                    unnormalized_probs=odds,
+                ))
+
             category = first_row.get('category', None)
+            if category is not None and category not in categories:
+                categories.append(category)
+
             for _, row in group.iterrows():
                 username = str(row['predictor_name'])
                 prediction: dict = parse_json_or_eval(
@@ -296,16 +325,8 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                               for d in prediction.get('probabilities', [])}
                 unnormalized_probs = [probs_dict.get(opt, 0.0) for opt in options]
                 # make sure the probs sum to 1
-                if not math.isclose(sum(unnormalized_probs), 1.0, abs_tol=1e-6):
-                    # we normalize the probs to sum to 1 if the sum > 0, and set to uniform if the sum == 0
-                    if sum(unnormalized_probs) > 0:
-                        probs = [p / sum(unnormalized_probs) for p in unnormalized_probs]
-                    else:
-                        probs = [1.0 / len(options) for _ in options]
-                else:
-                    probs = unnormalized_probs
+                probs = self._get_normalized_probs(unnormalized_probs)
 
-                timestamp = datetime.now()
                 forecasts.append(ForecastEvent(
                     problem_id=problem_id_counter,
                     username=username,
@@ -313,9 +334,6 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     probs=probs,
                     unnormalized_probs=unnormalized_probs,
                 ))
-
-                if category is not None and category not in categories:
-                    categories.append(category)
 
             if len(forecasts) > 0:
                 forecast_problems.append(ForecastProblem(

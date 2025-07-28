@@ -257,15 +257,22 @@ class ScoringRule(ABC):
         if not stream_with_timestamp:
             # simply fit the model to each category
             results_dict = dict()
-            for category, problems in category_to_problems.items():
-                results_dict[category] = self.fit(problems, include_scores=include_scores)
+            for category, category_problems in category_to_problems.items():
+                results_dict[category] = self.fit(category_problems, include_scores=include_scores)
+            results_dict["overall"] = self.fit(problems, include_scores=include_scores)
             return results_dict
         else:
+            # create a separate iterator for overall problems
+            overall_iterator = ForecastChallenge._stream_problems_over_time(
+                problems=problems,
+                increment_by=stream_increment_by,
+                min_bucket_size=min_bucket_size
+            )
             # create a separate iterator for each category
             results_dict = dict()
-            for category, problems in category_to_problems.items():
+            for category, category_problems in category_to_problems.items():
                 category_iterator = ForecastChallenge._stream_problems_over_time(
-                    problems=problems,
+                    problems=category_problems,
                     increment_by=stream_increment_by,
                     min_bucket_size=min_bucket_size
                 )
@@ -277,6 +284,12 @@ class ScoringRule(ABC):
                     use_ordered=True
                 )
 
+            results_dict["overall"] = self._fit_stream_generic(
+                overall_iterator,
+                key_fn=lambda i, item: (item[0], item[1]),
+                include_scores=include_scores,
+                use_ordered=True
+            )
             return results_dict
 
 
@@ -369,7 +382,7 @@ class BrierScoringRule(ScoringRule):
         if len(correct_option_idx) > 0:
             one_hot[correct_option_idx] = 1
         # ignore above
-        brier_scores = 2 * np.sum((all_probs - one_hot) ** 2, axis=1)
+        brier_scores = np.sum((all_probs - one_hot) ** 2, axis=1)
         # (3) we obtain (n,) scores, rescaled so that it lies in [0, 1]
         scores = brier_scores / all_probs.shape[1]
         # (4) negate the result since higher scores are better

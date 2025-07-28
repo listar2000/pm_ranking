@@ -13,6 +13,7 @@ wheels/
 # Artifacts
 *.pdf
 model/irt/output/*
+latest_predictions_df.csv
 
 # Ignore raw data files
 src/pm_rank/data/raw/*.json
