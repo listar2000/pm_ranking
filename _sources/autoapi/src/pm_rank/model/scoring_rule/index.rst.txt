@@ -120,6 +120,37 @@ Module Contents
 
 
 
+   .. py:method:: fit_stream_with_timestamp(problem_time_iter: Iterator[Tuple[str, List[pm_rank.data.base.ForecastProblem]]], include_scores: bool = True) -> collections.OrderedDict
+
+      Fit the scoring rule to streaming problems with timestamps and return incremental results.
+
+      This method processes problems with associated timestamps and returns rankings
+      after each batch, maintaining chronological order.
+
+      :param problem_time_iter: Iterator over (timestamp, problems) tuples.
+      :param include_scores: Whether to include scores in the results (default: True).
+
+      :returns: Chronologically ordered mapping of timestamps to ranking results.
+
+
+
+   .. py:method:: fit_by_category(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True, stream_with_timestamp: bool = False, stream_increment_by: Literal['day', 'week', 'month'] = 'day', min_bucket_size: int = 1) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
+
+      Fit the scoring rule to the given problems by category.
+
+      This method processes problems grouped by category and returns rankings for each category.
+      Optionally, it can stream problems within each category over time.
+
+      :param problems: List of ForecastProblem instances to process.
+      :param include_scores: Whether to include scores in the results (default: True).
+      :param stream_with_timestamp: Whether to stream problems with timestamps (default: False).
+      :param stream_increment_by: The increment by which to stream problems (default: "day").
+      :param min_bucket_size: The minimum number of problems to include in a bucket (default: 1).
+
+      :returns: Mapping of categories to ranking results.
+
+
+
 .. py:class:: LogScoringRule(clip_prob: float = 0.01, verbose: bool = False)
 
    Bases: :py:obj:`ScoringRule`

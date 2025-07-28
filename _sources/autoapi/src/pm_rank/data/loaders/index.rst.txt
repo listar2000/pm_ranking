@@ -64,7 +64,7 @@ Module Contents
 
 
 
-.. py:class:: ProphetArenaChallengeLoader(predictions_df: Optional[pandas.DataFrame] = None, predictions_file: Optional[str] = None, challenge_title: str = '', use_bid_for_odds: bool = False)
+.. py:class:: ProphetArenaChallengeLoader(predictions_df: Optional[pandas.DataFrame] = None, predictions_file: Optional[str] = None, challenge_title: str = '', use_bid_for_odds: bool = False, use_open_time: bool = False)
 
    Bases: :py:obj:`src.pm_rank.data.base.ChallengeLoader`
 
@@ -81,6 +81,9 @@ Module Contents
    :param use_bid_for_odds: Whether to use the `yes_bid` field for implied probability calculation.
                            If True, the implied probability will be calculated as the (yes_bid + no_bid) / 2.
                            If False, the implied probability will be simply `yes_ask` (normalized to sum to 1).
+   :param use_open_time: Whether to use the `open_time` field for the `end_time` of the problem.
+                           If True, the `end_time` will be the `open_time` of the problem.
+                           If False, the `end_time` will be the `close_time` of the problem.
 
 
    .. py:attribute:: challenge_title
@@ -89,6 +92,11 @@ Module Contents
 
 
    .. py:attribute:: use_bid_for_odds
+      :value: False
+
+
+
+   .. py:attribute:: use_open_time
       :value: False
 
 

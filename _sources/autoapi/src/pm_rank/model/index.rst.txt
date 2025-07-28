@@ -263,6 +263,21 @@ Package Contents
 
 
 
+   .. py:method:: fit_by_category(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True, stream_with_timestamp: bool = False, stream_increment_by: Literal['day', 'week', 'month'] = 'day', min_bucket_size: int = 1) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
+
+      Fit the average return model to the given problems by category.
+
+      This method processes all problems at once and returns the final rankings
+      based on average returns across all problems.
+
+      :param problems: List of ForecastProblem instances to process.
+      :param include_scores: Whether to include scores in the results (default: True).
+      :param stream_with_timestamp: Whether to stream problems with timestamps (default: False).
+      :param stream_increment_by: The increment by which to stream problems (default: "day").
+      :param min_bucket_size: The minimum number of problems to include in a bucket (default: 1).
+
+
+
 .. py:function:: spearman_correlation(rank_dict_a: Dict[str, int], rank_dict_b: Dict[str, int]) -> float
 
    Compute the Spearman correlation between two rankings.

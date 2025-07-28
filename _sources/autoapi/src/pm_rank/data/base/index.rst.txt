@@ -49,7 +49,7 @@ Module Contents
 
 
    .. py:attribute:: unnormalized_probs
-      :type:  List[float] | None
+      :type:  Optional[List[float]]
 
 
    .. py:method:: validate_probabilities(v)
@@ -58,7 +58,13 @@ Module Contents
 
 
 
-   .. py:method:: validate_unnormalized_probabilities(v, info)
+   .. py:method:: set_unnormalized_probs_default()
+
+      Set unnormalized_probs to probs if not provided.
+
+
+
+   .. py:method:: validate_unnormalized_probabilities(v)
 
       Validate that unnormalized probabilities are non-negative.
       we only require every number to be in [0, 1], and the vector dimension is the same as the number of options.
@@ -93,7 +99,7 @@ Module Contents
       :type:  List[ForecastEvent]
 
 
-   .. py:attribute:: end_date
+   .. py:attribute:: end_time
       :type:  datetime.datetime
 
 
@@ -102,11 +108,15 @@ Module Contents
 
 
    .. py:attribute:: url
-      :type:  str | None
+      :type:  Optional[str]
 
 
    .. py:attribute:: odds
-      :type:  List[float] | None
+      :type:  Optional[List[float]]
+
+
+   .. py:attribute:: category
+      :type:  Optional[str]
 
 
    .. py:method:: validate_correct_option_idx(v, info)
@@ -167,9 +177,19 @@ Module Contents
       :type:  List[ForecastProblem]
 
 
+   .. py:attribute:: categories
+      :type:  Optional[List[str]]
+
+
    .. py:method:: validate_problems(v)
 
       Validate that there are problems and they have unique IDs.
+
+
+
+   .. py:method:: validate_categories(v, info)
+
+      Validate that categories are a list of strings.
 
 
 
@@ -203,7 +223,7 @@ Module Contents
 
 
 
-   .. py:method:: get_problem_by_id(problem_id: int) -> ForecastProblem | None
+   .. py:method:: get_problem_by_id(problem_id: int) -> Optional[ForecastProblem]
 
       Get a specific problem by its ID.
 
@@ -231,23 +251,6 @@ Module Contents
    .. py:method:: stream_problems_over_time(increment_by: Literal['day', 'week', 'month'] = 'day', min_bucket_size: int = 1) -> Iterator[Tuple[str, List[ForecastProblem]]]
 
       Stream all problems in chronological buckets.
-
-      Each bucket covers a contiguous time window of length *increment_by* (day, week, or
-      month).  If the window does **not** yet contain *min_bucket_size* problems, the
-      window is repeatedly extended by another *increment_by* until the size
-      requirement is met **or** no problems remain.  All problems whose ``end_date`` is
-      **strictly after** the previous bucket boundary *and* **≤** the current bucket
-      boundary are included.
-
-      The timestamp returned for a bucket is the *inclusive* upper‐bound boundary
-      expressed in ISO‑8601 (YYYY‑MM‑DD).
-
-      Args:
-          increment_by: The time interval to stream problems in a bucket.
-          min_bucket_size: The minimum number of problems to stream in each bucket.
-
-      Returns:
-          An iterator where each element is a bucket of (timestamp, list of problems).
 
 
 

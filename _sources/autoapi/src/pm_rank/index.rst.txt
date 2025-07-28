@@ -74,7 +74,7 @@ Package Contents
 
 
    .. py:attribute:: unnormalized_probs
-      :type:  List[float] | None
+      :type:  Optional[List[float]]
 
 
    .. py:method:: validate_probabilities(v)
@@ -83,7 +83,13 @@ Package Contents
 
 
 
-   .. py:method:: validate_unnormalized_probabilities(v, info)
+   .. py:method:: set_unnormalized_probs_default()
+
+      Set unnormalized_probs to probs if not provided.
+
+
+
+   .. py:method:: validate_unnormalized_probabilities(v)
 
       Validate that unnormalized probabilities are non-negative.
       we only require every number to be in [0, 1], and the vector dimension is the same as the number of options.
@@ -118,7 +124,7 @@ Package Contents
       :type:  List[ForecastEvent]
 
 
-   .. py:attribute:: end_date
+   .. py:attribute:: end_time
       :type:  datetime.datetime
 
 
@@ -127,11 +133,15 @@ Package Contents
 
 
    .. py:attribute:: url
-      :type:  str | None
+      :type:  Optional[str]
 
 
    .. py:attribute:: odds
-      :type:  List[float] | None
+      :type:  Optional[List[float]]
+
+
+   .. py:attribute:: category
+      :type:  Optional[str]
 
 
    .. py:method:: validate_correct_option_idx(v, info)
@@ -192,9 +202,19 @@ Package Contents
       :type:  List[ForecastProblem]
 
 
+   .. py:attribute:: categories
+      :type:  Optional[List[str]]
+
+
    .. py:method:: validate_problems(v)
 
       Validate that there are problems and they have unique IDs.
+
+
+
+   .. py:method:: validate_categories(v, info)
+
+      Validate that categories are a list of strings.
 
 
 
@@ -228,7 +248,7 @@ Package Contents
 
 
 
-   .. py:method:: get_problem_by_id(problem_id: int) -> ForecastProblem | None
+   .. py:method:: get_problem_by_id(problem_id: int) -> Optional[ForecastProblem]
 
       Get a specific problem by its ID.
 
@@ -256,23 +276,6 @@ Package Contents
    .. py:method:: stream_problems_over_time(increment_by: Literal['day', 'week', 'month'] = 'day', min_bucket_size: int = 1) -> Iterator[Tuple[str, List[ForecastProblem]]]
 
       Stream all problems in chronological buckets.
-
-      Each bucket covers a contiguous time window of length *increment_by* (day, week, or
-      month).  If the window does **not** yet contain *min_bucket_size* problems, the
-      window is repeatedly extended by another *increment_by* until the size
-      requirement is met **or** no problems remain.  All problems whose ``end_date`` is
-      **strictly after** the previous bucket boundary *and* **≤** the current bucket
-      boundary are included.
-
-      The timestamp returned for a bucket is the *inclusive* upper‐bound boundary
-      expressed in ISO‑8601 (YYYY‑MM‑DD).
-
-      Args:
-          increment_by: The time interval to stream problems in a bucket.
-          min_bucket_size: The minimum number of problems to stream in each bucket.
-
-      Returns:
-          An iterator where each element is a bucket of (timestamp, list of problems).
 
 
 
@@ -351,7 +354,7 @@ Package Contents
 
 
 
-.. py:class:: ProphetArenaChallengeLoader(predictions_df: Optional[pandas.DataFrame] = None, predictions_file: Optional[str] = None, challenge_title: str = '', use_bid_for_odds: bool = False)
+.. py:class:: ProphetArenaChallengeLoader(predictions_df: Optional[pandas.DataFrame] = None, predictions_file: Optional[str] = None, challenge_title: str = '', use_bid_for_odds: bool = False, use_open_time: bool = False)
 
    Bases: :py:obj:`src.pm_rank.data.base.ChallengeLoader`
 
@@ -368,6 +371,9 @@ Package Contents
    :param use_bid_for_odds: Whether to use the `yes_bid` field for implied probability calculation.
                            If True, the implied probability will be calculated as the (yes_bid + no_bid) / 2.
                            If False, the implied probability will be simply `yes_ask` (normalized to sum to 1).
+   :param use_open_time: Whether to use the `open_time` field for the `end_time` of the problem.
+                           If True, the `end_time` will be the `open_time` of the problem.
+                           If False, the `end_time` will be the `close_time` of the problem.
 
 
    .. py:attribute:: challenge_title
@@ -376,6 +382,11 @@ Package Contents
 
 
    .. py:attribute:: use_bid_for_odds
+      :value: False
+
+
+
+   .. py:attribute:: use_open_time
       :value: False
 
 
@@ -610,6 +621,21 @@ Package Contents
       :param include_scores: Whether to include scores in the results (default: True).
 
       :returns: Chronologically ordered mapping of timestamps to ranking results.
+
+
+
+   .. py:method:: fit_by_category(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True, stream_with_timestamp: bool = False, stream_increment_by: Literal['day', 'week', 'month'] = 'day', min_bucket_size: int = 1) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
+
+      Fit the average return model to the given problems by category.
+
+      This method processes all problems at once and returns the final rankings
+      based on average returns across all problems.
+
+      :param problems: List of ForecastProblem instances to process.
+      :param include_scores: Whether to include scores in the results (default: True).
+      :param stream_with_timestamp: Whether to stream problems with timestamps (default: False).
+      :param stream_increment_by: The increment by which to stream problems (default: "day").
+      :param min_bucket_size: The minimum number of problems to include in a bucket (default: 1).
 
 
 
