@@ -38,7 +38,7 @@ def _get_risk_neutral_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray
     """
     n, d = forecast_probs.shape
     # Calculate the edge for each option and each forecaster
-    edges = forecast_probs - implied_probs  # shape (n, d)
+    edges = forecast_probs / implied_probs  # shape (n, d)
     edge_max = np.argmax(edges, axis=1)  # shape (n,)
     # Calculate the number of contracts to buy for each forecaster
     bet_values = 1 / implied_probs[edge_max]  # shape (n,)
@@ -97,6 +97,105 @@ def _get_risk_generic_crra_bets(forecast_probs: np.ndarray, implied_probs: np.nd
     return normalized_frac / implied_probs  # shape (n, d)
 
 
+def _get_risk_generic_crra_bets_approximate(
+    forecast_probs: np.ndarray,
+    implied_probs:  np.ndarray,
+    risk_aversion:  float,
+    eps: float = 1e-12
+) -> np.ndarray:
+    """
+    Allocate a fixed 1-dollar budget across *overlapping* binary legs of a market for a CRRA utility U(w) = w^(1-γ) / (1-γ).
+    Returns the *number of contracts* to buy on each leg (= dollars spent / leg price).
+
+    :param forecast_probs: A (n x d) numpy array of forecast probabilities for n forecasters and d options.
+    :param implied_probs: A (d,) numpy array of implied probabilities for d options.
+    :param risk_aversion: A float between 0 and 1 representing the risk aversion parameter.
+    :param eps: A float representing the numerical floor to avoid division by zero when p is 0 or 1.
+
+    :returns: The number of bets to each option for the given risk aversion level.
+              Shape (n, d) where n is number of forecasters, d is number of options.
+    """
+    n, d = forecast_probs.shape
+    assert implied_probs.shape == (d,), "implied_probs must be shape (d,)"
+    assert 0.0 <= risk_aversion <= 1.0, "risk_aversion must be in [0, 1]"
+
+    m = implied_probs.astype(float).clip(eps, 1.0 - eps)   # m_i
+    contracts = np.zeros((n, d))
+    γ = risk_aversion
+
+    for k in range(n):
+        # -------- preprocess this forecaster's numbers -------------
+        p = forecast_probs[k].astype(float).clip(eps, 1.0 - eps)  # p_{k,i}
+        a = p / m - 1.0                                           # edge a_i
+        b = p * (1.0 - p) / m**2                                  # variance b_i
+
+        # -------- risk-neutral (γ → 0) ----------------------------
+        if γ < eps:
+            idx_star = int(np.argmax(a))          # best (maybe negative) edge
+            contracts[k, idx_star] = 1.0 / m[idx_star]
+            continue
+
+        # -------- collect positive-edge legs ----------------------
+        pos_mask = a > 0
+        if not np.any(pos_mask):
+            # all edges ≤ 0 → forced to spend on the least-bad leg
+            idx_star = int(np.argmax(a))
+            contracts[k, idx_star] = 1.0 / m[idx_star]
+            continue
+
+        # sort positive-edge legs by descending edge
+        idx_sorted = np.argsort(-a[pos_mask])
+        pos_idx    = np.where(pos_mask)[0][idx_sorted]
+
+        # cumulative sums needed for λ
+        inv_b_cum    = 0.0
+        a_over_b_cum = 0.0
+
+        # active set that currently satisfies the water-filling condition
+        active = []
+
+        for t, j in enumerate(pos_idx):
+            inv_b_cum    += 1.0 / b[j]
+            a_over_b_cum += a[j] / b[j]
+            active.append(j)
+
+            # candidate water level
+            lam = (a_over_b_cum - γ) / inv_b_cum
+
+            # look-ahead: will the next edge still be ≥ λ ?
+            next_is_ok = (
+                t == len(pos_idx) - 1          # no next leg
+                or a[pos_idx[t + 1]] <= lam    # next edge below λ
+            )
+
+            if next_is_ok:
+                # compute dollar stakes for the active set
+                x = np.zeros(d)
+                for j_act in active:
+                    stake = (a[j_act] - lam) / (γ * b[j_act])
+                    if stake > 0:
+                        x[j_act] = stake
+
+                # numerical safety: ensure the sum is strictly positive
+                total = x.sum()
+                if total <= eps:
+                    # fallback: shove the whole dollar into the top edge leg
+                    j_best = active[0]
+                    x[j_best] = 1.0
+                else:
+                    x /= total   # force ∑ x_i = 1 exactly
+
+                contracts[k] = x / m      # convert $ → #contracts
+                break
+
+        else:
+            # Failsafe (shouldn’t happen): use the single best positive edge
+            j_best = pos_idx[0]
+            contracts[k, j_best] = 1.0 / m[j_best]
+
+    return contracts
+
+
 class AverageReturn:
     """Average Return Model for ranking forecasters based on their expected market returns.
 
@@ -105,12 +204,13 @@ class AverageReturn:
     The model calculates expected returns for each forecaster and ranks them accordingly.
     """
 
-    def __init__(self, num_money_per_round: int = 1, risk_aversion: float = 0.0, verbose: bool = False):
+    def __init__(self, num_money_per_round: int = 1, risk_aversion: float = 0.0, use_approximate: bool = False,verbose: bool = False):
         """Initialize the AverageReturn model.
 
         :param num_money_per_round: Amount of money to bet per round (default: 1).
         :param risk_aversion: Risk aversion parameter between 0 and 1 (default: 0.0).
         :param verbose: Whether to enable verbose logging (default: False).
+        :param use_approximate: Whether to use the approximate CRRA betting strategy (default: False).
 
         :raises AssertionError: If risk_aversion is not between 0 and 1.
         """
@@ -118,6 +218,7 @@ class AverageReturn:
         assert risk_aversion >= 0 and risk_aversion <= 1, \
             f"risk_aversion must be between 0 and 1, but got {risk_aversion}"
         self.risk_aversion = risk_aversion
+        self.use_approximate = use_approximate
         self.verbose = verbose
         self.logger = get_logger(f"pm_rank.model.{self.__class__.__name__}")
         if self.verbose:
@@ -148,18 +249,20 @@ class AverageReturn:
         assert forecast_probs.shape[1] == implied_probs.shape[0], \
             f"forecast probs and implied probs must have the same shape, but got {forecast_probs.shape} and {implied_probs.shape}"
 
-        # Calculate bets based on risk aversion level
-        if self.risk_aversion == 0:
-            bets = _get_risk_neutral_bets(forecast_probs, implied_probs)
-        elif self.risk_aversion == 1:
-            bets = _get_risk_averse_log_bets(forecast_probs, implied_probs)
+        if self.use_approximate:
+            bets = _get_risk_generic_crra_bets_approximate(forecast_probs, implied_probs, self.risk_aversion)
         else:
-            bets = _get_risk_generic_crra_bets(
-                forecast_probs, implied_probs, self.risk_aversion)
+            if self.risk_aversion == 0:
+                bets = _get_risk_neutral_bets(forecast_probs, implied_probs)
+            elif self.risk_aversion == 1:
+                bets = _get_risk_averse_log_bets(forecast_probs, implied_probs)
+            else:
+                bets = _get_risk_generic_crra_bets(
+                    forecast_probs, implied_probs, self.risk_aversion)
 
-        # Calculate earnings based on correct outcome
-        correct_option_idx = problem.correct_option_idx
-        earnings = np.sum(bets[:, correct_option_idx] * self.num_money_per_round, axis=1)
+        # check that bets have value close to 1
+        assert np.allclose(bets @ implied_probs, 1.0)
+        earnings = np.sum(bets[:, problem.correct_option_idx] * self.num_money_per_round, axis=1)
 
         # Update forecaster data with earnings
         for i, forecast in enumerate(problem.forecasts):
