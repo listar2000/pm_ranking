@@ -35,7 +35,7 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: AverageReturn(num_money_per_round: int = 1, risk_aversion: float = 0.0, verbose: bool = False)
+.. py:class:: AverageReturn(num_money_per_round: int = 1, risk_aversion: float = 0.0, use_approximate: bool = False, verbose: bool = False)
 
    Average Return Model for ranking forecasters based on their expected market returns.
 
@@ -48,6 +48,7 @@ Module Contents
    :param num_money_per_round: Amount of money to bet per round (default: 1).
    :param risk_aversion: Risk aversion parameter between 0 and 1 (default: 0.0).
    :param verbose: Whether to enable verbose logging (default: False).
+   :param use_approximate: Whether to use the approximate CRRA betting strategy (default: False).
 
    :raises AssertionError: If risk_aversion is not between 0 and 1.
 
@@ -59,6 +60,11 @@ Module Contents
 
    .. py:attribute:: risk_aversion
       :value: 0.0
+
+
+
+   .. py:attribute:: use_approximate
+      :value: False
 
 
 
