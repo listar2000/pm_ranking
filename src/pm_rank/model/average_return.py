@@ -226,6 +226,7 @@ class AverageReturn:
         self.logger.info(f"Initialized {self.__class__.__name__} with hyperparam: \n" +
                          f"num_money_per_round={num_money_per_round}, risk_aversion={risk_aversion}")
 
+
     def _process_problem(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]]) -> None:
         """Process a single problem and update forecaster_data with earnings.
 
@@ -245,6 +246,10 @@ class AverageReturn:
             [forecast.probs for forecast in problem.forecasts])
         # Concatenate the implied probs for all forecasters
         implied_probs = np.array(problem.odds)
+
+        # We need to clip all implied probs to be between (eps, 1-eps)
+        implied_probs = implied_probs.clip(5e-3, 1.0 - 5e-3)
+
         # Check shape consistency
         assert forecast_probs.shape[1] == implied_probs.shape[0], \
             f"forecast probs and implied probs must have the same shape, but got {forecast_probs.shape} and {implied_probs.shape}"
