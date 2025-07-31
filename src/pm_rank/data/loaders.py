@@ -99,7 +99,7 @@ class GJOChallengeLoader(ChallengeLoader):
         problem_id_to_correct_idx = {}
 
         for _, row in filtered_predictions_df.iterrows():
-            problem_id: int = int(row['problem_id'])
+            problem_id: str = str(row['problem_id'])
             username: str = str(row['username'])
             # the original timestamp is in string format like "2024-09-10T19:22:23Z"
             timestamp: datetime = datetime.fromisoformat(str(row['timestamp']))
@@ -125,7 +125,7 @@ class GJOChallengeLoader(ChallengeLoader):
         # Iterate over each row of the filtered metadata df to construct the forecast problems
         forecast_problems = []
         for _, row in filtered_metadata_df.iterrows():
-            problem_id: int = int(row['problem_id'])
+            problem_id: str = str(row['problem_id'])
             problem_forecasts = problem_id_to_forecast_events[problem_id]
             forecast_problems.append(ForecastProblem(
                 title=str(row['title']),
@@ -262,7 +262,6 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
 
         forecast_problems = []
         categories = []
-        problem_id_counter = 1
         grouped = df.groupby('submission_id')
 
         if self.use_open_time:
@@ -271,6 +270,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
 
         for submission_id, group in grouped:
             first_row = group.iloc[0]
+            problem_id = str(submission_id)
             options = parse_json_or_eval(
                 first_row['markets'], expect_type=list)
             market_info = parse_json_or_eval(
@@ -306,7 +306,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             if add_market_baseline:
                 # we will add a "market row" in this group, with (unnormalized) prob being simply the market odds
                 forecasts.append(ForecastEvent(
-                    problem_id=problem_id_counter,
+                    problem_id=problem_id,
                     username="market-baseline",
                     timestamp=timestamp,
                     probs=self._get_normalized_probs(odds),
@@ -328,7 +328,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                 probs = self._get_normalized_probs(unnormalized_probs)
 
                 forecasts.append(ForecastEvent(
-                    problem_id=problem_id_counter,
+                    problem_id=problem_id,
                     username=username,
                     timestamp=timestamp,
                     probs=probs,
@@ -338,7 +338,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             if len(forecasts) > 0:
                 forecast_problems.append(ForecastProblem(
                     title=title,
-                    problem_id=problem_id_counter,
+                    problem_id=problem_id,
                     options=options,
                     correct_option_idx=correct_option_idx,
                     forecasts=forecasts,
@@ -348,7 +348,6 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     odds=odds,
                     category=category
                 ))
-                problem_id_counter += 1
 
         forecast_challenge = ForecastChallenge(
             title=self.challenge_title or "Prophet Arena Challenge",

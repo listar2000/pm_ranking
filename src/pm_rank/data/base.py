@@ -10,9 +10,11 @@ from datetime import datetime, timedelta
 from functools import cached_property
 import math, random
 
+SMOOTH_ODDS_EPS = 5e-3
+
 class ForecastEvent(BaseModel):
     """Individual forecast from a user for a specific problem."""
-    problem_id: int = Field(description="The id of the problem")
+    problem_id: str = Field(description="The id of the problem")
     username: str = Field(description="The user name/id of the forecaster")
     timestamp: datetime = Field(description="The timestamp of the forecast")
     probs: List[float] = Field(description="The forecasted probabilities for each option")
@@ -53,7 +55,7 @@ class ForecastEvent(BaseModel):
 class ForecastProblem(BaseModel):
     """A prediction problem with multiple options and forecasts."""
     title: str = Field(description="The title of the problem")
-    problem_id: int = Field(description="The id of the problem")
+    problem_id: str = Field(description="The id of the problem")
     options: List[str] = Field(description="The available options for the problem")
     correct_option_idx: List[int] = Field(description="The indices of the correct answer, might be multiple ones")
     forecasts: List[ForecastEvent] = Field(description="All forecasts for this problem")
@@ -100,8 +102,15 @@ class ForecastProblem(BaseModel):
         # check that odds each has to be in [0, 1]
         if v is not None and not all(0 <= p <= 1 for p in v):
             raise ValueError("All odds (implied probabilities) must be in [0, 1]")
-
         return v
+
+    @model_validator(mode='after')
+    def smooth_odds(self):
+        """Smooth the odds to not be too close to 0 or 1.
+        """
+        if self.odds is not None:
+            self.odds = [max(SMOOTH_ODDS_EPS, min(1 - SMOOTH_ODDS_EPS, odd)) for odd in self.odds]
+        return self
 
     @property
     def has_odds(self) -> bool:
@@ -133,6 +142,22 @@ class ForecastProblem(BaseModel):
     def unique_forecasters(self) -> List[str]:
         """Get list of unique forecasters for this problem."""
         return list(set(forecast.username for forecast in self.forecasts))
+
+    @cached_property
+    def option_payoffs(self) -> List[Tuple[int, float]]:
+        """
+        Obtain a sorted list of (option_idx, payoff) for this problem.
+        The payoff is the (1 / odds) for a correct option, and 0 for an incorrect option.
+        """
+        if not self.has_odds:
+            return []
+        
+        option_payoffs = []
+        for option_idx, odd in enumerate(self.odds):
+            payoff = 1 / odd if option_idx in self.correct_option_idx else 0
+            option_payoffs.append((option_idx, payoff))
+        
+        return sorted(option_payoffs, key=lambda x: x[1], reverse=True)
 
 
 class ForecastChallenge(BaseModel):
@@ -188,6 +213,11 @@ class ForecastChallenge(BaseModel):
         """List of unique forecaster usernames."""
         return list(self.forecaster_map.keys())
 
+    @cached_property
+    def problem_option_payoffs(self) -> Dict[str, List[Tuple[int, float]]]:
+        """Map from problem_id to a sorted list of (option_idx, payoff) for this problem."""
+        return {problem.problem_id: problem.option_payoffs for problem in self.forecast_problems}
+
     def get_forecaster_problems(self, username: str) -> List[ForecastProblem]:
         """Get all problems that a specific forecaster participated in."""
         forecaster_problem_ids = {
@@ -195,7 +225,7 @@ class ForecastChallenge(BaseModel):
         }
         return [p for p in self.forecast_problems if p.problem_id in forecaster_problem_ids]
 
-    def get_problem_by_id(self, problem_id: int) -> Optional[ForecastProblem]:
+    def get_problem_by_id(self, problem_id: str) -> Optional[ForecastProblem]:
         """Get a specific problem by its ID."""
         for problem in self.forecast_problems:
             if problem.problem_id == problem_id:

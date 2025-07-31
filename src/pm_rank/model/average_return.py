@@ -247,9 +247,6 @@ class AverageReturn:
         # Concatenate the implied probs for all forecasters
         implied_probs = np.array(problem.odds)
 
-        # We need to clip all implied probs to be between (eps, 1-eps)
-        implied_probs = implied_probs.clip(5e-3, 1.0 - 5e-3)
-
         # Check shape consistency
         assert forecast_probs.shape[1] == implied_probs.shape[0], \
             f"forecast probs and implied probs must have the same shape, but got {forecast_probs.shape} and {implied_probs.shape}"
@@ -311,7 +308,7 @@ class AverageReturn:
 
         return batch_results
 
-    def fit(self, problems: List[ForecastProblem], include_scores: bool = True) -> \
+    def fit(self, problems: List[ForecastProblem], include_scores: bool = True, include_per_problem_info: bool = False) -> \
             Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """Fit the average return model to the given problems.
 
@@ -320,18 +317,33 @@ class AverageReturn:
 
         :param problems: List of ForecastProblem instances to process.
         :param include_scores: Whether to include scores in the results (default: True).
+        :param include_per_problem_info: Whether to include per-problem info in the results (default: False).
 
         :returns: Ranking results, either as a tuple of (scores, rankings) or just rankings.
+                  If include_per_problem_info is True, returns a tuple of (scores, rankings, per_problem_info).
         """
         forecaster_data = {}
+        if include_per_problem_info:
+            per_problem_info = []
+
         for problem in problems:
             self._process_problem(problem, forecaster_data)
+            if include_per_problem_info:
+                for forecast in problem.forecasts:
+                    per_problem_info.append({
+                        "username": forecast.username,
+                        "problem_title": problem.title,
+                        "problem_id": problem.problem_id,
+                        "problem_category": problem.category,
+                        "score": forecaster_data[forecast.username][-1]
+                    })
 
         result = forecaster_data_to_rankings(
             forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
         if self.verbose:
             log_ranking_table(self.logger, result)
-        return result
+        
+        return (*result, per_problem_info) if include_per_problem_info else result
 
     def fit_stream(self, problem_iter: Iterator[List[ForecastProblem]], include_scores: bool = True) -> \
             Dict[int, Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]]:
