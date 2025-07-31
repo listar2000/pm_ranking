@@ -262,24 +262,22 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
 
         forecast_problems = []
         categories = []
-        grouped = df.groupby('submission_id')
+        grouped = df.groupby('event_ticker')
 
         if self.use_open_time:
             self.logger.warning(
                 f"Currently, the Prophet Arena challenge is using the `open_time` in place of `close_time` for each problem.")
 
-        for submission_id, group in grouped:
+        for event_ticker, group in grouped:
             first_row = group.iloc[0]
-            problem_id = str(submission_id)
-            options = parse_json_or_eval(
-                first_row['markets'], expect_type=list)
+            problem_id = str(event_ticker)
             market_info = parse_json_or_eval(
                 first_row['market_info'], expect_type=dict)
             # skip this market if the market_info is empty
             if not market_info:
                 continue
             first_option_info = next(iter(market_info.values()))
-            title = first_option_info.get('title', submission_id)
+            title = first_option_info.get('title', event_ticker)
 
             if self.use_open_time:
                 open_time = first_option_info.get('open_time', None)
@@ -292,13 +290,15 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     close_time = first_option_info.get('close_time', None)
                 end_time = datetime.fromisoformat(close_time.replace(
                     'Z', '+00:00')) if close_time else datetime.now()
+            
+            problem_option_keys = list(market_info.keys())
 
             odds = self._calculate_implied_probs_for_problem(
-                market_info, options, self.use_bid_for_odds, self.logger)
+                market_info, problem_option_keys, self.use_bid_for_odds, self.logger)
             market_outcome = parse_json_or_eval(
                 first_row['market_outcome'], expect_type=dict)
 
-            correct_option_idx = [i for i, key in enumerate(market_outcome.keys()) if market_outcome[key] == 1]
+            correct_option_idx = [i for i, key in enumerate(problem_option_keys) if market_outcome[key] == 1]
             timestamp = datetime.now()
 
             forecasts = []
@@ -323,7 +323,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     row['prediction'], expect_type=dict)
                 probs_dict = {d['market']: d['probability']
                               for d in prediction.get('probabilities', [])}
-                unnormalized_probs = [probs_dict.get(opt, 0.0) for opt in options]
+                unnormalized_probs = [probs_dict.get(opt, 0.0) for opt in problem_option_keys]
                 # make sure the probs sum to 1
                 probs = self._get_normalized_probs(unnormalized_probs)
 
@@ -339,7 +339,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                 forecast_problems.append(ForecastProblem(
                     title=title,
                     problem_id=problem_id,
-                    options=options,
+                    options=problem_option_keys,
                     correct_option_idx=correct_option_idx,
                     forecasts=forecasts,
                     end_time=end_time,
