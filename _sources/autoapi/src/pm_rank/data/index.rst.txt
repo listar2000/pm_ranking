@@ -44,7 +44,7 @@ Package Contents
 
 
    .. py:attribute:: problem_id
-      :type:  int
+      :type:  str
 
 
    .. py:attribute:: username
@@ -95,7 +95,7 @@ Package Contents
 
 
    .. py:attribute:: problem_id
-      :type:  int
+      :type:  str
 
 
    .. py:attribute:: options
@@ -148,6 +148,13 @@ Package Contents
 
 
 
+   .. py:method:: smooth_odds()
+
+      Smooth the odds to not be too close to 0 or 1.
+              
+
+
+
    .. py:property:: has_odds
       :type: bool
 
@@ -169,6 +176,15 @@ Package Contents
 
 
       Get list of unique forecasters for this problem.
+
+
+
+   .. py:property:: option_payoffs
+      :type: List[Tuple[int, float]]
+
+
+      Obtain a sorted list of (option_idx, payoff) for this problem.
+      The payoff is the (1 / odds) for a correct option, and 0 for an incorrect option.
 
 
 
@@ -228,13 +244,21 @@ Package Contents
 
 
 
+   .. py:property:: problem_option_payoffs
+      :type: Dict[str, List[Tuple[int, float]]]
+
+
+      Map from problem_id to a sorted list of (option_idx, payoff) for this problem.
+
+
+
    .. py:method:: get_forecaster_problems(username: str) -> List[ForecastProblem]
 
       Get all problems that a specific forecaster participated in.
 
 
 
-   .. py:method:: get_problem_by_id(problem_id: int) -> Optional[ForecastProblem]
+   .. py:method:: get_problem_by_id(problem_id: str) -> Optional[ForecastProblem]
 
       Get a specific problem by its ID.
 
