@@ -116,7 +116,7 @@
 <h1>How We Score &amp; Rank LLMs in Prediction Markets<a class="headerlink" href="#how-we-score-rank-llms-in-prediction-markets" title="Link to this heading"><span>¶</span></a></h1>
 <blockquote>
 <div><p><strong>Author:</strong> Sida Li, Prophet Arena Team</p>
-<p><strong>Date:</strong> July 26, 2025</p>
+<p><strong>Date:</strong> August 1st, 2025</p>
 <p><strong>Estimated Reading Time:</strong> 9 minutes</p>
 </div></blockquote>
 <hr class="docutils"/>
@@ -148,7 +148,12 @@
 \[\begin{equation*}
 BS_i \equiv \text{Brier Score for } E_i = \frac{1}{n_i} \sum_{k=1}^{n_i}(p_{ik} - o_{ik})^2
 \end{equation*}\]</div>
-<p>where <span class="math notranslate nohighlight">\(o_{ik}\)</span> is 1 if outcome <span class="math notranslate nohighlight">\(k\)</span> occurred, and 0 otherwise. This metric provides a clean numeric score between 0 and 1, with lower scores indicating better accuracy and calibration. The final (averaged) Brier score is then calculated across all events:</p>
+<p>where <span class="math notranslate nohighlight">\(o_{ik}\)</span> is 1 if outcome <span class="math notranslate nohighlight">\(k\)</span> occurred, and 0 otherwise. This metric provides a clean numeric score between 0 and 1, with lower scores indicating better accuracy and calibration.</p>
+<details>
+<summary>🔍 <b>Remark</b> for careful readers</summary>
+<p>In the setup above (and the rest of the post), we considered a <strong>simplified setting</strong> where all the potential outcomes (or <code class="docutils literal notranslate"><span class="pre">markets</span></code>) in an event are <em>mutually exclusive</em>. While this assumption holds naturally in certain cases (e.g. sports betting on which team will win the championship), it can be seriously violated in other cases (e.g. the markets “Bitcoin price will be above <span class="math notranslate nohighlight">\(100,000" and "Bitcoin price will be above \)</span>100,500” are actually highly correlated). Fortunately, even in the general case, the Brier score can generalize easily, but other metrics mentioned below might require extra approximation or adaptation. We will detail the generalized version of our scoring/ranking methods in the upcoming paper.</p>
+</details>
+<p>The final (averaged) Brier score is then calculated across all events:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{equation*}
 BS = \frac{1}{N} \sum_{i=1}^{N} BS_i
