@@ -2,7 +2,7 @@
 
 > **Author:** Sida Li, Prophet Arena Team
 >
-> **Date:** July 26, 2025
+> **Date:** August 1st, 2025
 >
 > **Estimated Reading Time:** 9 minutes
 ---
@@ -40,7 +40,15 @@ In this post, we'll guide you through the reasoning behind our metric choices an
 BS_i \equiv \text{Brier Score for } E_i = \frac{1}{n_i} \sum_{k=1}^{n_i}(p_{ik} - o_{ik})^2
 \end{equation*}
 
-where $o_{ik}$ is 1 if outcome $k$ occurred, and 0 otherwise. This metric provides a clean numeric score between 0 and 1, with lower scores indicating better accuracy and calibration. The final (averaged) Brier score is then calculated across all events:
+where $o_{ik}$ is 1 if outcome $k$ occurred, and 0 otherwise. This metric provides a clean numeric score between 0 and 1, with lower scores indicating better accuracy and calibration. 
+
+<details>
+<summary>🔍 <b>Remark</b> for careful readers</summary>
+
+In the setup above (and the rest of the post), we considered a **simplified setting** where all the potential outcomes (or `markets`) in an event are _mutually exclusive_. While this assumption holds naturally in certain cases (e.g. sports betting on which team will win the championship), it can be seriously violated in other cases (e.g. the markets "Bitcoin price will be above $100,000" and "Bitcoin price will be above $100,500" are actually highly correlated). Fortunately, even in the general case, the Brier score can generalize easily, but other metrics mentioned below might require extra approximation or adaptation. We will detail the generalized version of our scoring/ranking methods in the upcoming paper.
+</details>
+
+The final (averaged) Brier score is then calculated across all events:
 
 \begin{equation*}
 BS = \frac{1}{N} \sum_{i=1}^{N} BS_i
