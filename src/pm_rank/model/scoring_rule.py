@@ -99,8 +99,8 @@ class ScoringRule(ABC):
             problem_weights / np.sum(problem_weights)
         return problem_weights
 
-    def fit(self, problems: List[ForecastProblem], problem_discriminations: np.ndarray | List[float] | None = None, include_scores: bool = True) \
-            -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
+    def fit(self, problems: List[ForecastProblem], problem_discriminations: np.ndarray | List[float] | None = None, include_scores: bool = True, \
+        include_per_problem_info: bool = False) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """Fit the scoring rule to the given problems and return rankings.
 
         This method processes all problems and calculates scores for each forecaster
@@ -112,10 +112,14 @@ class ScoringRule(ABC):
         :param problem_discriminations: Optional array of discrimination parameters for
                                        weighting problems. If None, all problems are weighted equally.
         :param include_scores: Whether to include scores in the results (default: True).
+        :param include_per_problem_info: Whether to include per-problem info in the results (default: False).
 
         :returns: Ranking results, either as a tuple of (scores, rankings) or just rankings.
+                  If include_per_problem_info is True, returns a tuple of (scores, rankings, per_problem_info).
         """
         forecaster_data = {}
+        if include_per_problem_info:
+            per_problem_info = []
 
         if problem_discriminations is not None:
             problem_weights = self._get_problem_weights(
@@ -141,11 +145,21 @@ class ScoringRule(ABC):
             for username, score in zip(usernames, scores):
                 forecaster_data[username].append(score)
 
+            if include_per_problem_info:
+                for username, score in zip(usernames, scores):
+                    per_problem_info.append({
+                        "username": username,
+                        "problem_title": problem.title,
+                        "problem_id": problem.problem_id,
+                        "problem_category": problem.category,
+                        "score": score
+                    })
+
         result = forecaster_data_to_rankings(
             forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
         if self.verbose:
             log_ranking_table(self.logger, result)
-        return result
+        return (*result, per_problem_info) if include_per_problem_info else result
 
     def _fit_stream_generic(self, batch_iter: Iterator, key_fn: Callable, include_scores: bool = True, use_ordered: bool = False):
         """Generic streaming fit function for both index and timestamp keys.
