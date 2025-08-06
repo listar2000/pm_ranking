@@ -144,6 +144,10 @@ Package Contents
       :type:  Optional[List[float]]
 
 
+   .. py:attribute:: no_odds
+      :type:  Optional[List[float]]
+
+
    .. py:attribute:: category
       :type:  Optional[str]
 
@@ -178,6 +182,14 @@ Package Contents
 
 
       Check if the problem has odds data.
+
+
+
+   .. py:property:: has_no_odds
+      :type: bool
+
+
+      Check if the problem has no_odds data.
 
 
 
@@ -578,7 +590,7 @@ Package Contents
    :param verbose: Whether to enable verbose logging (default: False).
 
 
-.. py:class:: AverageReturn(num_money_per_round: int = 1, risk_aversion: float = 0.0, use_approximate: bool = False, break_tie_by_uniform: bool = True, verbose: bool = False)
+.. py:class:: AverageReturn(num_money_per_round: int = None, risk_aversion: float = None, use_approximate: bool = None, break_tie_by_uniform: bool = None, use_binary_reduction: bool = None, verbose: bool = False, config: AverageReturnConfig = None)
 
    Average Return Model for ranking forecasters based on their expected market returns.
 
@@ -590,32 +602,29 @@ Package Contents
 
    :param num_money_per_round: Amount of money to bet per round (default: 1).
    :param risk_aversion: Risk aversion parameter between 0 and 1 (default: 0.0).
+   :param use_approximate: Whether to use the approximate CRRA betting strategy (default: False).
    :param break_tie_by_uniform: When the edges are all the same, 
        whether to break tie by spending uniform money on each leg. Only effective when use_approximate is True (default: True).
+   :param use_binary_reduction: Whether to use the binary reduction strategy (default: False).
    :param verbose: Whether to enable verbose logging (default: False).
-   :param use_approximate: Whether to use the approximate CRRA betting strategy (default: False).
+   :param config: Configuration object containing model parameters. If provided, individual parameters are ignored.
 
-   :raises AssertionError: If risk_aversion is not between 0 and 1.
+   :raises ValueError: If risk_aversion is not between 0 and 1.
 
 
    .. py:attribute:: num_money_per_round
-      :value: 1
-
 
 
    .. py:attribute:: risk_aversion
-      :value: 0.0
-
 
 
    .. py:attribute:: use_approximate
-      :value: False
-
 
 
    .. py:attribute:: break_tie_by_uniform
-      :value: True
 
+
+   .. py:attribute:: use_binary_reduction
 
 
    .. py:attribute:: verbose
@@ -624,6 +633,9 @@ Package Contents
 
 
    .. py:attribute:: logger
+
+
+   .. py:attribute:: process_problem_fn
 
 
    .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True, include_per_problem_info: bool = False) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]

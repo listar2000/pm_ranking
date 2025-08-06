@@ -32,6 +32,7 @@ Classes
    src.pm_rank.model.SphericalScoringRule
    src.pm_rank.model.LogScoringRule
    src.pm_rank.model.AverageReturn
+   src.pm_rank.model.AverageReturnConfig
 
 
 Functions
@@ -186,7 +187,7 @@ Package Contents
 
 
 
-.. py:class:: AverageReturn(num_money_per_round: int = 1, risk_aversion: float = 0.0, use_approximate: bool = False, break_tie_by_uniform: bool = True, verbose: bool = False)
+.. py:class:: AverageReturn(num_money_per_round: int = None, risk_aversion: float = None, use_approximate: bool = None, break_tie_by_uniform: bool = None, use_binary_reduction: bool = None, verbose: bool = False, config: AverageReturnConfig = None)
 
    Average Return Model for ranking forecasters based on their expected market returns.
 
@@ -198,32 +199,29 @@ Package Contents
 
    :param num_money_per_round: Amount of money to bet per round (default: 1).
    :param risk_aversion: Risk aversion parameter between 0 and 1 (default: 0.0).
+   :param use_approximate: Whether to use the approximate CRRA betting strategy (default: False).
    :param break_tie_by_uniform: When the edges are all the same, 
        whether to break tie by spending uniform money on each leg. Only effective when use_approximate is True (default: True).
+   :param use_binary_reduction: Whether to use the binary reduction strategy (default: False).
    :param verbose: Whether to enable verbose logging (default: False).
-   :param use_approximate: Whether to use the approximate CRRA betting strategy (default: False).
+   :param config: Configuration object containing model parameters. If provided, individual parameters are ignored.
 
-   :raises AssertionError: If risk_aversion is not between 0 and 1.
+   :raises ValueError: If risk_aversion is not between 0 and 1.
 
 
    .. py:attribute:: num_money_per_round
-      :value: 1
-
 
 
    .. py:attribute:: risk_aversion
-      :value: 0.0
-
 
 
    .. py:attribute:: use_approximate
-      :value: False
-
 
 
    .. py:attribute:: break_tie_by_uniform
-      :value: True
 
+
+   .. py:attribute:: use_binary_reduction
 
 
    .. py:attribute:: verbose
@@ -232,6 +230,9 @@ Package Contents
 
 
    .. py:attribute:: logger
+
+
+   .. py:attribute:: process_problem_fn
 
 
    .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True, include_per_problem_info: bool = False) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
@@ -290,6 +291,95 @@ Package Contents
       :param stream_with_timestamp: Whether to stream problems with timestamps (default: False).
       :param stream_increment_by: The increment by which to stream problems (default: "day").
       :param min_bucket_size: The minimum number of problems to include in a bucket (default: 1).
+
+
+
+.. py:class:: AverageReturnConfig
+
+   Configuration class for AverageReturn model parameters.
+
+   :param num_money_per_round: Amount of money to bet per round.
+   :param risk_aversion: Risk aversion parameter between 0 and 1.
+       - 0: Risk neutral
+       - 1: Log risk averse  
+       - 0 < x < 1: Intermediate risk aversion levels
+   :param use_approximate: Whether to use the approximate CRRA betting strategy.
+   :param break_tie_by_uniform: When edges are all the same, whether to break tie 
+       by spending uniform money on each leg. Only effective when use_approximate is True.
+   :param use_binary_reduction: Whether to use the binary reduction strategy.
+
+
+   .. py:attribute:: num_money_per_round
+      :type:  int
+      :value: 1
+
+
+
+   .. py:attribute:: risk_aversion
+      :type:  float
+      :value: 0.0
+
+
+
+   .. py:attribute:: use_approximate
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: break_tie_by_uniform
+      :type:  bool
+      :value: True
+
+
+
+   .. py:attribute:: use_binary_reduction
+      :type:  bool
+      :value: False
+
+
+
+   .. py:method:: __post_init__()
+
+      Validate configuration parameters.
+
+
+
+   .. py:method:: __getitem__(key)
+
+      Allow dict-like access to config parameters.
+
+
+
+   .. py:method:: __setitem__(key, value)
+
+      Allow dict-like setting of config parameters.
+
+
+
+   .. py:method:: get(key, default=None)
+
+      Get config parameter with default value.
+
+
+
+   .. py:method:: keys()
+
+      Return config parameter names.
+
+
+
+   .. py:method:: items()
+
+      Return config parameter name-value pairs.
+
+
+
+   .. py:method:: default() -> AverageReturnConfig
+      :classmethod:
+
+
+      Create a default configuration.
 
 
 

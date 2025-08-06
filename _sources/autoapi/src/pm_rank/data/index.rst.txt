@@ -130,6 +130,10 @@ Package Contents
       :type:  Optional[List[float]]
 
 
+   .. py:attribute:: no_odds
+      :type:  Optional[List[float]]
+
+
    .. py:attribute:: category
       :type:  Optional[str]
 
@@ -164,6 +168,14 @@ Package Contents
 
 
       Check if the problem has odds data.
+
+
+
+   .. py:property:: has_no_odds
+      :type: bool
+
+
+      Check if the problem has no_odds data.
 
 
 
