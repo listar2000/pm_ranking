@@ -148,11 +148,13 @@ class ScoringRule(ABC):
             if include_per_problem_info:
                 for username, score in zip(usernames, scores):
                     per_problem_info.append({
+                        "forecast_id": forecast.forecast_id,
                         "username": username,
                         "problem_title": problem.title,
                         "problem_id": problem.problem_id,
                         "problem_category": problem.category,
-                        "score": score
+                        "score": score,
+                        "probs": forecast.unnormalized_probs
                     })
 
         result = forecaster_data_to_rankings(

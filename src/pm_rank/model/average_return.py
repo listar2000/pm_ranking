@@ -331,11 +331,13 @@ class AverageReturn:
             if include_per_problem_info:
                 for forecast in problem.forecasts:
                     per_problem_info.append({
+                        "forecast_id": forecast.forecast_id,
                         "username": forecast.username,
                         "problem_title": problem.title,
                         "problem_id": problem.problem_id,
                         "problem_category": problem.category,
-                        "score": forecaster_data[forecast.username][-1]
+                        "score": forecaster_data[forecast.username][-1],
+                        "probs": forecast.unnormalized_probs
                     })
 
         result = forecaster_data_to_rankings(
