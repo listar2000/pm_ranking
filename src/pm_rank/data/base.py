@@ -64,6 +64,7 @@ class ForecastProblem(BaseModel):
     num_forecasters: int = Field(description="The number of forecasters")
     url: Optional[str] = Field(None, description="The URL of the problem")
     odds: Optional[List[float]] = Field(None, description="The odds for each option")
+    no_odds: Optional[List[float]] = Field(None, description="The odds for each option to not realize")
     category: Optional[str] = Field(None, description="The category of the problem")
 
     @field_validator('correct_option_idx')
@@ -111,12 +112,20 @@ class ForecastProblem(BaseModel):
         """
         if self.odds is not None:
             self.odds = [max(SMOOTH_ODDS_EPS, min(1 - SMOOTH_ODDS_EPS, odd)) for odd in self.odds]
+
+        if self.no_odds is not None:
+            self.no_odds = [max(SMOOTH_ODDS_EPS, min(1 - SMOOTH_ODDS_EPS, odd)) for odd in self.no_odds]
         return self
 
     @property
     def has_odds(self) -> bool:
         """Check if the problem has odds data."""
         return self.odds is not None and len(self.odds) > 0
+
+    @property
+    def has_no_odds(self) -> bool:
+        """Check if the problem has no_odds data."""
+        return self.no_odds is not None and len(self.no_odds) > 0
     
     @cached_property
     def crowd_probs(self) -> List[float]:

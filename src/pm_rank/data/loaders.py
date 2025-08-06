@@ -207,28 +207,33 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             self.logger.info(f"Initialize challenge loader with pd.DataFrame")
 
     @staticmethod
-    def _calculate_implied_probs_for_problem(market_info: dict, options: list, use_bid_for_odds: bool = False, logger: Optional[logging.Logger] = None) -> list | None:
+    def _calculate_implied_probs_for_problem(market_info: dict, options: list, use_bid_for_odds: bool = False, \
+        yes_contract: bool = True, logger: Optional[logging.Logger] = None) -> List:
         """
         Calculate odds for each option from market_info dict.
         For multi-option, use yes_ask for each option and normalize to sum to 1 (implied probabilities).
         """
+        ask_str = 'yes_ask' if yes_contract else 'no_ask'
+        bid_str = 'yes_bid' if yes_contract else 'no_bid'
+
         asks = []
         for opt in options:
             info = market_info.get(opt, {})
-            yes_ask = info.get('yes_ask', None)
-            if info.get('liquidity', None) is not None and info.get('liquidity', None) < 10:
+            yes_ask = info.get(ask_str, None)
+            if info.get('liquidity', None) is not None and info.get('liquidity', None) < 10000:
                 asks.append(100)
             elif yes_ask is not None and yes_ask > 0:
                 if use_bid_for_odds:
-                    if 'yes_bid' in info:
-                        yes_bid = info['yes_bid']
+                    if bid_str in info:
+                        yes_bid = info[bid_str]
                         asks.append((yes_bid + yes_ask) / 2)
+                        # asks.append(max(yes_bid, yes_ask))
                     else:
                         asks.append(yes_ask)
                 else:
                     asks.append(yes_ask)
             else:
-                warning_msg = f"Warning: Option {opt} in market {market_info.get('title', 'Unknown Market')} has no odds info"
+                warning_msg = f"Warning: Option {opt} in market {market_info.get('title', 'Unknown Market')} does not have odds info"
                 logger.warning(warning_msg) if logger is not None else print(
                     warning_msg)
                 asks.append(None)
@@ -295,7 +300,11 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             problem_option_keys = list(market_info.keys())
 
             odds = self._calculate_implied_probs_for_problem(
-                market_info, problem_option_keys, self.use_bid_for_odds, self.logger)
+                market_info, problem_option_keys, self.use_bid_for_odds, True, self.logger)
+
+            no_odds = self._calculate_implied_probs_for_problem(
+                market_info, problem_option_keys, self.use_bid_for_odds, False, self.logger)
+
             market_outcome = parse_json_or_eval(
                 first_row['market_outcome'], expect_type=dict)
 
@@ -353,6 +362,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     num_forecasters=len(forecasts),
                     url=None,
                     odds=odds,
+                    no_odds=no_odds,
                     category=category
                 ))
 

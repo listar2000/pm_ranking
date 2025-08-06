@@ -1,6 +1,6 @@
 [project]
 name = "pm_rank"
-version = "0.2.15"
+version = "0.2.16"
 description = "A toolkit for scoring and ranking prediction market forecasters."
 authors = [
     { name = "Sida Li", email = "listar2000@uchicago.edu" }

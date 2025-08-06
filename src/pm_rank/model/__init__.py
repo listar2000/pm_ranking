@@ -3,7 +3,7 @@
 # all models should be imported here
 from .bradley_terry import GeneralizedBT
 from .scoring_rule import BrierScoringRule, SphericalScoringRule, LogScoringRule
-from .average_return import AverageReturn
+from .average_return import AverageReturn, AverageReturnConfig
 from .utils import spearman_correlation, kendall_correlation
 
 __all__ = [
@@ -12,6 +12,7 @@ __all__ = [
     "SphericalScoringRule",
     "LogScoringRule",
     "AverageReturn",
+    "AverageReturnConfig",
     "spearman_correlation",
     "kendall_correlation"
 ]

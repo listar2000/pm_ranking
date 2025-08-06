@@ -19,9 +19,61 @@ IMPORTANT DEFINITIONS:
 import numpy as np
 from typing import List, Dict, Any, Tuple, Iterator, Callable, Literal
 from collections import OrderedDict
+from dataclasses import dataclass
 from pm_rank.data.base import ForecastProblem, ForecastChallenge
 from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
 import logging
+
+
+@dataclass
+class AverageReturnConfig:
+    """Configuration class for AverageReturn model parameters.
+    
+    :param num_money_per_round: Amount of money to bet per round.
+    :param risk_aversion: Risk aversion parameter between 0 and 1.
+        - 0: Risk neutral
+        - 1: Log risk averse  
+        - 0 < x < 1: Intermediate risk aversion levels
+    :param use_approximate: Whether to use the approximate CRRA betting strategy.
+    :param break_tie_by_uniform: When edges are all the same, whether to break tie 
+        by spending uniform money on each leg. Only effective when use_approximate is True.
+    :param use_binary_reduction: Whether to use the binary reduction strategy.
+    """
+    num_money_per_round: int = 1
+    risk_aversion: float = 0.0
+    use_approximate: bool = False
+    break_tie_by_uniform: bool = True
+    use_binary_reduction: bool = False
+    
+    def __post_init__(self):
+        """Validate configuration parameters."""
+        if not (0 <= self.risk_aversion <= 1):
+            raise ValueError(f"risk_aversion must be between 0 and 1, but got {self.risk_aversion}")
+    
+    def __getitem__(self, key):
+        """Allow dict-like access to config parameters."""
+        return getattr(self, key)
+    
+    def __setitem__(self, key, value):
+        """Allow dict-like setting of config parameters."""
+        setattr(self, key, value)
+    
+    def get(self, key, default=None):
+        """Get config parameter with default value."""
+        return getattr(self, key, default)
+    
+    def keys(self):
+        """Return config parameter names."""
+        return self.__dataclass_fields__.keys()
+    
+    def items(self):
+        """Return config parameter name-value pairs."""
+        return [(k, getattr(self, k)) for k in self.keys()]
+    
+    @classmethod
+    def default(cls) -> 'AverageReturnConfig':
+        """Create a default configuration."""
+        return cls()
 
 
 def _get_risk_neutral_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray) -> np.ndarray:
@@ -109,7 +161,8 @@ def _get_risk_generic_crra_bets_approximate(
     Returns the *number of contracts* to buy on each leg (= dollars spent / leg price).
 
     :param forecast_probs: A (n x d) numpy array of forecast probabilities for n forecasters and d options.
-    :param implied_probs: A (d,) numpy array of implied probabilities for d options.
+    :param implied_probs: A (d,) numpy array of implied probabilities for d options. 
+        This might have shape (n, d) in certain cases, e.g. when we are using the binary reduction strategy.
     :param risk_aversion: A float between 0 and 1 representing the risk aversion parameter.
     :param eps: A float representing the numerical floor to avoid division by zero when p is 0 or 1.
 
@@ -117,14 +170,18 @@ def _get_risk_generic_crra_bets_approximate(
               Shape (n, d) where n is number of forecasters, d is number of options.
     """
     n, d = forecast_probs.shape
-    assert implied_probs.shape == (d,), "implied_probs must be shape (d,)"
+    assert implied_probs.shape == (d,) or implied_probs.shape == (n, d), "implied_probs must be shape (d,) or (n, d)"
     assert 0.0 <= risk_aversion <= 1.0, "risk_aversion must be in [0, 1]"
 
-    m = implied_probs.astype(float).clip(eps, 1.0 - eps)   # m_i
+    implied_probs = implied_probs.astype(float).clip(eps, 1.0 - eps)   # m_i
     contracts = np.zeros((n, d))
     γ = risk_aversion
 
     for k in range(n):
+        if implied_probs.shape == (n, d):
+            m = implied_probs[k]
+        else:
+            m = implied_probs
         # preprocess this forecaster's numbers
         p = forecast_probs[k].astype(float).clip(eps, 1.0 - eps)  # p_{k,i}
         a = p / m - 1.0                                           # edge a_i
@@ -211,32 +268,53 @@ class AverageReturn:
     The model calculates expected returns for each forecaster and ranks them accordingly.
     """
 
-    def __init__(self, num_money_per_round: int = 1, risk_aversion: float = 0.0, use_approximate: bool = False, break_tie_by_uniform: bool = True, \
-         verbose: bool = False):
+    def __init__(self, num_money_per_round: int = None, risk_aversion: float = None, 
+                 use_approximate: bool = None, break_tie_by_uniform: bool = None,
+                 use_binary_reduction: bool = None, verbose: bool = False, 
+                 config: AverageReturnConfig = None):
         """Initialize the AverageReturn model.
 
         :param num_money_per_round: Amount of money to bet per round (default: 1).
         :param risk_aversion: Risk aversion parameter between 0 and 1 (default: 0.0).
+        :param use_approximate: Whether to use the approximate CRRA betting strategy (default: False).
         :param break_tie_by_uniform: When the edges are all the same, 
             whether to break tie by spending uniform money on each leg. Only effective when use_approximate is True (default: True).
+        :param use_binary_reduction: Whether to use the binary reduction strategy (default: False).
         :param verbose: Whether to enable verbose logging (default: False).
-        :param use_approximate: Whether to use the approximate CRRA betting strategy (default: False).
+        :param config: Configuration object containing model parameters. If provided, individual parameters are ignored.
 
-        :raises AssertionError: If risk_aversion is not between 0 and 1.
+        :raises ValueError: If risk_aversion is not between 0 and 1.
         """
-        self.num_money_per_round = num_money_per_round
-        assert risk_aversion >= 0 and risk_aversion <= 1, \
-            f"risk_aversion must be between 0 and 1, but got {risk_aversion}"
-        self.risk_aversion = risk_aversion
-        self.use_approximate = use_approximate
-        self.break_tie_by_uniform = break_tie_by_uniform
+        # If config is provided, use it; otherwise create from individual parameters
+        if config is not None:
+            final_config = config
+        else:
+            # Use individual parameters or their defaults
+            final_config = AverageReturnConfig(
+                num_money_per_round=1 if num_money_per_round is None else num_money_per_round,
+                risk_aversion=0.0 if risk_aversion is None else risk_aversion,
+                use_approximate=False if use_approximate is None else use_approximate,
+                break_tie_by_uniform=True if break_tie_by_uniform is None else break_tie_by_uniform,
+                use_binary_reduction=True if use_binary_reduction is None else use_binary_reduction
+            )
+        
+        # Deconstruct config into individual attributes to avoid self.config.xxx usage
+        self.num_money_per_round = final_config.num_money_per_round
+        self.risk_aversion = final_config.risk_aversion
+        self.use_approximate = final_config.use_approximate
+        self.break_tie_by_uniform = final_config.break_tie_by_uniform
+        self.use_binary_reduction = final_config.use_binary_reduction
         self.verbose = verbose
+        
         self.logger = get_logger(f"pm_rank.model.{self.__class__.__name__}")
         if self.verbose:
             self.logger.setLevel(logging.DEBUG)
-        self.logger.info(f"Initialized {self.__class__.__name__} with hyperparam: \n" +
-                         f"num_money_per_round={num_money_per_round}, risk_aversion={risk_aversion}")
+        self.logger.info(f"Initialized {self.__class__.__name__} with config: \n" +
+                         f"num_money_per_round={self.num_money_per_round}, risk_aversion={self.risk_aversion} \n" +
+                         f"use_approximate={self.use_approximate}, break_tie_by_uniform={self.break_tie_by_uniform}, use_binary_reduction={self.use_binary_reduction}")
 
+        # determine the process_problem_fn based on the use_binary_reduction flag
+        self.process_problem_fn = self._process_problem_with_binary_reduction if self.use_binary_reduction else self._process_problem
 
     def _process_problem(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]]) -> None:
         """Process a single problem and update forecaster_data with earnings.
@@ -284,6 +362,82 @@ class AverageReturn:
                 forecaster_data[username] = []
             forecaster_data[username].append(earnings[i])
 
+    def _process_problem_with_binary_reduction(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]]) -> None:
+        """Process a single problem and update forecaster_data with earnings.
+        
+        The main difference between this helper method and the `_process_problem` method is that
+        this method will reduce the options/markets within a problem to individual binary markets, so that we now consider a
+        two-level optimization problem for optimal decision making.
+
+        1. On the first (inner) level, for each binary market i, let the implied prob be q_i and the forecast prob be p_i -- which
+        corresponds to the belief that market i will be realized. On the contrary, we also allow buying the `No` option, in which
+        case the forecast prob will be 1 - p_i and the implied prob will be 1 - q_i.
+
+        The problem then boils down to choosing whether to buy the `Yes` option or the `No` option for each binary market. And the
+        solution is that we buy the `Yes` option if the edge `p_i / q_i` is greater than `(1 - p_i) / (1 - q_i)`. Otherwise, we buy
+        the `No` option.
+
+        2. On the second (outer) level, we still preserve the previous way of calculating how much of the `num_money_per_round` to 
+        spend on each option. However, this time, instead of using `p_i / q_i` as the edge for each option, we will use whether we
+        will buy the `Yes` option or the `No` option for each binary market, i.e. we take the edge to be the maximum between
+        `p_i / q_i` and `(1 - p_i) / (1 - q_i)`.
+        """
+        if not problem.has_odds:
+            return
+
+        forecast_probs = np.array(
+            [forecast.probs for forecast in problem.forecasts]) # shape (n, d)
+        # Concatenate the implied probs for all forecasters
+        implied_probs = np.array(problem.odds) # shape (d,)
+        
+        # Step 1: calculate the per-outcome YES & NO bet edges
+        yes_edges = forecast_probs / implied_probs # shape (n, d)
+        no_edges = (1 - forecast_probs) / (1 - implied_probs) # shape (n, d)
+        
+        # replace the original forecast_probs with the max of yes_edges and no_edges
+        effective_forecast_probs = forecast_probs.copy() # shape (n, d)
+        effective_implied_probs = np.tile(implied_probs.copy(), (forecast_probs.shape[0], 1)) # shape (d,) -> (n, d) by expanding the dimension
+        # doing 1 - x to the forecast_probs and implied_probs when yes_edges < no_edges
+        effective_forecast_probs[no_edges > yes_edges] = 1 - effective_forecast_probs[no_edges > yes_edges]
+
+        # print(effective_implied_probs.shape, (no_edges > yes_edges).shape)
+        if problem.has_no_odds:
+            implied_no_probs = np.tile(np.array(problem.no_odds), (forecast_probs.shape[0], 1))
+            effective_implied_probs[no_edges > yes_edges] = implied_no_probs[no_edges > yes_edges]
+        else:
+            effective_implied_probs[no_edges > yes_edges] = 1 - effective_implied_probs[no_edges > yes_edges]
+
+        # Step 2: use the older way to incorporate risk aversion and do the outside (approximate) solution
+        if self.use_approximate:
+            bets = _get_risk_generic_crra_bets_approximate(effective_forecast_probs, effective_implied_probs, self.risk_aversion, self.break_tie_by_uniform)
+        else:
+            if self.risk_aversion == 0:
+                bets = _get_risk_neutral_bets(effective_forecast_probs, effective_implied_probs)
+            elif self.risk_aversion == 1:
+                bets = _get_risk_averse_log_bets(effective_forecast_probs, effective_implied_probs)
+            else:
+                bets = _get_risk_generic_crra_bets(effective_forecast_probs, effective_implied_probs, self.risk_aversion)
+
+        assert np.allclose(np.sum(bets * effective_implied_probs, axis=1), 1.0)
+
+        # Step 3: calculate the total earnings. Remember that any prob that we flipped will have the realization also inverted
+        effective_outcomes = np.zeros_like(forecast_probs) # shape (n, d)
+        effective_outcomes[:, problem.correct_option_idx] = 1
+        # invert the outcomes when yes_edges < no_edges
+        effective_outcomes[no_edges > yes_edges] = 1 - effective_outcomes[no_edges > yes_edges]
+
+        effective_earnings = np.sum(effective_outcomes * bets * self.num_money_per_round, axis=1)
+
+        # # print highest earnings
+        # print(f"Highest earnings: {np.max(effective_earnings)}")
+
+        # update the forecaster data with the effective earnings
+        for i, forecast in enumerate(problem.forecasts):
+            username = forecast.username
+            if username not in forecaster_data:
+                forecaster_data[username] = []
+            forecaster_data[username].append(effective_earnings[i])
+
     def _fit_stream_generic(self, batch_iter: Iterator, key_fn: Callable, include_scores: bool = True, use_ordered: bool = False):
         """Generic streaming fit function for both index and timestamp keys.
 
@@ -308,7 +462,7 @@ class AverageReturn:
 
             # Process each problem in the batch
             for problem in batch:
-                self._process_problem(problem, forecaster_data)
+                self.process_problem_fn(problem, forecaster_data)
 
             # Generate rankings for this batch
             batch_results[key] = forecaster_data_to_rankings(
@@ -338,7 +492,7 @@ class AverageReturn:
             per_problem_info = []
 
         for problem in problems:
-            self._process_problem(problem, forecaster_data)
+            self.process_problem_fn(problem, forecaster_data)
             if include_per_problem_info:
                 for forecast in problem.forecasts:
                     per_problem_info.append({
