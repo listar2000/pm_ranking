@@ -186,7 +186,7 @@ Package Contents
 
 
 
-.. py:class:: AverageReturn(num_money_per_round: int = 1, risk_aversion: float = 0.0, use_approximate: bool = False, verbose: bool = False)
+.. py:class:: AverageReturn(num_money_per_round: int = 1, risk_aversion: float = 0.0, use_approximate: bool = False, break_tie_by_uniform: bool = True, verbose: bool = False)
 
    Average Return Model for ranking forecasters based on their expected market returns.
 
@@ -198,6 +198,8 @@ Package Contents
 
    :param num_money_per_round: Amount of money to bet per round (default: 1).
    :param risk_aversion: Risk aversion parameter between 0 and 1 (default: 0.0).
+   :param break_tie_by_uniform: When the edges are all the same, 
+       whether to break tie by spending uniform money on each leg. Only effective when use_approximate is True (default: True).
    :param verbose: Whether to enable verbose logging (default: False).
    :param use_approximate: Whether to use the approximate CRRA betting strategy (default: False).
 
@@ -216,6 +218,11 @@ Package Contents
 
    .. py:attribute:: use_approximate
       :value: False
+
+
+
+   .. py:attribute:: break_tie_by_uniform
+      :value: True
 
 
 
