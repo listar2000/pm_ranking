@@ -113,6 +113,7 @@ class GJOChallengeLoader(ChallengeLoader):
                     problem_meta_row['correct_answer'])
 
             forecast_event = ForecastEvent(
+                forecast_id=f"{problem_id}-{username}",
                 problem_id=problem_id,
                 username=username,
                 timestamp=timestamp,
@@ -306,6 +307,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             if add_market_baseline:
                 # we will add a "market row" in this group, with (unnormalized) prob being simply the market odds
                 forecasts.append(ForecastEvent(
+                    forecast_id=f"{problem_id}-market-baseline",
                     problem_id=problem_id,
                     username="market-baseline",
                     timestamp=timestamp,
@@ -327,7 +329,12 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                 # make sure the probs sum to 1
                 probs = self._get_normalized_probs(unnormalized_probs)
 
+                # set `forecast_id` to be `prediction_id` if the column exists, otherwise construct one
+                # using `username` and `problem_id`
+                forecast_id = str(row['prediction_id']) if 'prediction_id' in row else f"{username}-{problem_id}"
+
                 forecasts.append(ForecastEvent(
+                    forecast_id=forecast_id,
                     problem_id=problem_id,
                     username=username,
                     timestamp=timestamp,

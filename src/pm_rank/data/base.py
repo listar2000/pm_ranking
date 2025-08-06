@@ -14,6 +14,7 @@ SMOOTH_ODDS_EPS = 5e-3
 
 class ForecastEvent(BaseModel):
     """Individual forecast from a user for a specific problem."""
+    forecast_id: str = Field(description="The id of the forecast")
     problem_id: str = Field(description="The id of the problem")
     username: str = Field(description="The user name/id of the forecaster")
     timestamp: datetime = Field(description="The timestamp of the forecast")
