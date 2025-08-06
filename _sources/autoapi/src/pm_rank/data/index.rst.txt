@@ -43,6 +43,10 @@ Package Contents
    Individual forecast from a user for a specific problem.
 
 
+   .. py:attribute:: forecast_id
+      :type:  str
+
+
    .. py:attribute:: problem_id
       :type:  str
 
