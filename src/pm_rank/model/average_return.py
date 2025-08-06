@@ -101,6 +101,7 @@ def _get_risk_generic_crra_bets_approximate(
     forecast_probs: np.ndarray,
     implied_probs:  np.ndarray,
     risk_aversion:  float,
+    break_tie_by_uniform: bool = True,
     eps: float = 1e-12
 ) -> np.ndarray:
     """
@@ -124,18 +125,24 @@ def _get_risk_generic_crra_bets_approximate(
     γ = risk_aversion
 
     for k in range(n):
-        # -------- preprocess this forecaster's numbers -------------
+        # preprocess this forecaster's numbers
         p = forecast_probs[k].astype(float).clip(eps, 1.0 - eps)  # p_{k,i}
         a = p / m - 1.0                                           # edge a_i
         b = p * (1.0 - p) / m**2                                  # variance b_i
 
-        # -------- risk-neutral (γ → 0) ----------------------------
+        # handle special case, if all the edges are the same, we break tie by spending uniform money on each leg
+        if break_tie_by_uniform and np.allclose(a, a[0]):
+            per_leg_money = 1.0 / d
+            contracts[k] = per_leg_money / m
+            continue
+
+        # risk-neutral (γ → 0)
         if γ < eps:
             idx_star = int(np.argmax(a))          # best (maybe negative) edge
             contracts[k, idx_star] = 1.0 / m[idx_star]
             continue
 
-        # -------- collect positive-edge legs ----------------------
+        # collect positive-edge legs
         pos_mask = a > 0
         if not np.any(pos_mask):
             # all edges ≤ 0 → forced to spend on the least-bad leg
@@ -204,11 +211,14 @@ class AverageReturn:
     The model calculates expected returns for each forecaster and ranks them accordingly.
     """
 
-    def __init__(self, num_money_per_round: int = 1, risk_aversion: float = 0.0, use_approximate: bool = False,verbose: bool = False):
+    def __init__(self, num_money_per_round: int = 1, risk_aversion: float = 0.0, use_approximate: bool = False, break_tie_by_uniform: bool = True, \
+         verbose: bool = False):
         """Initialize the AverageReturn model.
 
         :param num_money_per_round: Amount of money to bet per round (default: 1).
         :param risk_aversion: Risk aversion parameter between 0 and 1 (default: 0.0).
+        :param break_tie_by_uniform: When the edges are all the same, 
+            whether to break tie by spending uniform money on each leg. Only effective when use_approximate is True (default: True).
         :param verbose: Whether to enable verbose logging (default: False).
         :param use_approximate: Whether to use the approximate CRRA betting strategy (default: False).
 
@@ -219,6 +229,7 @@ class AverageReturn:
             f"risk_aversion must be between 0 and 1, but got {risk_aversion}"
         self.risk_aversion = risk_aversion
         self.use_approximate = use_approximate
+        self.break_tie_by_uniform = break_tie_by_uniform
         self.verbose = verbose
         self.logger = get_logger(f"pm_rank.model.{self.__class__.__name__}")
         if self.verbose:
@@ -252,7 +263,7 @@ class AverageReturn:
             f"forecast probs and implied probs must have the same shape, but got {forecast_probs.shape} and {implied_probs.shape}"
 
         if self.use_approximate:
-            bets = _get_risk_generic_crra_bets_approximate(forecast_probs, implied_probs, self.risk_aversion)
+            bets = _get_risk_generic_crra_bets_approximate(forecast_probs, implied_probs, self.risk_aversion, self.break_tie_by_uniform)
         else:
             if self.risk_aversion == 0:
                 bets = _get_risk_neutral_bets(forecast_probs, implied_probs)
