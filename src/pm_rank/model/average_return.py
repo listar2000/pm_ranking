@@ -83,7 +83,8 @@ def _get_risk_neutral_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray
     outcome with the largest `edge`, i.e. where `forecast_probs - implied_probs` is the largest.
 
     :param forecast_probs: A (n x d) numpy array of forecast probabilities for n forecasters and d options.
-    :param implied_probs: A (d,) numpy array of implied probabilities for d options.
+    :param implied_probs: A (d,) numpy array of implied probabilities for d options. This might have shape 
+    (n, d) in certain cases, e.g. when we are using the binary reduction strategy.
 
     :returns: The number of bets to each option that a risk-neutral investor would make.
               Shape (n, d) where n is number of forecasters, d is number of options.
@@ -93,7 +94,11 @@ def _get_risk_neutral_bets(forecast_probs: np.ndarray, implied_probs: np.ndarray
     edges = forecast_probs / implied_probs  # shape (n, d)
     edge_max = np.argmax(edges, axis=1)  # shape (n,)
     # Calculate the number of contracts to buy for each forecaster
-    bet_values = 1 / implied_probs[edge_max]  # shape (n,)
+
+    if implied_probs.shape == (d,):
+        bet_values = 1 / implied_probs[edge_max]  # shape (n,)
+    else:
+        bet_values = 1 / implied_probs[np.arange(n), edge_max]  # shape (n,)
     # Create a (n, d) one-hot vector for the bets
     bets_one_hot = np.zeros((n, d))
     bets_one_hot[np.arange(n), edge_max] = bet_values
@@ -316,7 +321,7 @@ class AverageReturn:
         # determine the process_problem_fn based on the use_binary_reduction flag
         self.process_problem_fn = self._process_problem_with_binary_reduction if self.use_binary_reduction else self._process_problem
 
-    def _process_problem(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]]) -> None:
+    def _process_problem(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]]) -> np.ndarray:
         """Process a single problem and update forecaster_data with earnings.
 
         This method calculates the expected earnings for each forecaster based on their
@@ -332,7 +337,7 @@ class AverageReturn:
 
         # Concatenate the forecast probs for all forecasters
         forecast_probs = np.array(
-            [forecast.probs for forecast in problem.forecasts])
+            [forecast.unnormalized_probs for forecast in problem.forecasts])
         # Concatenate the implied probs for all forecasters
         implied_probs = np.array(problem.odds)
 
@@ -362,7 +367,11 @@ class AverageReturn:
                 forecaster_data[username] = []
             forecaster_data[username].append(earnings[i])
 
-    def _process_problem_with_binary_reduction(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]]) -> None:
+        outcomes = np.zeros_like(forecast_probs)
+        outcomes[:, problem.correct_option_idx] = 1
+        return {"bets": bets, "effective_outcomes": outcomes, "choose_yes_contract": np.ones_like(bets).astype(bool)}
+
+    def _process_problem_with_binary_reduction(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]]) -> np.ndarray:
         """Process a single problem and update forecaster_data with earnings.
         
         The main difference between this helper method and the `_process_problem` method is that
@@ -381,31 +390,28 @@ class AverageReturn:
         spend on each option. However, this time, instead of using `p_i / q_i` as the edge for each option, we will use whether we
         will buy the `Yes` option or the `No` option for each binary market, i.e. we take the edge to be the maximum between
         `p_i / q_i` and `(1 - p_i) / (1 - q_i)`.
+
+        :returns: A (n, d) numpy array of booleans, indicating whether to buy the `Yes` option or the `No` option for each binary market.
         """
-        if not problem.has_odds:
+        if not problem.has_odds or not problem.has_no_odds:
             return
 
         forecast_probs = np.array(
-            [forecast.probs for forecast in problem.forecasts]) # shape (n, d)
+            [forecast.unnormalized_probs for forecast in problem.forecasts]) # shape (n, d)
         # Concatenate the implied probs for all forecasters
         implied_probs = np.array(problem.odds) # shape (d,)
+        implied_no_probs = np.array(problem.no_odds) # shape (d,)
         
         # Step 1: calculate the per-outcome YES & NO bet edges
         yes_edges = forecast_probs / implied_probs # shape (n, d)
-        no_edges = (1 - forecast_probs) / (1 - implied_probs) # shape (n, d)
+        no_edges = (1 - forecast_probs) / implied_no_probs # shape (n, d)
         
         # replace the original forecast_probs with the max of yes_edges and no_edges
         effective_forecast_probs = forecast_probs.copy() # shape (n, d)
         effective_implied_probs = np.tile(implied_probs.copy(), (forecast_probs.shape[0], 1)) # shape (d,) -> (n, d) by expanding the dimension
         # doing 1 - x to the forecast_probs and implied_probs when yes_edges < no_edges
         effective_forecast_probs[no_edges > yes_edges] = 1 - effective_forecast_probs[no_edges > yes_edges]
-
-        # print(effective_implied_probs.shape, (no_edges > yes_edges).shape)
-        if problem.has_no_odds:
-            implied_no_probs = np.tile(np.array(problem.no_odds), (forecast_probs.shape[0], 1))
-            effective_implied_probs[no_edges > yes_edges] = implied_no_probs[no_edges > yes_edges]
-        else:
-            effective_implied_probs[no_edges > yes_edges] = 1 - effective_implied_probs[no_edges > yes_edges]
+        effective_implied_probs[no_edges > yes_edges] = np.tile(implied_no_probs, (forecast_probs.shape[0], 1))[no_edges > yes_edges]
 
         # Step 2: use the older way to incorporate risk aversion and do the outside (approximate) solution
         if self.use_approximate:
@@ -437,6 +443,8 @@ class AverageReturn:
             if username not in forecaster_data:
                 forecaster_data[username] = []
             forecaster_data[username].append(effective_earnings[i])
+
+        return {"bets": bets, "effective_outcomes": effective_outcomes, "choose_yes_contract": (yes_edges > no_edges)}
 
     def _fit_stream_generic(self, batch_iter: Iterator, key_fn: Callable, include_scores: bool = True, use_ordered: bool = False):
         """Generic streaming fit function for both index and timestamp keys.
@@ -492,18 +500,22 @@ class AverageReturn:
             per_problem_info = []
 
         for problem in problems:
-            self.process_problem_fn(problem, forecaster_data)
+            process_info = self.process_problem_fn(problem, forecaster_data)
             if include_per_problem_info:
-                for forecast in problem.forecasts:
-                    per_problem_info.append({
+                for i, forecast in enumerate(problem.forecasts):
+                    info = {
                         "forecast_id": forecast.forecast_id,
                         "username": forecast.username,
                         "problem_title": problem.title,
                         "problem_id": problem.problem_id,
                         "problem_category": problem.category,
                         "score": forecaster_data[forecast.username][-1],
-                        "probs": forecast.unnormalized_probs
-                    })
+                        "probs": forecast.unnormalized_probs,
+                        "bets": process_info["bets"][i].tolist(),
+                        "effective_outcomes": process_info["effective_outcomes"][i].tolist(),
+                        "choose_yes_contract": process_info["choose_yes_contract"][i].tolist()
+                    }
+                    per_problem_info.append(info)
 
         result = forecaster_data_to_rankings(
             forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")

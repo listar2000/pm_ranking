@@ -220,7 +220,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         for opt in options:
             info = market_info.get(opt, {})
             yes_ask = info.get(ask_str, None)
-            if info.get('liquidity', None) is not None and info.get('liquidity', None) < 10000:
+            if info.get('liquidity', None) is not None and info.get('liquidity', None) < 100:
                 asks.append(100)
             elif yes_ask is not None and yes_ask > 0:
                 if use_bid_for_odds:
