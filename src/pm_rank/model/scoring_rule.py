@@ -146,14 +146,14 @@ class ScoringRule(ABC):
                 forecaster_data[username].append(score)
 
             if include_per_problem_info:
-                for username, score in zip(usernames, scores):
+                for i, forecast in enumerate(problem.forecasts):
                     per_problem_info.append({
                         "forecast_id": forecast.forecast_id,
-                        "username": username,
+                        "username": forecast.username,
                         "problem_title": problem.title,
                         "problem_id": problem.problem_id,
                         "problem_category": problem.category,
-                        "score": score,
+                        "score": scores[i],
                         "probs": forecast.unnormalized_probs
                     })
 
