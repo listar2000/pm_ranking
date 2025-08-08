@@ -405,6 +405,13 @@ class AverageReturn:
         # Step 1: calculate the per-outcome YES & NO bet edges
         yes_edges = forecast_probs / implied_probs # shape (n, d)
         no_edges = (1 - forecast_probs) / implied_no_probs # shape (n, d)
+
+        # If any forecaster in this problem is the market-baseline, we need to handle it separately
+        market_baseline_mask = np.array([forecast.username == "market-baseline" for forecast in problem.forecasts])
+        if np.any(market_baseline_mask):
+            market_baseline_idx = np.argmax(market_baseline_mask)
+            # adjust the no_edge
+            no_edges[market_baseline_idx, :] = (1 - forecast_probs[market_baseline_idx, :]) / (1 - implied_probs[market_baseline_idx])
         
         # replace the original forecast_probs with the max of yes_edges and no_edges
         effective_forecast_probs = forecast_probs.copy() # shape (n, d)
@@ -416,6 +423,13 @@ class AverageReturn:
         # Step 2: use the older way to incorporate risk aversion and do the outside (approximate) solution
         if self.use_approximate:
             bets = _get_risk_generic_crra_bets_approximate(effective_forecast_probs, effective_implied_probs, self.risk_aversion, self.break_tie_by_uniform)
+
+            if np.any(market_baseline_mask):
+                # we will use risk_aversion = 1 to calculate the bets for the market-baseline
+                market_baseline_bets = _get_risk_generic_crra_bets_approximate(
+                    effective_forecast_probs[market_baseline_idx, :].reshape(1, -1), effective_implied_probs[market_baseline_idx, :].reshape(1, -1), \
+                        0, self.break_tie_by_uniform)
+                bets[market_baseline_idx, :] = market_baseline_bets.squeeze()
         else:
             if self.risk_aversion == 0:
                 bets = _get_risk_neutral_bets(effective_forecast_probs, effective_implied_probs)
@@ -433,9 +447,6 @@ class AverageReturn:
         effective_outcomes[no_edges > yes_edges] = 1 - effective_outcomes[no_edges > yes_edges]
 
         effective_earnings = np.sum(effective_outcomes * bets * self.num_money_per_round, axis=1)
-
-        # # print highest earnings
-        # print(f"Highest earnings: {np.max(effective_earnings)}")
 
         # update the forecaster data with the effective earnings
         for i, forecast in enumerate(problem.forecasts):
