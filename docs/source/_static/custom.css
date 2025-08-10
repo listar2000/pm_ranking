@@ -1,0 +1,16 @@
+/* Custom CSS to override blockquote styling */
+
+/* Remove italic styling from blockquotes */
+blockquote {
+    font-style: normal !important;
+}
+
+/* Additional blockquote styling to maintain readability */
+blockquote p {
+    font-style: normal !important;
+}
+
+/* Ensure nested elements in blockquotes are also not italic */
+blockquote * {
+    font-style: normal !important;
+} 

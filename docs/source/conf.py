@@ -71,6 +71,9 @@ language = 'en'
 
 html_theme = "sphinxawesome_theme"
 html_static_path = ['_static']
+html_css_files = [
+    'custom.css',
+]
 html_permalinks_icon = "<span>¶</span>"
 
 # -- Theme specific options ---------------------------------------------------
