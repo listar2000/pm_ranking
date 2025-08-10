@@ -117,8 +117,8 @@
 <h1>How We Score &amp; Rank LLMs in Prophet Arena<a class="headerlink" href="#how-we-score-rank-llms-in-prophet-arena" title="Link to this heading"><span>¶</span></a></h1>
 <blockquote>
 <div><p><strong>Author:</strong> Sida Li, Prophet Arena Team</p>
-<p><strong>Date:</strong> August 10th, 2025</p>
-<p><strong>Estimated Reading Time:</strong> 9 minutes</p>
+<p><strong>Date:</strong> August 10, 2025</p>
+<p><strong>Estimated Reading Time:</strong> 10 minutes</p>
 </div></blockquote>
 <hr class="docutils"/>
 <p>Creating benchmarks and arenas to evaluate large language models (LLMs) is often a labor-intensive and meticulous process. However, when it comes to the metrics used for evaluation, the guiding principle is usually to find a straightforward and intuitive scoring methods for a given task. For example, in problems involving pairwise comparisons (“Which LLM answers better?”), the <a class="reference external" href="https://en.wikipedia.org/wiki/Elo_rating_system">Elo rating system</a> offers a clean and elegant solution. Likewise, for benchmarks focused on verifiable, objective answers, the evaluation can be as simple as averaging binary correctness across all problems to yield an accuracy metric.</p>
@@ -213,18 +213,28 @@ AVER := \frac{\sum_{i=1}^{N} \text{payoff from } i\text{-th } \text{event under 
 <li><p>When we calculate the Brier score (or any other proper scoring rule), we measure how the LLM’s probabilistic predictions align with the observed outcomes. A good score means that the LLM can effectively synthesize the provided information and make accurate &amp; well-calibrated predictions through reasoning. The market odds, which can be interpreted as the human-consensus probabilities, <strong>do not enter into the calculation</strong>.</p></li>
 <li><p>On the other hand, the averaged return depends on the observed outcome and the strategy <span class="math notranslate nohighlight">\(a_i^*\)</span>, which in turn is determined by <strong>both the LLM’s probabilities and the market odds</strong>. It is thus a <strong>relative metric</strong> in the sense that achieving a good score requires the LLM to perform “relatively better” than most human bettors to create arbitrage opportunities.</p></li>
 </ul>
-<br/>
-<details>
-<summary>🤔 Follow-up: when would rankings based on these two metrics differ?</summary>
-<p>Imagine the following stylized setup:</p>
-<ul class="simple">
-<li><p>There are two LLMs, <span class="math notranslate nohighlight">\(A\)</span> and <span class="math notranslate nohighlight">\(B\)</span>, and all events fall under two categories, <code class="docutils literal notranslate"><span class="pre">finance</span></code> and <code class="docutils literal notranslate"><span class="pre">sports</span></code> (50-50 proportion).</p></li>
-<li><p>For human market, it is relatively more “predictable” in the <code class="docutils literal notranslate"><span class="pre">sports</span></code> category, while the <code class="docutils literal notranslate"><span class="pre">finance</span></code> events require more information aggregation and are thus harder to predict.</p></li>
-<li><p>For LLM <span class="math notranslate nohighlight">\(A\)</span>, it is substantially better at predicting the <code class="docutils literal notranslate"><span class="pre">sports</span></code> events than <span class="math notranslate nohighlight">\(B\)</span>, while it is slightly worse at predicting the <code class="docutils literal notranslate"><span class="pre">finance</span></code> events.</p></li>
-<li><p>Now, LLM <span class="math notranslate nohighlight">\(A\)</span> will have better Brier score than <span class="math notranslate nohighlight">\(B\)</span> because overall it has better predictive capabilities in the <strong>absolute sense</strong> (ignoring market odds).</p></li>
-<li><p>However, if we consider the averaged return score, we will find that LLM <span class="math notranslate nohighlight">\(B\)</span> will have a better score than <span class="math notranslate nohighlight">\(A\)</span> because it is able to make more money in the <code class="docutils literal notranslate"><span class="pre">finance</span></code> events where humans are more inferior at. Despite its strong predictive capabilities in the <code class="docutils literal notranslate"><span class="pre">sports</span></code> events, LLM <span class="math notranslate nohighlight">\(A\)</span> is not able to create arbitrage opportunities there since humans are also very good at these problems.</p></li>
-</ul>
-</details>
+</section>
+<section id="example-when-would-absolute-and-relative-metrics-differ">
+<h3>🤔 Example: When Would Absolute and Relative Metrics Differ?<a class="headerlink" href="#example-when-would-absolute-and-relative-metrics-differ" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#example-when-would-absolute-and-relative-metrics-differ'"><span>¶</span></a></h3>
+<p>Suppose we bet on a single event with binary outcomes, with ground-truth probability of “Yes” being 0.6 (for the event to be realized), and prediction market price 0.5. Consider two different probabilistic predictions of this event’s “Yes” realization: A predicts 0.45 and B predicts 0.9.</p>
+<p>The expected Brier Score of A is</p>
+<p>$$
+1 - 0.6 \cdot (0.45−1)^2 + 0.4 \cdot (0.45−0)^2 = 1 - 0.2625 = 0.7375
+$$</p>
+<p>The expected Brier Score of B is</p>
+<p>$$
+1 - 0.6 \cdot (0.9 - 1)^2 + 0.4 \cdot (0.9−0)^2 = 1 - 0.33 = 0.67
+$$</p>
+<p>So A has a higher Brier Score. However, because A predicts 0.45, lower than the 0.5 prediction market price, hence A will short “Yes” (or equivalently, buy “No”) at 0.5. Meanwhile, B predicts 0.9, much higher than the prediction market price, hence they will buy “Yes.” Respectively, A and B’s expected return will be</p>
+<p>$$</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+0.6 \cdot (−1+0.5) + 0.4 \cdot (0.5) &amp;= −0.1 \\
+0.6 \cdot (1−0.5) + 0.4 \cdot (−0.5) &amp;= 0.1
+\end{align*}\]</div>
+<p>$$</p>
+<p>In this example, A has a higher Brier Score, but lower returns.</p>
+<p>This example uncovers a key difference between the above two metrics. The Brier Score measures how close a prediction is to the ground truth and, importantly, has nothing to do with the market prices. Since A’s prediction above is closer to the ground truth, it receives a higher Brier Score. However, returns on the market are not only driven by the true probability but also the market price. Therefore, even though B’s prediction is exaggerated, it lies on the correct side of the market mispricing (buys “Yes” when outcome is more likely than price suggests), achieving higher returns.</p>
 </section>
 </section>
 <section id="irt-bradley-terry-lens-of-statistical-modeling">
@@ -264,6 +274,7 @@ AVER := \frac{\sum_{i=1}^{N} \text{payoff from } i\text{-th } \text{event under 
 <li><a :data-current="activeSection === '#scoring-rules-grounded-metric-for-probabilistic-predictions'" class="reference internal" href="#scoring-rules-grounded-metric-for-probabilistic-predictions">Scoring Rules: grounded metric for probabilistic predictions</a></li>
 <li><a :data-current="activeSection === '#averaged-return-what-practitioners-might-care-about'" class="reference internal" href="#averaged-return-what-practitioners-might-care-about">Averaged Return: what practitioners might care about</a><ul>
 <li><a :data-current="activeSection === '#absolute-versus-relative-metrics'" class="reference internal" href="#absolute-versus-relative-metrics">💭 Absolute versus relative metrics</a></li>
+<li><a :data-current="activeSection === '#example-when-would-absolute-and-relative-metrics-differ'" class="reference internal" href="#example-when-would-absolute-and-relative-metrics-differ">🤔 Example: When Would Absolute and Relative Metrics Differ?</a></li>
 </ul>
 </li>
 <li><a :data-current="activeSection === '#irt-bradley-terry-lens-of-statistical-modeling'" class="reference internal" href="#irt-bradley-terry-lens-of-statistical-modeling">IRT &amp; Bradley-Terry: lens of statistical modeling</a><ul>

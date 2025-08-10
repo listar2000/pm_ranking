@@ -2,9 +2,9 @@
 
 > **Author:** Sida Li, Prophet Arena Team
 >
-> **Date:** August 10th, 2025
+> **Date:** August 10, 2025
 >
-> **Estimated Reading Time:** 9 minutes
+> **Estimated Reading Time:** 10 minutes
 ---
 
 Creating benchmarks and arenas to evaluate large language models (LLMs) is often a labor-intensive and meticulous process. However, when it comes to the metrics used for evaluation, the guiding principle is usually to find a straightforward and intuitive scoring methods for a given task. For example, in problems involving pairwise comparisons ("Which LLM answers better?"), the [Elo rating system](https://en.wikipedia.org/wiki/Elo_rating_system) offers a clean and elegant solution. Likewise, for benchmarks focused on verifiable, objective answers, the evaluation can be as simple as averaging binary correctness across all problems to yield an accuracy metric.
@@ -122,23 +122,34 @@ It is now the right time to reflect and compare the two important metrics introd
 
 - On the other hand, the averaged return depends on the observed outcome and the strategy $a_i^*$, which in turn is determined by **both the LLM's probabilities and the market odds**. It is thus a **relative metric** in the sense that achieving a good score requires the LLM to perform "relatively better" than most human bettors to create arbitrage opportunities.
 
-<br>
-<details>
-<summary>🤔 Follow-up: when would rankings based on these two metrics differ?</summary>
+### 🤔 Example: When Would Absolute and Relative Metrics Differ?
 
-Imagine the following stylized setup: 
+Suppose we bet on a single event with binary outcomes, with ground-truth probability of “Yes” being 0.6 (for the event to be realized), and prediction market price 0.5. Consider two different probabilistic predictions of this event’s “Yes” realization: A predicts 0.45 and B predicts 0.9.   
 
-- There are two LLMs, $A$ and $B$, and all events fall under two categories, `finance` and `sports` (50-50 proportion).
-- For human market, it is relatively more "predictable" in the `sports` category, while the `finance` events require more information aggregation and are thus harder to predict.
-- For LLM $A$, it is substantially better at predicting the `sports` events than $B$, while it is slightly worse at predicting the `finance` events.
-- Now, LLM $A$ will have better Brier score than $B$ because overall it has better predictive capabilities in the **absolute sense** (ignoring market odds).
-- However, if we consider the averaged return score, we will find that LLM $B$ will have a better score than $A$ because it is able to make more money in the `finance` events where humans are more inferior at. Despite its strong predictive capabilities in the `sports` events, LLM $A$ is not able to create arbitrage opportunities there since humans are also very good at these problems.
+The expected Brier Score of A is 
 
+$$
+1 - 0.6 \cdot (0.45−1)^2 + 0.4 \cdot (0.45−0)^2 = 1 - 0.2625 = 0.7375
+$$   
 
+The expected Brier Score of B is 
 
-</details>
+$$
+1 - 0.6 \cdot (0.9 - 1)^2 + 0.4 \cdot (0.9−0)^2 = 1 - 0.33 = 0.67
+$$   
 
+So A has a higher Brier Score. However, because A predicts 0.45, lower than the 0.5 prediction market price, hence A will short “Yes” (or equivalently, buy “No”) at 0.5. Meanwhile, B predicts 0.9, much higher than the prediction market price, hence they will buy “Yes.” Respectively, A and B’s expected return will be 
 
+$$
+\begin{align*}
+0.6 \cdot (−1+0.5) + 0.4 \cdot (0.5) &= −0.1 \\
+0.6 \cdot (1−0.5) + 0.4 \cdot (−0.5) &= 0.1
+\end{align*}
+$$
+
+In this example, A has a higher Brier Score, but lower returns. 
+
+This example uncovers a key difference between the above two metrics. The Brier Score measures how close a prediction is to the ground truth and, importantly, has nothing to do with the market prices. Since A’s prediction above is closer to the ground truth, it receives a higher Brier Score. However, returns on the market are not only driven by the true probability but also the market price. Therefore, even though B’s prediction is exaggerated, it lies on the correct side of the market mispricing (buys “Yes” when outcome is more likely than price suggests), achieving higher returns.   
 
 ## IRT & Bradley-Terry: lens of statistical modeling
 
