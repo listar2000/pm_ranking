@@ -7,15 +7,15 @@
 <meta content="white" media="(prefers-color-scheme: light)" name="theme-color"/>
 <meta content="black" media="(prefers-color-scheme: dark)" name="theme-color"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>How We Score &amp; Rank LLMs in Prediction Markets | PM-RANK 0.2.20 documentation</title>
-<meta content="How We Score &amp; Rank LLMs in Prediction Markets | PM-RANK 0.2.20 documentation" property="og:title"/>
-<meta content="How We Score &amp; Rank LLMs in Prediction Markets | PM-RANK 0.2.20 documentation" name="twitter:title"/>
+<title>How We Score &amp; Rank LLMs in Prophet Arena | PM-RANK 0.2.20 documentation</title>
+<meta content="How We Score &amp; Rank LLMs in Prophet Arena | PM-RANK 0.2.20 documentation" property="og:title"/>
+<meta content="How We Score &amp; Rank LLMs in Prophet Arena | PM-RANK 0.2.20 documentation" name="twitter:title"/>
 <link href="../_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
 <link href="../_static/theme.css?v=42baaae4" rel="stylesheet" type="text/css"/>
 <link href="../_static/graphviz.css?v=4ae1632d" rel="stylesheet" type="text/css"/>
+<link href="../_static/custom.css?v=4cdea68d" rel="stylesheet" type="text/css"/>
 <link href="../search.html" rel="search" title="Search"/>
 <link href="../genindex.html" rel="index" title="Index"/>
-<link href="../autoapi/src/pm_rank/model/utils/index.html" rel="prev" title="src.pm_rank.model.utils"/>
 <script>
     <!-- Prevent Flash of wrong theme -->
       const userPreference = localStorage.getItem('darkMode');
@@ -84,10 +84,6 @@
 </ul>
 </li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Blogposts:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">How We Score &amp; Rank LLMs in Prediction Markets</a></li>
-</ul>
 </nav>
 </div>
 </div>
@@ -108,19 +104,19 @@
 </a>
 <div class="mr-1">/</div>
 <span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-    How We Score &amp; Rank LLMs in Prediction Markets
+    How We Score &amp; Rank LLMs in Prophet Arena
   </span>
 </nav>
 <div id="content" role="main">
-<section id="how-we-score-rank-llms-in-prediction-markets">
-<h1>How We Score &amp; Rank LLMs in Prediction Markets<a class="headerlink" href="#how-we-score-rank-llms-in-prediction-markets" title="Link to this heading"><span>¶</span></a></h1>
+<section id="how-we-score-rank-llms-in-prophet-arena">
+<h1>How We Score &amp; Rank LLMs in Prophet Arena<a class="headerlink" href="#how-we-score-rank-llms-in-prophet-arena" title="Link to this heading"><span>¶</span></a></h1>
 <blockquote>
 <div><p><strong>Author:</strong> Sida Li, Prophet Arena Team</p>
-<p><strong>Date:</strong> August 1st, 2025</p>
+<p><strong>Date:</strong> August 10th, 2025</p>
 <p><strong>Estimated Reading Time:</strong> 9 minutes</p>
 </div></blockquote>
 <hr class="docutils"/>
-<p>Creating benchmarks and arenas to evaluate large language models (LLMs) is often a labor-intensive and meticulous process. However, when it comes to the metrics used for evaluation, the guiding principle is usually to find a straightforward and intuitive scoring methods for a given task. For example, in problems involving pairwise comparisons (“Which LLM answers better?”), the Elo rating system offers a clean and elegant solution. Likewise, for benchmarks focused on verifiable, objective answers, the evaluation can be as simple as averaging binary correctness across all problems to yield an accuracy metric.</p>
+<p>Creating benchmarks and arenas to evaluate large language models (LLMs) is often a labor-intensive and meticulous process. However, when it comes to the metrics used for evaluation, the guiding principle is usually to find a straightforward and intuitive scoring methods for a given task. For example, in problems involving pairwise comparisons (“Which LLM answers better?”), the <a class="reference external" href="https://en.wikipedia.org/wiki/Elo_rating_system">Elo rating system</a> offers a clean and elegant solution. Likewise, for benchmarks focused on verifiable, objective answers, the evaluation can be as simple as averaging binary correctness across all problems to yield an accuracy metric.</p>
 <p>However, the question of <strong>how to score and rank LLMs based on their probabilistic predictions</strong> introduces more complexity and nuance. Choosing the right metrics becomes a non-trivial yet intriguing challenge. One distinctive strength of our platform, <code class="docutils literal notranslate"><span class="pre">ProphetArena</span></code>, lies precisely in our comprehensive scoring and ranking module. This module implements diverse, principled metrics inspired by statistical modeling, utility theory, and psychometrics.</p>
 <p>In this post, we’ll guide you through the reasoning behind our metric choices and describe how these metrics help us robustly evaluate LLM performance in prediction-market scenarios.</p>
 <section id="tl-dr-for-readers-in-a-hurry">
@@ -149,10 +145,10 @@
 BS_i \equiv \text{Brier Score for } E_i = \frac{1}{n_i} \sum_{k=1}^{n_i}(p_{ik} - o_{ik})^2
 \end{equation*}\]</div>
 <p>where <span class="math notranslate nohighlight">\(o_{ik}\)</span> is 1 if outcome <span class="math notranslate nohighlight">\(k\)</span> occurred, and 0 otherwise. This metric provides a clean numeric score between 0 and 1, with lower scores indicating better accuracy and calibration.</p>
-<details>
-<summary>🔍 <b>Remark</b> for careful readers</summary>
-<p>In the setup above (and the rest of the post), we considered a <strong>simplified setting</strong> where all the potential outcomes (or <code class="docutils literal notranslate"><span class="pre">markets</span></code>) in an event are <em>mutually exclusive</em>. While this assumption holds naturally in certain cases (e.g. sports betting on which team will win the championship), it can be seriously violated in other cases (e.g. the markets “Bitcoin price will be above <span class="math notranslate nohighlight">\(100,000" and "Bitcoin price will be above \)</span>100,500” are actually highly correlated). Fortunately, even in the general case, the Brier score can generalize easily, but other metrics mentioned below might require extra approximation or adaptation. We will detail the generalized version of our scoring/ranking methods in the upcoming paper.</p>
-</details>
+<blockquote>
+<div><p>🔍 <strong>Remark for careful readers</strong></p>
+<p>In the setup above (and the rest of the post), we considered a <strong>simplified setting</strong> where all the potential outcomes (or <code class="docutils literal notranslate"><span class="pre">markets</span></code>) in an event are <em>mutually exclusive</em>. While this assumption holds naturally in certain cases (e.g. sports betting on which team will win the championship), it can be seriously violated in other cases (e.g. the markets “Bitcoin price will be above 100k dollars” and “Bitcoin price will be above 101k dollars” are actually highly correlated). Fortunately, even in the general case, the Brier score can generalize easily, but other metrics mentioned below might require extra approximation or adaptation. We will detail the generalized version of our scoring/ranking methods in the upcoming paper.</p>
+</div></blockquote>
 <p>The final (averaged) Brier score is then calculated across all events:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{equation*}
@@ -167,6 +163,10 @@ BS = \frac{1}{N} \sum_{i=1}^{N} BS_i
 <section id="averaged-return-what-practitioners-might-care-about">
 <h2>Averaged Return: what practitioners might care about<a class="headerlink" href="#averaged-return-what-practitioners-might-care-about" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#averaged-return-what-practitioners-might-care-about'"><span>¶</span></a></h2>
 <p>In real-world prediction markets, practitioners care deeply about <strong>actionable insights</strong>—specifically, how much money one could earn by faithfully following an LLM’s probabilistic predictions. However, LLMs only provide probabilistic estimates rather than direct recommendations for betting actions. Turning these estimates into concrete actions typically involves comparing the LLM’s belief (probability) against market-implied probabilities.</p>
+<blockquote>
+<div><p>🔍 <strong>Remark for careful readers</strong></p>
+<p>Here we once again introduce the metric under our <strong>simplified setting</strong> where all the potential outcomes (or <code class="docutils literal notranslate"><span class="pre">markets</span></code>) in an event are <em>mutually exclusive</em>. To understand the details and math formulations behind the generic algorithm, which is what we implement in the <code class="docutils literal notranslate"><span class="pre">pm_rank</span></code> package, please refer to the <a class="reference internal" href="#../_static/technical_doc.pdf"><span class="xref myst">our technical document</span></a>.</p>
+</div></blockquote>
 <p>To address this, we’ve introduced a novel approach rooted in <strong>constant-relative-risk-aversion (CRRA) utility theory</strong>. Specifically, we assume a hypothetical scenario where a human fully trusts the LLM’s probabilities as their true beliefs and makes decisions guided solely by their personal risk aversion, captured by the CRRA utility function:</p>
 <div class="amsmath math notranslate nohighlight">
 \[\begin{equation*}

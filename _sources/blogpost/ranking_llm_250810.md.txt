@@ -1,13 +1,13 @@
-# How We Score & Rank LLMs in Prediction Markets
+# How We Score & Rank LLMs in Prophet Arena
 
 > **Author:** Sida Li, Prophet Arena Team
 >
-> **Date:** August 1st, 2025
+> **Date:** August 10th, 2025
 >
 > **Estimated Reading Time:** 9 minutes
 ---
 
-Creating benchmarks and arenas to evaluate large language models (LLMs) is often a labor-intensive and meticulous process. However, when it comes to the metrics used for evaluation, the guiding principle is usually to find a straightforward and intuitive scoring methods for a given task. For example, in problems involving pairwise comparisons ("Which LLM answers better?"), the Elo rating system offers a clean and elegant solution. Likewise, for benchmarks focused on verifiable, objective answers, the evaluation can be as simple as averaging binary correctness across all problems to yield an accuracy metric.
+Creating benchmarks and arenas to evaluate large language models (LLMs) is often a labor-intensive and meticulous process. However, when it comes to the metrics used for evaluation, the guiding principle is usually to find a straightforward and intuitive scoring methods for a given task. For example, in problems involving pairwise comparisons ("Which LLM answers better?"), the [Elo rating system](https://en.wikipedia.org/wiki/Elo_rating_system) offers a clean and elegant solution. Likewise, for benchmarks focused on verifiable, objective answers, the evaluation can be as simple as averaging binary correctness across all problems to yield an accuracy metric.
 
 However, the question of **how to score and rank LLMs based on their probabilistic predictions** introduces more complexity and nuance. Choosing the right metrics becomes a non-trivial yet intriguing challenge. One distinctive strength of our platform, `ProphetArena`, lies precisely in our comprehensive scoring and ranking module. This module implements diverse, principled metrics inspired by statistical modeling, utility theory, and psychometrics.
 
@@ -42,11 +42,11 @@ BS_i \equiv \text{Brier Score for } E_i = \frac{1}{n_i} \sum_{k=1}^{n_i}(p_{ik} 
 
 where $o_{ik}$ is 1 if outcome $k$ occurred, and 0 otherwise. This metric provides a clean numeric score between 0 and 1, with lower scores indicating better accuracy and calibration. 
 
-<details>
-<summary>🔍 <b>Remark</b> for careful readers</summary>
 
-In the setup above (and the rest of the post), we considered a **simplified setting** where all the potential outcomes (or `markets`) in an event are _mutually exclusive_. While this assumption holds naturally in certain cases (e.g. sports betting on which team will win the championship), it can be seriously violated in other cases (e.g. the markets "Bitcoin price will be above $100,000" and "Bitcoin price will be above $100,500" are actually highly correlated). Fortunately, even in the general case, the Brier score can generalize easily, but other metrics mentioned below might require extra approximation or adaptation. We will detail the generalized version of our scoring/ranking methods in the upcoming paper.
-</details>
+> 🔍 **Remark for careful readers**
+>
+> In the setup above (and the rest of the post), we considered a **simplified setting** where all the potential outcomes (or `markets`) in an event are _mutually exclusive_. While this assumption holds naturally in certain cases (e.g. sports betting on which team will win the championship), it can be seriously violated in other cases (e.g. the markets "Bitcoin price will be above 100k dollars" and "Bitcoin price will be above 101k dollars" are actually highly correlated). Fortunately, even in the general case, the Brier score can generalize easily, but other metrics mentioned below might require extra approximation or adaptation. We will detail the generalized version of our scoring/ranking methods in the upcoming paper.
+
 
 The final (averaged) Brier score is then calculated across all events:
 
@@ -67,6 +67,10 @@ While the Brier score serves as our default scoring method due to its interpreta
 ## Averaged Return: what practitioners might care about
 
 In real-world prediction markets, practitioners care deeply about **actionable insights**—specifically, how much money one could earn by faithfully following an LLM’s probabilistic predictions. However, LLMs only provide probabilistic estimates rather than direct recommendations for betting actions. Turning these estimates into concrete actions typically involves comparing the LLM's belief (probability) against market-implied probabilities.
+
+> 🔍 **Remark for careful readers**
+>
+> Here we once again introduce the metric under our **simplified setting** where all the potential outcomes (or `markets`) in an event are _mutually exclusive_. To understand the details and math formulations behind the generic algorithm, which is what we implement in the `pm_rank` package, please refer to the [our technical document](../_static/technical_doc.pdf).
 
 To address this, we've introduced a novel approach rooted in **constant-relative-risk-aversion (CRRA) utility theory**. Specifically, we assume a hypothetical scenario where a human fully trusts the LLM’s probabilities as their true beliefs and makes decisions guided solely by their personal risk aversion, captured by the CRRA utility function:
 
