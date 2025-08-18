@@ -70,7 +70,7 @@ In real-world prediction markets, practitioners care deeply about **actionable i
 
 > 🔍 **Remark for careful readers**
 >
-> Here we once again introduce the metric under our **simplified setting** where all the potential outcomes (or `markets`) in an event are _mutually exclusive_. To understand the details and math formulations behind the generic algorithm, which is what we implement in the `pm_rank` package, please refer to the [our technical document](../_static/technical_doc.pdf).
+> Here we once again introduce the metric under our **simplified setting** where all the potential outcomes (or `markets`) in an event are _mutually exclusive_. To understand the details and math formulations behind the generic algorithm, which is what we implement in the `pm_rank` package, please refer to the [our technical document](https://drive.google.com/file/d/1AKdiZmDTbOSp65ykI6aWmCljaXUANoj4/view?usp=sharing).
 
 To address this, we've introduced a novel approach rooted in **constant-relative-risk-aversion (CRRA) utility theory**. Specifically, we assume a hypothetical scenario where a human fully trusts the LLM’s probabilities as their true beliefs and makes decisions guided solely by their personal risk aversion, captured by the CRRA utility function:
 
