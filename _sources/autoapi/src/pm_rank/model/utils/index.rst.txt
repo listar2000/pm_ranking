@@ -10,6 +10,15 @@ Attributes
 .. autoapisummary::
 
    src.pm_rank.model.utils.AGGREGATE_FNS
+   src.pm_rank.model.utils.DEFAULT_BOOTSTRAP_CI_CONFIG
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   src.pm_rank.model.utils.BootstrapCIConfig
 
 
 Functions
@@ -31,7 +40,41 @@ Module Contents
 
 .. py:data:: AGGREGATE_FNS
 
-.. py:function:: forecaster_data_to_rankings(forecaster_data: Dict[str, List[float]], include_scores: bool = True, ascending: bool = True, aggregate: Literal['mean', 'median', 'max', 'min'] = 'mean')
+.. py:class:: BootstrapCIConfig
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   Configuration for bootstrap confidence interval computation.
+
+   This configuration class defines parameters for computing bootstrap confidence
+   intervals used in forecaster ranking evaluations.
+
+   :param num_bootstrap_samples: The number of bootstrap samples to draw (default: 1000).
+   :param bootstrap_ci_level: The confidence level for the bootstrap confidence interval (default: 0.95).
+   :param random_seed: The random seed for reproducible bootstrap sampling. Set to None for random seeding (default: 42).
+   :param symmetric: Whether to use symmetric confidence intervals (default: True).
+
+
+   .. py:attribute:: num_bootstrap_samples
+      :type:  int
+
+
+   .. py:attribute:: bootstrap_ci_level
+      :type:  float
+
+
+   .. py:attribute:: random_seed
+      :type:  int | None
+
+
+   .. py:attribute:: symmetric
+      :type:  bool
+
+
+.. py:data:: DEFAULT_BOOTSTRAP_CI_CONFIG
+
+.. py:function:: forecaster_data_to_rankings(forecaster_data: Dict[str, List[float]], include_scores: bool = True, include_bootstrap_ci: bool = False, ascending: bool = True, aggregate: Literal['mean', 'median', 'max', 'min'] = 'mean', bootstrap_ci_config: BootstrapCIConfig = DEFAULT_BOOTSTRAP_CI_CONFIG)
 
    Convert the forecaster data to rankings.
    A forecaster data is a dictionary that maps forecaster name to a list of scores.
@@ -39,6 +82,7 @@ Module Contents
    Args:
        forecaster_data: a dictionary that maps forecaster name to a list of scores.
        include_scores: whether to include the scores in the rankings.
+       include_bootstrap_ci: whether to include the bootstrap confidence intervals in the rankings.
        ascending: if true, the score is smaller, the better; otherwise, the score is larger, the better.
    Returns:
        A dictionary that maps forecaster name to a list of rankings.
@@ -56,7 +100,7 @@ Module Contents
    Reference: https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient
 
 
-.. py:function:: log_ranking_table(logger: logging.Logger, ranking_result: Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int], max_rows: int = 20)
+.. py:function:: log_ranking_table(logger: logging.Logger, ranking_result: Tuple | Dict[str, int], max_rows: int = 25)
 
    Take in any model's ranking result, which might or might not include scores, and log the table.
 

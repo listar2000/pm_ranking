@@ -81,6 +81,10 @@ Module Contents
 
 
 
+   .. py:attribute:: bootstrap_ci_config
+      :type:  pm_rank.model.utils.BootstrapCIConfig
+
+
    .. py:method:: __post_init__()
 
       Validate configuration parameters.
@@ -125,7 +129,7 @@ Module Contents
 
 
 
-.. py:class:: AverageReturn(num_money_per_round: int = None, risk_aversion: float = None, use_approximate: bool = None, break_tie_by_uniform: bool = None, use_binary_reduction: bool = None, verbose: bool = False, config: AverageReturnConfig = None)
+.. py:class:: AverageReturn(num_money_per_round: int = None, risk_aversion: float = None, use_approximate: bool = None, break_tie_by_uniform: bool = None, use_binary_reduction: bool = None, verbose: bool = False, config: AverageReturnConfig = None, bootstrap_ci_config: pm_rank.model.utils.BootstrapCIConfig = DEFAULT_BOOTSTRAP_CI_CONFIG)
 
    Average Return Model for ranking forecasters based on their expected market returns.
 
@@ -162,6 +166,9 @@ Module Contents
    .. py:attribute:: use_binary_reduction
 
 
+   .. py:attribute:: bootstrap_ci_config
+
+
    .. py:attribute:: verbose
       :value: False
 
@@ -173,7 +180,7 @@ Module Contents
    .. py:attribute:: process_problem_fn
 
 
-   .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True, include_per_problem_info: bool = False) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
+   .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True, include_bootstrap_ci: bool = False, include_per_problem_info: bool = False) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
 
       Fit the average return model to the given problems.
 
@@ -182,6 +189,7 @@ Module Contents
 
       :param problems: List of ForecastProblem instances to process.
       :param include_scores: Whether to include scores in the results (default: True).
+      :param include_bootstrap_ci: Whether to include bootstrap confidence intervals in the results (default: False).
       :param include_per_problem_info: Whether to include per-problem info in the results (default: False).
 
       :returns: Ranking results, either as a tuple of (scores, rankings) or just rankings.

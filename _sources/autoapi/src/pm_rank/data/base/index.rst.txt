@@ -24,6 +24,7 @@ Classes
 .. autoapisummary::
 
    src.pm_rank.data.base.ForecastEvent
+   src.pm_rank.data.base.ProphetArenaForecastEvent
    src.pm_rank.data.base.ForecastProblem
    src.pm_rank.data.base.ForecastChallenge
    src.pm_rank.data.base.ChallengeLoader
@@ -68,6 +69,16 @@ Module Contents
       :type:  Optional[List[float]]
 
 
+   .. py:attribute:: weight
+      :type:  float
+
+
+   .. py:method:: validate_weight(v)
+
+      Validate that weight is non-negative.
+
+
+
    .. py:method:: validate_probabilities(v)
 
       Validate that probabilities sum to 1 and are non-negative.
@@ -85,6 +96,18 @@ Module Contents
       Validate that unnormalized probabilities are non-negative.
       we only require every number to be in [0, 1], and the vector dimension is the same as the number of options.
 
+
+
+.. py:class:: ProphetArenaForecastEvent
+
+   Bases: :py:obj:`ForecastEvent`
+
+
+   Specialized forecast event for Prophet Arena.
+
+
+   .. py:attribute:: submission_id
+      :type:  str
 
 
 .. py:class:: ForecastProblem
@@ -147,7 +170,7 @@ Module Contents
 
    .. py:method:: validate_forecasts(v, info)
 
-      Validate that all forecasts have correct number of probabilities.
+      Validate that all forecasts have (1) correct number of probabilities, (2) unique `forecast_id`.
 
 
 

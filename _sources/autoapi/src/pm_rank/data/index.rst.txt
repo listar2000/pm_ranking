@@ -67,6 +67,16 @@ Package Contents
       :type:  Optional[List[float]]
 
 
+   .. py:attribute:: weight
+      :type:  float
+
+
+   .. py:method:: validate_weight(v)
+
+      Validate that weight is non-negative.
+
+
+
    .. py:method:: validate_probabilities(v)
 
       Validate that probabilities sum to 1 and are non-negative.
@@ -146,7 +156,7 @@ Package Contents
 
    .. py:method:: validate_forecasts(v, info)
 
-      Validate that all forecasts have correct number of probabilities.
+      Validate that all forecasts have (1) correct number of probabilities, (2) unique `forecast_id`.
 
 
 
