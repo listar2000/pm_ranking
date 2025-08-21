@@ -19,9 +19,9 @@ IMPORTANT DEFINITIONS:
 import numpy as np
 from typing import List, Dict, Any, Tuple, Iterator, Callable, Literal
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pm_rank.data.base import ForecastProblem, ForecastChallenge
-from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
+from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table, DEFAULT_BOOTSTRAP_CI_CONFIG, BootstrapCIConfig
 import logging
 
 
@@ -44,6 +44,8 @@ class AverageReturnConfig:
     use_approximate: bool = False
     break_tie_by_uniform: bool = True
     use_binary_reduction: bool = False
+    # need this trick since otherwise the default object is mutable.
+    bootstrap_ci_config: BootstrapCIConfig = field(default_factory=lambda: DEFAULT_BOOTSTRAP_CI_CONFIG)
     
     def __post_init__(self):
         """Validate configuration parameters."""
@@ -276,7 +278,7 @@ class AverageReturn:
     def __init__(self, num_money_per_round: int = None, risk_aversion: float = None, 
                  use_approximate: bool = None, break_tie_by_uniform: bool = None,
                  use_binary_reduction: bool = None, verbose: bool = False, 
-                 config: AverageReturnConfig = None):
+                 config: AverageReturnConfig = None, bootstrap_ci_config: BootstrapCIConfig = DEFAULT_BOOTSTRAP_CI_CONFIG):
         """Initialize the AverageReturn model.
 
         :param num_money_per_round: Amount of money to bet per round (default: 1).
@@ -300,7 +302,8 @@ class AverageReturn:
                 risk_aversion=0.0 if risk_aversion is None else risk_aversion,
                 use_approximate=False if use_approximate is None else use_approximate,
                 break_tie_by_uniform=True if break_tie_by_uniform is None else break_tie_by_uniform,
-                use_binary_reduction=True if use_binary_reduction is None else use_binary_reduction
+                use_binary_reduction=True if use_binary_reduction is None else use_binary_reduction,
+                bootstrap_ci_config=bootstrap_ci_config
             )
         
         # Deconstruct config into individual attributes to avoid self.config.xxx usage
@@ -309,6 +312,7 @@ class AverageReturn:
         self.use_approximate = final_config.use_approximate
         self.break_tie_by_uniform = final_config.break_tie_by_uniform
         self.use_binary_reduction = final_config.use_binary_reduction
+        self.bootstrap_ci_config = final_config.bootstrap_ci_config
         self.verbose = verbose
         
         self.logger = get_logger(f"pm_rank.model.{self.__class__.__name__}")
@@ -365,7 +369,8 @@ class AverageReturn:
             username = forecast.username
             if username not in forecaster_data:
                 forecaster_data[username] = []
-            forecaster_data[username].append(earnings[i])
+            # we will weight the earnings by the forecast weight for this event.
+            forecaster_data[username].append(earnings[i] * forecast.weight)
 
         outcomes = np.zeros_like(forecast_probs)
         outcomes[:, problem.correct_option_idx] = 1
@@ -453,7 +458,8 @@ class AverageReturn:
             username = forecast.username
             if username not in forecaster_data:
                 forecaster_data[username] = []
-            forecaster_data[username].append(effective_earnings[i])
+            # we will weight the earnings by the forecast weight for this event.
+            forecaster_data[username].append(effective_earnings[i] * forecast.weight)
 
         return {"bets": bets, "effective_outcomes": effective_outcomes, "choose_yes_contract": (yes_edges > no_edges)}
 
@@ -484,6 +490,7 @@ class AverageReturn:
                 self.process_problem_fn(problem, forecaster_data)
 
             # Generate rankings for this batch
+            # TODO: support bootstrap CI for streaming fit as well.
             batch_results[key] = forecaster_data_to_rankings(
                 forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean"
             )
@@ -492,7 +499,7 @@ class AverageReturn:
 
         return batch_results
 
-    def fit(self, problems: List[ForecastProblem], include_scores: bool = True, include_per_problem_info: bool = False) -> \
+    def fit(self, problems: List[ForecastProblem], include_scores: bool = True, include_bootstrap_ci: bool = False, include_per_problem_info: bool = False) -> \
             Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """Fit the average return model to the given problems.
 
@@ -501,6 +508,7 @@ class AverageReturn:
 
         :param problems: List of ForecastProblem instances to process.
         :param include_scores: Whether to include scores in the results (default: True).
+        :param include_bootstrap_ci: Whether to include bootstrap confidence intervals in the results (default: False).
         :param include_per_problem_info: Whether to include per-problem info in the results (default: False).
 
         :returns: Ranking results, either as a tuple of (scores, rankings) or just rankings.
@@ -514,6 +522,7 @@ class AverageReturn:
             process_info = self.process_problem_fn(problem, forecaster_data)
             if include_per_problem_info:
                 for i, forecast in enumerate(problem.forecasts):
+                    # TODO: make this into a HOOK where the caller can customize the info
                     info = {
                         "forecast_id": forecast.forecast_id,
                         "username": forecast.username,
@@ -526,10 +535,13 @@ class AverageReturn:
                         "effective_outcomes": process_info["effective_outcomes"][i].tolist(),
                         "choose_yes_contract": process_info["choose_yes_contract"][i].tolist()
                     }
+                    # add `submission_id` if it exists; TODO: remove this hard-coded check
+                    if hasattr(forecast, "submission_id"):
+                        info["submission_id"] = forecast.submission_id
                     per_problem_info.append(info)
 
         result = forecaster_data_to_rankings(
-            forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
+            forecaster_data, include_scores=include_scores, include_bootstrap_ci=include_bootstrap_ci, ascending=False, aggregate="mean", bootstrap_ci_config=self.bootstrap_ci_config)
         if self.verbose:
             log_ranking_table(self.logger, result)
         

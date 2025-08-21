@@ -14,12 +14,20 @@ SMOOTH_ODDS_EPS = 5e-3
 
 class ForecastEvent(BaseModel):
     """Individual forecast from a user for a specific problem."""
-    forecast_id: str = Field(description="The id of the forecast")
+    forecast_id: str = Field(description="The unique identifier of the forecast")
     problem_id: str = Field(description="The id of the problem")
     username: str = Field(description="The user name/id of the forecaster")
     timestamp: datetime = Field(description="The timestamp of the forecast")
     probs: List[float] = Field(description="The forecasted probabilities for each option")
     unnormalized_probs: Optional[List[float]] = Field(default=None, description="The unnormalized forecasted probabilities for each option")
+    weight: float = Field(description="The weight of the forecast. This is used to weight the forecast in scoring/ranking. Default to 1.", default=1.0)
+
+    @field_validator('weight')
+    def validate_weight(cls, v):
+        """Validate that weight is non-negative."""
+        if v < 0:
+            raise ValueError("Weight must be non-negative")
+        return v
 
     @field_validator('probs')
     def validate_probabilities(cls, v):
@@ -53,6 +61,11 @@ class ForecastEvent(BaseModel):
         return v
 
 
+class ProphetArenaForecastEvent(ForecastEvent):
+    """Specialized forecast event for Prophet Arena."""
+    submission_id: str = Field(description="The id of the submission batch. Note this might not be unique across different forecasters.")
+
+
 class ForecastProblem(BaseModel):
     """A prediction problem with multiple options and forecasts."""
     title: str = Field(description="The title of the problem")
@@ -63,6 +76,7 @@ class ForecastProblem(BaseModel):
     end_time: datetime = Field(description="The end time of the problem")
     num_forecasters: int = Field(description="The number of forecasters")
     url: Optional[str] = Field(None, description="The URL of the problem")
+    # TODO: in the future, the problem might have mutiple `odds`/`no_odds` depending on the submission_id of its events.
     odds: Optional[List[float]] = Field(None, description="The odds for each option")
     no_odds: Optional[List[float]] = Field(None, description="The odds for each option to not realize")
     category: Optional[str] = Field(None, description="The category of the problem")
@@ -83,7 +97,7 @@ class ForecastProblem(BaseModel):
 
     @field_validator('forecasts')
     def validate_forecasts(cls, v, info):
-        """Validate that all forecasts have correct number of probabilities."""
+        """Validate that all forecasts have (1) correct number of probabilities, (2) unique `forecast_id`."""
         if info.data and 'options' in info.data:
             expected_length = len(info.data['options'])
             for forecast in v:
@@ -92,6 +106,13 @@ class ForecastProblem(BaseModel):
                         f"Forecast by {forecast.username} has {len(forecast.probs)} probabilities, "
                         f"expected {expected_length}"
                     )
+
+        forecast_id_set = set()
+        for forecast in v:
+            if forecast.forecast_id in forecast_id_set:
+                raise ValueError(f"Forecast by {forecast.username} has duplicate `forecast_id`: {forecast.forecast_id}")
+            forecast_id_set.add(forecast.forecast_id)
+        
         return v
 
     @field_validator('odds')

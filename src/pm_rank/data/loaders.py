@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import Dict, Any, Tuple, List, Optional
 import pandas as pd
-from .base import ChallengeLoader, ForecastChallenge, ForecastProblem, ForecastEvent
+from .base import ChallengeLoader, ForecastChallenge, ForecastProblem, ForecastEvent, ProphetArenaForecastEvent
 from datetime import datetime
 import math
 from .utils import parse_json_or_eval, get_logger
@@ -314,10 +314,13 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             forecasts = []
 
             if add_market_baseline:
+                # we set the submission_id to be the submission_id of the first row in the group
+                submission_id = str(first_row['submission_id'])
                 # we will add a "market row" in this group, with (unnormalized) prob being simply the market odds
-                forecasts.append(ForecastEvent(
+                forecasts.append(ProphetArenaForecastEvent(
                     forecast_id=f"{problem_id}-market-baseline",
                     problem_id=problem_id,
+                    submission_id=submission_id,
                     username="market-baseline",
                     timestamp=timestamp,
                     probs=self._get_normalized_probs(odds),
@@ -328,7 +331,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             if category is not None and category not in categories:
                 categories.append(category)
 
-            for _, row in group.iterrows():
+            for i, row in group.iterrows():
                 username = str(row['predictor_name'])
                 prediction: dict = parse_json_or_eval(
                     row['prediction'], expect_type=dict)
@@ -340,11 +343,13 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
 
                 # set `forecast_id` to be `prediction_id` if the column exists, otherwise construct one
                 # using `username` and `problem_id`
-                forecast_id = str(row['prediction_id']) if 'prediction_id' in row else f"{username}-{problem_id}"
+                forecast_id = str(row['prediction_id']) if 'prediction_id' in row else f"{username}-{problem_id}-{i}"
+                submission_id = str(row['submission_id']) if 'submission_id' in row else problem_id
 
-                forecasts.append(ForecastEvent(
+                forecasts.append(ProphetArenaForecastEvent(
                     forecast_id=forecast_id,
                     problem_id=problem_id,
+                    submission_id=submission_id,
                     username=username,
                     timestamp=timestamp,
                     probs=probs,

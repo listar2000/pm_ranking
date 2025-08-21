@@ -28,7 +28,7 @@ import numpy as np
 from typing import List, Iterator, Dict, Tuple, Any, Literal, Callable
 from collections import OrderedDict
 from pm_rank.data.base import ForecastProblem, ForecastChallenge
-from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
+from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table, BootstrapCIConfig, DEFAULT_BOOTSTRAP_CI_CONFIG
 import logging
 
 # we use the following quantiles to cap the problem weights
@@ -100,7 +100,8 @@ class ScoringRule(ABC):
         return problem_weights
 
     def fit(self, problems: List[ForecastProblem], problem_discriminations: np.ndarray | List[float] | None = None, include_scores: bool = True, \
-        include_per_problem_info: bool = False) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
+        include_bootstrap_ci: bool = False, include_per_problem_info: bool = False, \
+        bootstrap_ci_config: BootstrapCIConfig = DEFAULT_BOOTSTRAP_CI_CONFIG) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """Fit the scoring rule to the given problems and return rankings.
 
         This method processes all problems and calculates scores for each forecaster
@@ -112,10 +113,13 @@ class ScoringRule(ABC):
         :param problem_discriminations: Optional array of discrimination parameters for
                                        weighting problems. If None, all problems are weighted equally.
         :param include_scores: Whether to include scores in the results (default: True).
+        :param include_bootstrap_ci: Whether to include bootstrap confidence intervals (default: False).
         :param include_per_problem_info: Whether to include per-problem info in the results (default: False).
+        :param bootstrap_ci_config: Configuration for bootstrap confidence intervals.
 
         :returns: Ranking results, either as a tuple of (scores, rankings) or just rankings.
-                  If include_per_problem_info is True, returns a tuple of (scores, rankings, per_problem_info).
+                  If include_bootstrap_ci is True, adds bootstrap_cis to the tuple.
+                  If include_per_problem_info is True, adds per_problem_info to the tuple.
         """
         forecaster_data = {}
         if include_per_problem_info:
@@ -143,11 +147,12 @@ class ScoringRule(ABC):
                 correct_option_idx, all_probs) * problem_weights[i]
             # attribute the scores to the forecasters
             for username, score in zip(usernames, scores):
-                forecaster_data[username].append(score)
+                # we will weight the scores by the forecast weight for this event.
+                forecaster_data[username].append(score * forecast.weight)
 
             if include_per_problem_info:
                 for i, forecast in enumerate(problem.forecasts):
-                    per_problem_info.append({
+                    info = {
                         "forecast_id": forecast.forecast_id,
                         "username": forecast.username,
                         "problem_title": problem.title,
@@ -155,10 +160,14 @@ class ScoringRule(ABC):
                         "problem_category": problem.category,
                         "score": scores[i],
                         "probs": forecast.unnormalized_probs
-                    })
+                    }
+                    if hasattr(forecast, "submission_id"):
+                        info["submission_id"] = forecast.submission_id
+                    per_problem_info.append(info)
 
         result = forecaster_data_to_rankings(
-            forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean")
+            forecaster_data, include_scores=include_scores, include_bootstrap_ci=include_bootstrap_ci, 
+            ascending=False, aggregate="mean", bootstrap_ci_config=bootstrap_ci_config)
         if self.verbose:
             log_ranking_table(self.logger, result)
         return (*result, per_problem_info) if include_per_problem_info else result
@@ -201,7 +210,8 @@ class ScoringRule(ABC):
                 scores = self._score_fn(correct_option_idx, all_probs)
 
                 for username, score in zip(usernames, scores):
-                    forecaster_data[username].append(score)
+                    # we will weight the scores by the forecast weight for this event.
+                    forecaster_data[username].append(score * forecast.weight)
 
             # Generate rankings for this batch
             batch_results[key] = forecaster_data_to_rankings(
