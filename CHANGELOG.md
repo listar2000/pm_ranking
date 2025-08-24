@@ -1,6 +1,10 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.2.21 (Current)
+### v0.2.22 (Current)
+
+- For `ProphetArenaChallengeLoader`, we do some additional checks to ensure the unnormalized probabilities will not error.
+
+### v0.2.21
 
 - `ForecastEvent`: we make the following specifications.
     - add a new field `weight`: the weight of the forecast. This is used to weight the forecast in scoring/ranking. Default to 1. This should be supplemented by user of `pm_rank`.

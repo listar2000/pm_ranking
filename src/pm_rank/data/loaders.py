@@ -308,7 +308,8 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
             market_outcome = parse_json_or_eval(
                 first_row['market_outcome'], expect_type=dict)
 
-            correct_option_idx = [i for i, key in enumerate(problem_option_keys) if market_outcome[key] == 1]
+            correct_option_idx = [i for i, key in enumerate(problem_option_keys) if market_outcome.get(key, 0) == 1]
+
             timestamp = datetime.now()
 
             forecasts = []
@@ -337,7 +338,9 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     row['prediction'], expect_type=dict)
                 probs_dict = {d['market']: d['probability']
                               for d in prediction.get('probabilities', [])}
-                unnormalized_probs = [probs_dict.get(opt, 0.0) for opt in problem_option_keys]
+
+                # clip raw prob to be between 0 and 1
+                unnormalized_probs = [max(0.0, min(1.0, probs_dict.get(opt, 0.0))) for opt in problem_option_keys]
                 # make sure the probs sum to 1
                 probs = self._get_normalized_probs(unnormalized_probs)
 
