@@ -17,6 +17,7 @@ Submodules
 
    /autoapi/src/pm_rank/model/average_return/index
    /autoapi/src/pm_rank/model/bradley_terry/index
+   /autoapi/src/pm_rank/model/calibration/index
    /autoapi/src/pm_rank/model/irt/index
    /autoapi/src/pm_rank/model/scoring_rule/index
    /autoapi/src/pm_rank/model/utils/index
@@ -33,6 +34,7 @@ Classes
    src.pm_rank.model.LogScoringRule
    src.pm_rank.model.AverageReturn
    src.pm_rank.model.AverageReturnConfig
+   src.pm_rank.model.CalibrationMetric
 
 
 Functions
@@ -389,6 +391,52 @@ Package Contents
 
       Create a default configuration.
 
+
+
+.. py:class:: CalibrationMetric(num_bins: int = 10, strategy: Literal['uniform', 'quantile'] = 'uniform', weight_event: bool = True, verbose: bool = False)
+
+   
+   Initialize the CalibrationMetric.
+
+   :param num_bins: The number of bins to use for discretization.
+   :param strategy: The strategy to use for discretization.
+   :param weight_event: Whether to weight the event by the number of markets in it. If `False`, then each market will be treated equally.
+
+
+   .. py:attribute:: num_bins
+      :value: 10
+
+
+
+   .. py:attribute:: strategy
+      :value: 'uniform'
+
+
+
+   .. py:attribute:: weight_event
+      :value: True
+
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:attribute:: logger
+
+
+   .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True)
+
+      Fit the calibration metric to the given problems.
+
+      :param problems: List of ForecastProblem instances to process.
+
+      :returns: A dictionary containing the calibration metric.
+
+
+
+   .. py:method:: plot(name: str, save_path: str = None, figsize: tuple[float, float] = (4, 4), percent: bool = True)
 
 
 .. py:function:: spearman_correlation(rank_dict_a: Dict[str, int], rank_dict_b: Dict[str, int]) -> float

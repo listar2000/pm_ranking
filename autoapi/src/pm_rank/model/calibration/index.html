@@ -7,17 +7,17 @@
 <meta content="white" media="(prefers-color-scheme: light)" name="theme-color"/>
 <meta content="black" media="(prefers-color-scheme: dark)" name="theme-color"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>src.pm_rank.model.bradley_terry | PM-RANK 0.2.22 documentation</title>
-<meta content="src.pm_rank.model.bradley_terry | PM-RANK 0.2.22 documentation" property="og:title"/>
-<meta content="src.pm_rank.model.bradley_terry | PM-RANK 0.2.22 documentation" name="twitter:title"/>
+<title>src.pm_rank.model.calibration | PM-RANK 0.2.22 documentation</title>
+<meta content="src.pm_rank.model.calibration | PM-RANK 0.2.22 documentation" property="og:title"/>
+<meta content="src.pm_rank.model.calibration | PM-RANK 0.2.22 documentation" name="twitter:title"/>
 <link href="../../../../../_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
 <link href="../../../../../_static/theme.css?v=42baaae4" rel="stylesheet" type="text/css"/>
 <link href="../../../../../_static/graphviz.css?v=4ae1632d" rel="stylesheet" type="text/css"/>
 <link href="../../../../../_static/custom.css?v=4cdea68d" rel="stylesheet" type="text/css"/>
 <link href="../../../../../search.html" rel="search" title="Search"/>
 <link href="../../../../../genindex.html" rel="index" title="Index"/>
-<link href="../calibration/index.html" rel="next" title="src.pm_rank.model.calibration"/>
-<link href="../average_return/index.html" rel="prev" title="src.pm_rank.model.average_return"/>
+<link href="../irt/index.html" rel="next" title="src.pm_rank.model.irt"/>
+<link href="../bradley_terry/index.html" rel="prev" title="src.pm_rank.model.bradley_terry"/>
 <script>
     <!-- Prevent Flash of wrong theme -->
       const userPreference = localStorage.getItem('darkMode');
@@ -118,36 +118,44 @@
   </a>
 <div class="mr-1">/</div>
 <span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-    pm_rank/model.bradley_terry
+    pm_rank/model.calibration
   </span>
 </nav>
 <div id="content" role="main">
-<section id="module-src.pm_rank.model.bradley_terry">
-<span id="src-pm-rank-model-bradley-terry"></span><h1>src.pm_rank.model.bradley_terry<a class="headerlink" href="#module-src.pm_rank.model.bradley_terry" title="Link to this heading"><span>¶</span></a></h1>
-<p>Generalized Bradley-Terry Model for Ranking Forecasters in Prediction Markets.</p>
-<p>This module implements the generalized Bradley-Terry model to rank forecasters based on their
-probabilistic predictions. The Bradley-Terry model is a statistical method for modeling
-pairwise comparisons, which we extend to handle prediction market scenarios where each
-event outcome is viewed as a contest between winning and losing “teams” composed of
-forecaster contributions.</p>
-<p>Reference: <a class="reference external" href="https://www.jmlr.org/papers/v7/huang06a.html">https://www.jmlr.org/papers/v7/huang06a.html</a></p>
-<p>Key Concepts:</p>
-<ul class="simple">
-<li><p><strong>Bradley-Terry Model</strong>: A statistical model for analyzing pairwise comparisons that
-estimates the relative strengths of competitors.</p></li>
-<li><p><strong>Generalized Extension</strong>: Adapts the traditional pairwise model to prediction markets
-by treating each event outcome as a contest between winning and losing teams.</p></li>
-<li><p><strong>Skill Parameters</strong>: Each forecaster has a skill parameter (theta) that represents
-their relative predictive ability.</p></li>
-<li><p><strong>Majorization-Minimization (MM)</strong>: An iterative algorithm for fitting the model
-parameters that guarantees convergence.</p></li>
-</ul>
+<section id="module-src.pm_rank.model.calibration">
+<span id="src-pm-rank-model-calibration"></span><h1>src.pm_rank.model.calibration<a class="headerlink" href="#module-src.pm_rank.model.calibration" title="Link to this heading"><span>¶</span></a></h1>
+<p>Calibration Metric for LLM Predictions.</p>
+<p>Currently this model adopts the following definition of a (perfectly-calibrated) probabilistic predictor f():</p>
+<p>For all <span class="math notranslate nohighlight">\(p \in [0, 1]\)</span> and a pair of covariate <span class="math notranslate nohighlight">\(X\)</span> and binary outcome <span class="math notranslate nohighlight">\(Y\)</span>, we have:
+<div class="math notranslate nohighlight">
+\[
+\mathbb{P}(Y = 1 | f(X) = p) = p
+\]</div>
+</p>
+<p>We then define the (theoretical) <strong>expected calibration error</strong> (ECE) as a measure of deviation from the above property:
+<div class="math notranslate nohighlight">
+\[
+\text{ECE}^* = \mathbb{E}_{X, Y}[ | \mathbb{P}(Y = 1 | f(X)) - f(X) | ]
+\]</div>
+</p>
+<p>In practice, we will calculate an empirical version of the above ECE via binning (discretization).</p>
+<p>Reference: <a class="reference external" href="https://arxiv.org/pdf/2501.19047v2">https://arxiv.org/pdf/2501.19047v2</a></p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#attributes'"><span>¶</span></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.model.calibration.data_file" title="src.pm_rank.model.calibration.data_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data_file</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="classes">
 <h2>Classes<a class="headerlink" href="#classes" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#classes'"><span>¶</span></a></h2>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.model.bradley_terry.GeneralizedBT" title="src.pm_rank.model.bradley_terry.GeneralizedBT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GeneralizedBT</span></code></a></p></td>
-<td><p>Generalized Bradley-Terry model for ranking forecasters in prediction markets.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.model.calibration.CalibrationMetric" title="src.pm_rank.model.calibration.CalibrationMetric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CalibrationMetric</span></code></a></p></td>
+<td><p>Initialize the CalibrationMetric.</p></td>
 </tr>
 </tbody>
 </table>
@@ -155,95 +163,79 @@ parameters that guarantees convergence.</p></li>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#module-contents'"><span>¶</span></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="src.pm_rank.model.bradley_terry.GeneralizedBT">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.model.bradley_terry.</span></span><span class="sig-name descname"><span class="pre">GeneralizedBT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'MM'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'Elo'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'MM'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_iter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.model.bradley_terry.GeneralizedBT" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.bradley_terry.GeneralizedBT'"><span>¶</span></a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Generalized Bradley-Terry model for ranking forecasters in prediction markets.</p>
-<p>This class implements a generalization of the traditional Bradley-Terry model to
-handle prediction market scenarios. Each event outcome is treated as a contest
-between two “pseudo-teams”: a winning team (the realized outcome) and a losing
-team (all other outcomes). Each forecaster contributes fractions of their capability
-proportional to their predicted probabilities.</p>
-<p>The model estimates skill parameters for each forecaster using an iterative
-Majorization-Minimization (MM) algorithm, which provides convergence guarantees
-and intuitive comparative scores similar to Elo ratings.</p>
+<dt class="sig sig-object py" id="src.pm_rank.model.calibration.CalibrationMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.model.calibration.</span></span><span class="sig-name descname"><span class="pre">CalibrationMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'uniform'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'quantile'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'uniform'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.model.calibration.CalibrationMetric" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.calibration.CalibrationMetric'"><span>¶</span></a></dt>
+<dd><p>Initialize the CalibrationMetric.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> – Optimization method to use (“MM” for Majorization-Minimization).</p></li>
-<li><p><strong>num_iter</strong> – Maximum number of iterations for the MM algorithm (default: 100).</p></li>
-<li><p><strong>threshold</strong> – Convergence threshold for parameter updates (default: 1e-3).</p></li>
-<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
-</ul>
-</dd>
-</dl>
-<p>Initialize the generalized Bradley-Terry model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> – Optimization method to use (“MM” for Majorization-Minimization).</p></li>
-<li><p><strong>num_iter</strong> – Maximum number of iterations for the MM algorithm (default: 100).</p></li>
-<li><p><strong>threshold</strong> – Convergence threshold for parameter updates (default: 1e-3).</p></li>
-<li><p><strong>verbose</strong> – Whether to enable verbose logging (default: False).</p></li>
+<li><p><strong>num_bins</strong> – The number of bins to use for discretization.</p></li>
+<li><p><strong>strategy</strong> – The strategy to use for discretization.</p></li>
+<li><p><strong>weight_event</strong> – Whether to weight the event by the number of markets in it. If <cite>False</cite>, then each market will be treated equally.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.model.bradley_terry.GeneralizedBT.method">
-<span class="sig-name descname"><span class="pre">method</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'MM'</span></em><a class="headerlink" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.method" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.bradley_terry.GeneralizedBT.method'"><span>¶</span></a></dt>
+<dt class="sig sig-object py" id="src.pm_rank.model.calibration.CalibrationMetric.num_bins">
+<span class="sig-name descname"><span class="pre">num_bins</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#src.pm_rank.model.calibration.CalibrationMetric.num_bins" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.calibration.CalibrationMetric.num_bins'"><span>¶</span></a></dt>
 <dd></dd></dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.model.bradley_terry.GeneralizedBT.num_iter">
-<span class="sig-name descname"><span class="pre">num_iter</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></em><a class="headerlink" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.num_iter" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.bradley_terry.GeneralizedBT.num_iter'"><span>¶</span></a></dt>
+<dt class="sig sig-object py" id="src.pm_rank.model.calibration.CalibrationMetric.strategy">
+<span class="sig-name descname"><span class="pre">strategy</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'uniform'</span></em><a class="headerlink" href="#src.pm_rank.model.calibration.CalibrationMetric.strategy" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.calibration.CalibrationMetric.strategy'"><span>¶</span></a></dt>
 <dd></dd></dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.model.bradley_terry.GeneralizedBT.threshold">
-<span class="sig-name descname"><span class="pre">threshold</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></em><a class="headerlink" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.threshold" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.bradley_terry.GeneralizedBT.threshold'"><span>¶</span></a></dt>
+<dt class="sig sig-object py" id="src.pm_rank.model.calibration.CalibrationMetric.weight_event">
+<span class="sig-name descname"><span class="pre">weight_event</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#src.pm_rank.model.calibration.CalibrationMetric.weight_event" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.calibration.CalibrationMetric.weight_event'"><span>¶</span></a></dt>
 <dd></dd></dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.model.bradley_terry.GeneralizedBT.verbose">
-<span class="sig-name descname"><span class="pre">verbose</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.verbose" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.bradley_terry.GeneralizedBT.verbose'"><span>¶</span></a></dt>
+<dt class="sig sig-object py" id="src.pm_rank.model.calibration.CalibrationMetric.verbose">
+<span class="sig-name descname"><span class="pre">verbose</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#src.pm_rank.model.calibration.CalibrationMetric.verbose" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.calibration.CalibrationMetric.verbose'"><span>¶</span></a></dt>
 <dd></dd></dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="src.pm_rank.model.bradley_terry.GeneralizedBT.logger">
-<span class="sig-name descname"><span class="pre">logger</span></span><a class="headerlink" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.logger" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.bradley_terry.GeneralizedBT.logger'"><span>¶</span></a></dt>
+<dt class="sig sig-object py" id="src.pm_rank.model.calibration.CalibrationMetric.logger">
+<span class="sig-name descname"><span class="pre">logger</span></span><a class="headerlink" href="#src.pm_rank.model.calibration.CalibrationMetric.logger" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.calibration.CalibrationMetric.logger'"><span>¶</span></a></dt>
 <dd></dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="src.pm_rank.model.bradley_terry.GeneralizedBT.fit">
-<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../data/base/index.html#src.pm_rank.data.base.ForecastProblem" title="src.pm_rank.data.base.ForecastProblem"><span class="pre">pm_rank.data.base.ForecastProblem</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.fit" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.bradley_terry.GeneralizedBT.fit'"><span>¶</span></a></dt>
-<dd><p>Fit the generalized Bradley-Terry model to the given problems.</p>
-<p>This method estimates skill parameters for each forecaster using the MM algorithm
-and returns rankings based on these parameters. The skill parameters represent
-the relative predictive ability of each forecaster.</p>
+<dt class="sig sig-object py" id="src.pm_rank.model.calibration.CalibrationMetric.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../data/base/index.html#src.pm_rank.data.base.ForecastProblem" title="src.pm_rank.data.base.ForecastProblem"><span class="pre">pm_rank.data.base.ForecastProblem</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.model.calibration.CalibrationMetric.fit" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.calibration.CalibrationMetric.fit'"><span>¶</span></a></dt>
+<dd><p>Fit the calibration metric to the given problems.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>problems</strong> – List of ForecastProblem instances to evaluate.</p></li>
-<li><p><strong>include_scores</strong> – Whether to include scores in the results (default: True).</p></li>
-</ul>
+<dd class="field-odd"><p><strong>problems</strong> – List of ForecastProblem instances to process.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Ranking results, either as a tuple of (scores, rankings) or just rankings.</p>
+<dd class="field-even"><p>A dictionary containing the calibration metric.</p>
 </dd>
 </dl>
 </dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.model.calibration.CalibrationMetric.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(4,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.model.calibration.CalibrationMetric.plot" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.calibration.CalibrationMetric.plot'"><span>¶</span></a></dt>
+<dd></dd></dl>
 </dd></dl>
+<dl class="py data">
+<dt class="sig sig-object py" id="src.pm_rank.model.calibration.data_file">
+<span class="sig-prename descclassname"><span class="pre">src.pm_rank.model.calibration.</span></span><span class="sig-name descname"><span class="pre">data_file</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'slurm/stable_testing_data.csv'</span></em><a class="headerlink" href="#src.pm_rank.model.calibration.data_file" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.calibration.data_file'"><span>¶</span></a></dt>
+<dd></dd></dl>
 </section>
 </section>
 </div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
 <div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
 <ul>
+<li><a :data-current="activeSection === '#attributes'" class="reference internal" href="#attributes">Attributes</a></li>
 <li><a :data-current="activeSection === '#classes'" class="reference internal" href="#classes">Classes</a></li>
 <li><a :data-current="activeSection === '#module-contents'" class="reference internal" href="#module-contents">Module Contents</a><ul>
-<li><a :data-current="activeSection === '#src.pm_rank.model.bradley_terry.GeneralizedBT'" class="reference internal" href="#src.pm_rank.model.bradley_terry.GeneralizedBT"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT</span></code></a><ul>
-<li><a :data-current="activeSection === '#src.pm_rank.model.bradley_terry.GeneralizedBT.method'" class="reference internal" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.method"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.method</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.model.bradley_terry.GeneralizedBT.num_iter'" class="reference internal" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.num_iter"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.num_iter</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.model.bradley_terry.GeneralizedBT.threshold'" class="reference internal" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.threshold"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.threshold</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.model.bradley_terry.GeneralizedBT.verbose'" class="reference internal" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.verbose"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.verbose</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.model.bradley_terry.GeneralizedBT.logger'" class="reference internal" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.logger"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.logger</span></code></a></li>
-<li><a :data-current="activeSection === '#src.pm_rank.model.bradley_terry.GeneralizedBT.fit'" class="reference internal" href="#src.pm_rank.model.bradley_terry.GeneralizedBT.fit"><code class="docutils literal notranslate"><span class="pre">GeneralizedBT.fit()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.calibration.CalibrationMetric'" class="reference internal" href="#src.pm_rank.model.calibration.CalibrationMetric"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.model.calibration.CalibrationMetric.num_bins'" class="reference internal" href="#src.pm_rank.model.calibration.CalibrationMetric.num_bins"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.num_bins</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.calibration.CalibrationMetric.strategy'" class="reference internal" href="#src.pm_rank.model.calibration.CalibrationMetric.strategy"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.strategy</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.calibration.CalibrationMetric.weight_event'" class="reference internal" href="#src.pm_rank.model.calibration.CalibrationMetric.weight_event"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.weight_event</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.calibration.CalibrationMetric.verbose'" class="reference internal" href="#src.pm_rank.model.calibration.CalibrationMetric.verbose"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.verbose</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.calibration.CalibrationMetric.logger'" class="reference internal" href="#src.pm_rank.model.calibration.CalibrationMetric.logger"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.logger</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.calibration.CalibrationMetric.fit'" class="reference internal" href="#src.pm_rank.model.calibration.CalibrationMetric.fit"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.fit()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.calibration.CalibrationMetric.plot'" class="reference internal" href="#src.pm_rank.model.calibration.CalibrationMetric.plot"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.plot()</span></code></a></li>
 </ul>
 </li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.calibration.data_file'" class="reference internal" href="#src.pm_rank.model.calibration.data_file"><code class="docutils literal notranslate"><span class="pre">data_file</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -263,5 +255,6 @@ the relative predictive ability of each forecaster.</p>
 <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
 <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
 <script defer="defer" src="../../../../../_static/theme.js?v=073f68d9"></script>
+<script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </body>
 </html>

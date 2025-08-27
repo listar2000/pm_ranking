@@ -1,0 +1,96 @@
+src.pm_rank.model.calibration
+=============================
+
+.. py:module:: src.pm_rank.model.calibration
+
+.. autoapi-nested-parse::
+
+   Calibration Metric for LLM Predictions. 
+
+   Currently this model adopts the following definition of a (perfectly-calibrated) probabilistic predictor f():
+
+   For all $p \in [0, 1]$ and a pair of covariate $X$ and binary outcome $Y$, we have:
+   $$
+   \mathbb{P}(Y = 1 | f(X) = p) = p
+   $$
+
+   We then define the (theoretical) **expected calibration error** (ECE) as a measure of deviation from the above property:
+   $$
+   \text{ECE}^* = \mathbb{E}_{X, Y}[ | \mathbb{P}(Y = 1 | f(X)) - f(X) | ]
+   $$
+
+   In practice, we will calculate an empirical version of the above ECE via binning (discretization).
+
+   Reference: https://arxiv.org/pdf/2501.19047v2
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   src.pm_rank.model.calibration.data_file
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   src.pm_rank.model.calibration.CalibrationMetric
+
+
+Module Contents
+---------------
+
+.. py:class:: CalibrationMetric(num_bins: int = 10, strategy: Literal['uniform', 'quantile'] = 'uniform', weight_event: bool = True, verbose: bool = False)
+
+   
+   Initialize the CalibrationMetric.
+
+   :param num_bins: The number of bins to use for discretization.
+   :param strategy: The strategy to use for discretization.
+   :param weight_event: Whether to weight the event by the number of markets in it. If `False`, then each market will be treated equally.
+
+
+   .. py:attribute:: num_bins
+      :value: 10
+
+
+
+   .. py:attribute:: strategy
+      :value: 'uniform'
+
+
+
+   .. py:attribute:: weight_event
+      :value: True
+
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:attribute:: logger
+
+
+   .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True)
+
+      Fit the calibration metric to the given problems.
+
+      :param problems: List of ForecastProblem instances to process.
+
+      :returns: A dictionary containing the calibration metric.
+
+
+
+   .. py:method:: plot(name: str, save_path: str = None, figsize: tuple[float, float] = (4, 4), percent: bool = True)
+
+
+.. py:data:: data_file
+   :value: 'slurm/stable_testing_data.csv'
+
+

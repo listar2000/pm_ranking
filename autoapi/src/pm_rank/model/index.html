@@ -127,6 +127,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="average_return/index.html">src.pm_rank.model.average_return</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bradley_terry/index.html">src.pm_rank.model.bradley_terry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration/index.html">src.pm_rank.model.calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="irt/index.html">src.pm_rank.model.irt</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scoring_rule/index.html">src.pm_rank.model.scoring_rule</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils/index.html">src.pm_rank.model.utils</a></li>
@@ -154,6 +155,9 @@
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#src.pm_rank.model.AverageReturnConfig" title="src.pm_rank.model.AverageReturnConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AverageReturnConfig</span></code></a></p></td>
 <td><p>Configuration class for AverageReturn model parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#src.pm_rank.model.CalibrationMetric" title="src.pm_rank.model.CalibrationMetric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CalibrationMetric</span></code></a></p></td>
+<td><p>Initialize the CalibrationMetric.</p></td>
 </tr>
 </tbody>
 </table>
@@ -547,6 +551,57 @@ by spending uniform money on each leg. Only effective when use_approximate is Tr
 <dd><p>Create a default configuration.</p>
 </dd></dl>
 </dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pm_rank.model.CalibrationMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pm_rank.model.</span></span><span class="sig-name descname"><span class="pre">CalibrationMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'uniform'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'quantile'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'uniform'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.model.CalibrationMetric" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.CalibrationMetric'"><span>¶</span></a></dt>
+<dd><p>Initialize the CalibrationMetric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_bins</strong> – The number of bins to use for discretization.</p></li>
+<li><p><strong>strategy</strong> – The strategy to use for discretization.</p></li>
+<li><p><strong>weight_event</strong> – Whether to weight the event by the number of markets in it. If <cite>False</cite>, then each market will be treated equally.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.model.CalibrationMetric.num_bins">
+<span class="sig-name descname"><span class="pre">num_bins</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#src.pm_rank.model.CalibrationMetric.num_bins" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.CalibrationMetric.num_bins'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.model.CalibrationMetric.strategy">
+<span class="sig-name descname"><span class="pre">strategy</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'uniform'</span></em><a class="headerlink" href="#src.pm_rank.model.CalibrationMetric.strategy" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.CalibrationMetric.strategy'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.model.CalibrationMetric.weight_event">
+<span class="sig-name descname"><span class="pre">weight_event</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#src.pm_rank.model.CalibrationMetric.weight_event" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.CalibrationMetric.weight_event'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.model.CalibrationMetric.verbose">
+<span class="sig-name descname"><span class="pre">verbose</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#src.pm_rank.model.CalibrationMetric.verbose" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.CalibrationMetric.verbose'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pm_rank.model.CalibrationMetric.logger">
+<span class="sig-name descname"><span class="pre">logger</span></span><a class="headerlink" href="#src.pm_rank.model.CalibrationMetric.logger" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.CalibrationMetric.logger'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.model.CalibrationMetric.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problems</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../data/base/index.html#src.pm_rank.data.base.ForecastProblem" title="src.pm_rank.data.base.ForecastProblem"><span class="pre">pm_rank.data.base.ForecastProblem</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.model.CalibrationMetric.fit" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.CalibrationMetric.fit'"><span>¶</span></a></dt>
+<dd><p>Fit the calibration metric to the given problems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>problems</strong> – List of ForecastProblem instances to process.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the calibration metric.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pm_rank.model.CalibrationMetric.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(4,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pm_rank.model.CalibrationMetric.plot" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.CalibrationMetric.plot'"><span>¶</span></a></dt>
+<dd></dd></dl>
+</dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="src.pm_rank.model.spearman_correlation">
 <span class="sig-prename descclassname"><span class="pre">src.pm_rank.model.</span></span><span class="sig-name descname"><span class="pre">spearman_correlation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rank_dict_a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank_dict_b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#src.pm_rank.model.spearman_correlation" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#src.pm_rank.model.spearman_correlation'"><span>¶</span></a></dt>
@@ -616,6 +671,16 @@ Reference: <a class="reference external" href="https://en.wikipedia.org/wiki/Ken
 <li><a :data-current="activeSection === '#src.pm_rank.model.AverageReturnConfig.keys'" class="reference internal" href="#src.pm_rank.model.AverageReturnConfig.keys"><code class="docutils literal notranslate"><span class="pre">AverageReturnConfig.keys()</span></code></a></li>
 <li><a :data-current="activeSection === '#src.pm_rank.model.AverageReturnConfig.items'" class="reference internal" href="#src.pm_rank.model.AverageReturnConfig.items"><code class="docutils literal notranslate"><span class="pre">AverageReturnConfig.items()</span></code></a></li>
 <li><a :data-current="activeSection === '#src.pm_rank.model.AverageReturnConfig.default'" class="reference internal" href="#src.pm_rank.model.AverageReturnConfig.default"><code class="docutils literal notranslate"><span class="pre">AverageReturnConfig.default()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.CalibrationMetric'" class="reference internal" href="#src.pm_rank.model.CalibrationMetric"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric</span></code></a><ul>
+<li><a :data-current="activeSection === '#src.pm_rank.model.CalibrationMetric.num_bins'" class="reference internal" href="#src.pm_rank.model.CalibrationMetric.num_bins"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.num_bins</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.CalibrationMetric.strategy'" class="reference internal" href="#src.pm_rank.model.CalibrationMetric.strategy"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.strategy</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.CalibrationMetric.weight_event'" class="reference internal" href="#src.pm_rank.model.CalibrationMetric.weight_event"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.weight_event</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.CalibrationMetric.verbose'" class="reference internal" href="#src.pm_rank.model.CalibrationMetric.verbose"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.verbose</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.CalibrationMetric.logger'" class="reference internal" href="#src.pm_rank.model.CalibrationMetric.logger"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.logger</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.CalibrationMetric.fit'" class="reference internal" href="#src.pm_rank.model.CalibrationMetric.fit"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.fit()</span></code></a></li>
+<li><a :data-current="activeSection === '#src.pm_rank.model.CalibrationMetric.plot'" class="reference internal" href="#src.pm_rank.model.CalibrationMetric.plot"><code class="docutils literal notranslate"><span class="pre">CalibrationMetric.plot()</span></code></a></li>
 </ul>
 </li>
 <li><a :data-current="activeSection === '#src.pm_rank.model.spearman_correlation'" class="reference internal" href="#src.pm_rank.model.spearman_correlation"><code class="docutils literal notranslate"><span class="pre">spearman_correlation()</span></code></a></li>
