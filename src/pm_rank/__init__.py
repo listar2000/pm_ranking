@@ -23,7 +23,8 @@ from .model import (
     SphericalScoringRule,
     AverageReturn,
     spearman_correlation,
-    kendall_correlation
+    kendall_correlation,
+    CalibrationMetric
 )
 
 __all__ = [
@@ -46,7 +47,8 @@ __all__ = [
     'SphericalScoringRule',
     'AverageReturn',
     'spearman_correlation',
-    'kendall_correlation'
+    'kendall_correlation',
+    'CalibrationMetric'
 ]
 
 # optionally import based on whether `pyro-ppl` is installed

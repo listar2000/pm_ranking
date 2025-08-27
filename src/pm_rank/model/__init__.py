@@ -4,6 +4,7 @@
 from .bradley_terry import GeneralizedBT
 from .scoring_rule import BrierScoringRule, SphericalScoringRule, LogScoringRule
 from .average_return import AverageReturn, AverageReturnConfig
+from .calibration import CalibrationMetric
 from .utils import spearman_correlation, kendall_correlation
 
 __all__ = [
@@ -14,7 +15,8 @@ __all__ = [
     "AverageReturn",
     "AverageReturnConfig",
     "spearman_correlation",
-    "kendall_correlation"
+    "kendall_correlation",
+    "CalibrationMetric"
 ]
 
 try:
