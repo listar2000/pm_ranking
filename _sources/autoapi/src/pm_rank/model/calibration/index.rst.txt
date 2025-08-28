@@ -25,14 +25,6 @@ src.pm_rank.model.calibration
 
 
 
-Attributes
-----------
-
-.. autoapisummary::
-
-   src.pm_rank.model.calibration.data_file
-
-
 Classes
 -------
 
@@ -87,10 +79,6 @@ Module Contents
 
 
 
-   .. py:method:: plot(name: str, save_path: str = None, figsize: tuple[float, float] = (4, 4), percent: bool = True)
-
-
-.. py:data:: data_file
-   :value: 'slurm/stable_testing_data.csv'
+   .. py:method:: plot(name: str, title: str = 'Reliability diagram', save_path: str = None, figsize: tuple[float, float] = (4, 4), percent: bool = True)
 
 

@@ -436,7 +436,7 @@ Package Contents
 
 
 
-   .. py:method:: plot(name: str, save_path: str = None, figsize: tuple[float, float] = (4, 4), percent: bool = True)
+   .. py:method:: plot(name: str, title: str = 'Reliability diagram', save_path: str = None, figsize: tuple[float, float] = (4, 4), percent: bool = True)
 
 
 .. py:function:: spearman_correlation(rank_dict_a: Dict[str, int], rank_dict_b: Dict[str, int]) -> float
