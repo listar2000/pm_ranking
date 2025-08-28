@@ -5,12 +5,12 @@ Currently this model adopts the following definition of a (perfectly-calibrated)
 
 For all $p \\in [0, 1]$ and a pair of covariate $X$ and binary outcome $Y$, we have:
 $$
-\mathbb{P}(Y = 1 | f(X) = p) = p
+\\mathbb{P}(Y = 1 | f(X) = p) = p
 $$
 
 We then define the (theoretical) **expected calibration error** (ECE) as a measure of deviation from the above property:
 $$
-\\text{ECE}^* = \mathbb{E}_{X, Y}[ | \mathbb{P}(Y = 1 | f(X)) - f(X) | ]
+\\text{ECE}^* = \\mathbb{E}_{X, Y}[ | \\mathbb{P}(Y = 1 | f(X)) - f(X) | ]
 $$
 
 In practice, we will calculate an empirical version of the above ECE via binning (discretization).
@@ -202,7 +202,7 @@ class CalibrationMetric:
 
         return (forecaster_scores, forecaster_ranking) if include_scores else forecaster_ranking
 
-    def plot(self, name: str, save_path: str = None, figsize: tuple[float, float] = (4,4), percent: bool = True):
+    def plot(self, name: str, title: str = "Reliability diagram", save_path: str = None, figsize: tuple[float, float] = (4,4), percent: bool = True):
         if not self._fitted:
             raise ValueError("CalibrationMetric must be fitted before plotting")
 
@@ -210,27 +210,7 @@ class CalibrationMetric:
 
         ece = _calculate_ece(conf, acc, counts, counts.sum())
 
-        title = f"Reliability Diagram for {name}"
         fig, ax = plot_reliability_diagram(ece, bin_centers, bin_widths, conf, acc, counts, self.num_bins, title, \
             save_path=save_path, figsize=figsize, percent=percent)
 
         return fig, ax
-
-
-if __name__ == "__main__": # local testing
-    from pm_rank.data import ProphetArenaChallengeLoader
-    from pm_rank.model.utils import _format_ranking_table
-
-    data_file = "slurm/stable_testing_data.csv"
-    challenge_loader = ProphetArenaChallengeLoader(predictions_file=data_file, use_bid_for_odds=False)
-    prophet_challenge = challenge_loader.load_challenge(add_market_baseline=False)
-    prophet_problems = prophet_challenge.get_problems()
-
-    calibration_metric = CalibrationMetric(num_bins=10, strategy="uniform", weight_event=False)
-    calibration_scores, calibration_ranking = calibration_metric.fit(prophet_problems, include_scores=True)
-    print(_format_ranking_table(calibration_ranking, calibration_scores))
-
-    # saving the plot into a `pdf`
-    llm_name = "deepseek/deepseek-r1-0528"
-    save_path = f"reliability_diagram_deepseek_r1_0528.pdf"
-    calibration_metric.plot(name=llm_name, save_path=save_path, figsize=(6,6), percent=False)

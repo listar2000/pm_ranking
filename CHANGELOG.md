@@ -1,6 +1,12 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.2.22 (Current)
+### v0.2.23 (Current)
+
+- Support for an important functionality: **measuring the calibration of probablistic predictors**. Specifically:
+    - The `pm_rank.model.CalibrationMetric` class implements the usual model `.fit` method that takes in a list of `ForecastProblem` and returns a ranking of forecasters -- ranked by their expected calibration error (ECE, smaller is better).
+    - Once the model is fitted, you can draw a reliability/calibration diagram to visualize the calibration errors via `model.plot(llm_name)`.
+
+### v0.2.22
 
 - For `ProphetArenaChallengeLoader`, we do some additional checks to ensure the unnormalized probabilities will not error.
 
