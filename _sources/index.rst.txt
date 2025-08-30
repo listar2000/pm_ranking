@@ -95,10 +95,12 @@ introduce the core concepts here:
    * ``timestamp``: the timestamp of the prediction. Note that this is not optional as we might want to **stream** the predictions in time. However, if the original data does not contain this information, we will use the current time as a placeholder.
    * ``probs``: the probability distribution over the options -- given by the forecaster.
    * ``unnormalized_probs``: the unnormalized probability distribution over the options -- given by the forecaster.
+   * ``odds`` (optional): the market odds for each option to realize (resolve to `YES`)
+   * ``no_odds`` (optional): the market odds for each option to not realize (resolve to `NO`)
 
 2. **ForecastProblem**: this is a collection of ``ForecastEvent``\s for a single forecast problem. It validates keeps track of metadata for the problem like the options and the correct option. It is also a handy way to organize the dataset as we treat ``ForecastProblem`` as the basic unit of **streaming prediction market data**.
 
-   In particular, if a ``ForecastProblem`` has the ``odds`` field, we would answer questions like "how much money can an individual forecaster make" and use these results to rank the forecasters. See :doc:`autoapi/src/pm_rank/model/average_return/index` for more details.
+   In particular, if a ``ForecastProblem`` contains ``ForecastEvent``\s that have the ``odds``/``no_odds`` field, we would answer questions like "how much money can an individual forecaster make" and use these results to rank the forecasters. See :doc:`autoapi/src/pm_rank/model/average_return/index` for more details.
 
    **Key Fields in ForecastProblem:**
 
@@ -109,7 +111,6 @@ introduce the core concepts here:
    * ``forecasts``: the forecasts for the problem
    * ``num_forecasters``: the number of forecasters
    * ``url``: the URL of the problem
-   * ``odds`` (optional): the market odds for each option
 
 3. **ForecastChallenge**: this is a collection of ``ForecastProblem``\s. It implements two **core functionalities for all scoring/ranking methods** to use:
 

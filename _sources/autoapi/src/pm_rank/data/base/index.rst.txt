@@ -73,6 +73,14 @@ Module Contents
       :type:  float
 
 
+   .. py:attribute:: odds
+      :type:  Optional[List[float]]
+
+
+   .. py:attribute:: no_odds
+      :type:  Optional[List[float]]
+
+
    .. py:method:: validate_weight(v)
 
       Validate that weight is non-negative.
@@ -95,6 +103,19 @@ Module Contents
 
       Validate that unnormalized probabilities are non-negative.
       we only require every number to be in [0, 1], and the vector dimension is the same as the number of options.
+
+
+
+   .. py:method:: validate_odds(v, info)
+
+      Validate that odds match the number of probabilities if provided.
+
+
+
+   .. py:method:: smooth_odds()
+
+      Smooth the odds to not be too close to 0 or 1.
+              
 
 
 
@@ -150,14 +171,6 @@ Module Contents
       :type:  Optional[str]
 
 
-   .. py:attribute:: odds
-      :type:  Optional[List[float]]
-
-
-   .. py:attribute:: no_odds
-      :type:  Optional[List[float]]
-
-
    .. py:attribute:: category
       :type:  Optional[str]
 
@@ -171,19 +184,6 @@ Module Contents
    .. py:method:: validate_forecasts(v, info)
 
       Validate that all forecasts have (1) correct number of probabilities, (2) unique `forecast_id`.
-
-
-
-   .. py:method:: validate_odds(v, info)
-
-      Validate that odds match the number of options if provided.
-
-
-
-   .. py:method:: smooth_odds()
-
-      Smooth the odds to not be too close to 0 or 1.
-              
 
 
 
@@ -216,15 +216,6 @@ Module Contents
 
 
       Get list of unique forecasters for this problem.
-
-
-
-   .. py:property:: option_payoffs
-      :type: List[Tuple[int, float]]
-
-
-      Obtain a sorted list of (option_idx, payoff) for this problem.
-      The payoff is the (1 / odds) for a correct option, and 0 for an incorrect option.
 
 
 
@@ -284,14 +275,6 @@ Module Contents
 
 
 
-   .. py:property:: problem_option_payoffs
-      :type: Dict[str, List[Tuple[int, float]]]
-
-
-      Map from problem_id to a sorted list of (option_idx, payoff) for this problem.
-
-
-
    .. py:method:: get_forecaster_problems(username: str) -> List[ForecastProblem]
 
       Get all problems that a specific forecaster participated in.
@@ -326,13 +309,6 @@ Module Contents
    .. py:method:: stream_problems_over_time(increment_by: Literal['day', 'week', 'month'] = 'day', min_bucket_size: int = 1) -> Iterator[Tuple[str, List[ForecastProblem]]]
 
       Stream all problems in chronological buckets.
-
-
-
-   .. py:method:: fill_problem_with_fair_odds(force: bool = False) -> None
-
-      Certain challenge do not have odds data, we can fill in fair/uniform odds for each problem.
-      If `force` is True, we will not check whether the problem already has odds data.
 
 
 

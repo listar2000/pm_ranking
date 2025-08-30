@@ -180,7 +180,7 @@ Module Contents
    .. py:attribute:: process_problem_fn
 
 
-   .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True, include_bootstrap_ci: bool = False, include_per_problem_info: bool = False) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
+   .. py:method:: fit(problems: List[pm_rank.data.base.ForecastProblem], sharpe_mode: Literal[None, 'marginal', 'relative'] = None, include_scores: bool = True, include_bootstrap_ci: bool = False, include_per_problem_info: bool = False) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
 
       Fit the average return model to the given problems.
 
@@ -188,6 +188,9 @@ Module Contents
       based on average returns across all problems.
 
       :param problems: List of ForecastProblem instances to process.
+      :param sharpe_mode: Whether to return the sharpe ratio (mean over sd). If None, we will return the average (mean) only (default: None).
+          If "marginal", we will return the marginal sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings only.
+          If "relative", we will return the relative sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings minus the baseline earnings.
       :param include_scores: Whether to include scores in the results (default: True).
       :param include_bootstrap_ci: Whether to include bootstrap confidence intervals in the results (default: False).
       :param include_per_problem_info: Whether to include per-problem info in the results (default: False).
@@ -197,7 +200,7 @@ Module Contents
 
 
 
-   .. py:method:: fit_stream(problem_iter: Iterator[List[pm_rank.data.base.ForecastProblem]], include_scores: bool = True) -> Dict[int, Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]]
+   .. py:method:: fit_stream(problem_iter: Iterator[List[pm_rank.data.base.ForecastProblem]], sharpe_mode: Literal[None, 'marginal', 'relative'] = None, include_scores: bool = True) -> Dict[int, Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]]
 
       Fit the model to streaming problems and return incremental results.
 
@@ -205,13 +208,16 @@ Module Contents
       allowing for incremental analysis of forecaster performance.
 
       :param problem_iter: Iterator over batches of ForecastProblem instances.
+      :param sharpe_mode: Whether to return the sharpe ratio (mean over sd). If None, we will return the average (mean) only (default: None).
+          If "marginal", we will return the marginal sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings only.
+          If "relative", we will return the relative sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings minus the baseline earnings.
       :param include_scores: Whether to include scores in the results (default: True).
 
       :returns: Mapping of batch indices to ranking results.
 
 
 
-   .. py:method:: fit_stream_with_timestamp(problem_time_iter: Iterator[Tuple[str, List[pm_rank.data.base.ForecastProblem]]], include_scores: bool = True) -> collections.OrderedDict
+   .. py:method:: fit_stream_with_timestamp(problem_time_iter: Iterator[Tuple[str, List[pm_rank.data.base.ForecastProblem]]], sharpe_mode: Literal[None, 'marginal', 'relative'] = None, include_scores: bool = True) -> collections.OrderedDict
 
       Fit the model to streaming problems with timestamps and return incremental results.
 
@@ -219,13 +225,16 @@ Module Contents
       after each batch, maintaining chronological order.
 
       :param problem_time_iter: Iterator over (timestamp, problems) tuples.
+      :param sharpe_mode: Whether to return the sharpe ratio (mean over sd). If None, we will return the average (mean) only (default: None).
+          If "marginal", we will return the marginal sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings only.
+          If "relative", we will return the relative sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings minus the baseline earnings.
       :param include_scores: Whether to include scores in the results (default: True).
 
       :returns: Chronologically ordered mapping of timestamps to ranking results.
 
 
 
-   .. py:method:: fit_by_category(problems: List[pm_rank.data.base.ForecastProblem], include_scores: bool = True, stream_with_timestamp: bool = False, stream_increment_by: Literal['day', 'week', 'month'] = 'day', min_bucket_size: int = 1) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
+   .. py:method:: fit_by_category(problems: List[pm_rank.data.base.ForecastProblem], sharpe_mode: Literal[None, 'marginal', 'relative'] = None, include_scores: bool = True, stream_with_timestamp: bool = False, stream_increment_by: Literal['day', 'week', 'month'] = 'day', min_bucket_size: int = 1) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]
 
       Fit the average return model to the given problems by category.
 
@@ -233,6 +242,9 @@ Module Contents
       based on average returns across all problems.
 
       :param problems: List of ForecastProblem instances to process.
+      :param sharpe_mode: Whether to return the sharpe ratio (mean over sd). If None, we will return the average (mean) only (default: None).
+          If "marginal", we will return the marginal sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings only.
+          If "relative", we will return the relative sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings minus the baseline earnings.
       :param include_scores: Whether to include scores in the results (default: True).
       :param stream_with_timestamp: Whether to stream problems with timestamps (default: False).
       :param stream_increment_by: The increment by which to stream problems (default: "day").
