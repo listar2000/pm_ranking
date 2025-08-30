@@ -8,6 +8,8 @@ import pandas as pd
 from .base import ChallengeLoader, ForecastChallenge, ForecastProblem, ForecastEvent, ProphetArenaForecastEvent
 from datetime import datetime
 import math
+import numpy as np
+
 from .utils import parse_json_or_eval, get_logger
 
 
@@ -277,12 +279,12 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         for event_ticker, group in grouped:
             first_row = group.iloc[0]
             problem_id = str(event_ticker)
-            market_info = parse_json_or_eval(
+            first_market_info = parse_json_or_eval(
                 first_row['market_info'], expect_type=dict)
             # skip this market if the market_info is empty
-            if not market_info:
+            if not first_market_info:
                 continue
-            first_option_info = next(iter(market_info.values()))
+            first_option_info = next(iter(first_market_info.values()))
             title = first_option_info.get('title', event_ticker)
 
             if self.use_open_time:
@@ -297,13 +299,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                 end_time = datetime.fromisoformat(close_time.replace(
                     'Z', '+00:00')) if close_time else datetime.now()
             
-            problem_option_keys = list(market_info.keys())
-
-            odds = self._calculate_implied_probs_for_problem(
-                market_info, problem_option_keys, self.use_bid_for_odds, True, self.logger)
-
-            no_odds = self._calculate_implied_probs_for_problem(
-                market_info, problem_option_keys, self.use_bid_for_odds, False, self.logger)
+            problem_option_keys = list(first_market_info.keys())
 
             market_outcome = parse_json_or_eval(
                 first_row['market_outcome'], expect_type=dict)
@@ -314,25 +310,27 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
 
             forecasts = []
 
-            if add_market_baseline:
-                # we set the submission_id to be the submission_id of the first row in the group
-                submission_id = str(first_row['submission_id'])
-                # we will add a "market row" in this group, with (unnormalized) prob being simply the market odds
-                forecasts.append(ProphetArenaForecastEvent(
-                    forecast_id=f"{problem_id}-market-baseline",
-                    problem_id=problem_id,
-                    submission_id=submission_id,
-                    username="market-baseline",
-                    timestamp=timestamp,
-                    probs=self._get_normalized_probs(odds),
-                    unnormalized_probs=odds,
-                ))
-
             category = first_row.get('category', None)
             if category is not None and category not in categories:
                 categories.append(category)
 
+            total_odds, total_no_odds = [], []
             for i, row in group.iterrows():
+                market_info = parse_json_or_eval(
+                    row['market_info'], expect_type=dict)
+                if not market_info:
+                    continue
+
+                # we calculate the odds/no_odds for each forecast
+                odds = self._calculate_implied_probs_for_problem(
+                    market_info, problem_option_keys, self.use_bid_for_odds, True, self.logger)
+    
+                no_odds = self._calculate_implied_probs_for_problem(
+                    market_info, problem_option_keys, self.use_bid_for_odds, False, self.logger)
+
+                total_odds.append(odds)
+                total_no_odds.append(no_odds)
+
                 username = str(row['predictor_name'])
                 prediction: dict = parse_json_or_eval(
                     row['prediction'], expect_type=dict)
@@ -357,6 +355,27 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     timestamp=timestamp,
                     probs=probs,
                     unnormalized_probs=unnormalized_probs,
+                    odds=odds,
+                    no_odds=no_odds,
+                ))
+
+            if add_market_baseline:
+                # we set the submission_id to be the submission_id of the first row in the group
+                submission_id = str(first_row['submission_id'])
+                # use the average odds/no_odds for the market baseline
+                avg_odds = np.mean(total_odds, axis=0).tolist()
+                avg_no_odds = np.mean(total_no_odds, axis=0).tolist()
+                # we will add a "market row" in this group, with (unnormalized) prob being simply the market odds
+                forecasts.append(ProphetArenaForecastEvent(
+                    forecast_id=f"{problem_id}-market-baseline",
+                    problem_id=problem_id,
+                    submission_id=submission_id,
+                    username="market-baseline",
+                    timestamp=timestamp,
+                    probs=self._get_normalized_probs(avg_odds),
+                    unnormalized_probs=avg_odds,
+                    odds=avg_odds,
+                    no_odds=avg_no_odds,
                 ))
 
             if len(forecasts) > 0:
@@ -369,8 +388,6 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     end_time=end_time,
                     num_forecasters=len(forecasts),
                     url=None,
-                    odds=odds,
-                    no_odds=no_odds,
                     category=category
                 ))
 

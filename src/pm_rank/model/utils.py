@@ -21,7 +21,8 @@ AGGREGATE_FNS = {
     "mean": np.mean,
     "median": np.median,
     "max": np.max,
-    "min": np.min
+    "min": np.min,
+    "sharpe": lambda x: np.mean(x) / (np.std(x) + 1e-8)
 }
 
 class BootstrapCIConfig(BaseModel):

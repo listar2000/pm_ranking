@@ -42,7 +42,8 @@ def test_prophet_arena_loader_full_challenge():
         assert len(problem.forecasts) > 0
         # Odds should be present and sum to ~1
         if problem.odds:
-            assert abs(sum(problem.odds) - 1.0) < 0.1
+            all_odds = [forecast.odds for forecast in problem.forecasts]
+            assert all([abs(sum(odds) - 1.0) < 0.1 for odds in all_odds])
     print("✓ ProphetArena full challenge loading test passed")
     return challenge
 

@@ -17,8 +17,6 @@ def test_all_models():
     )
     challenge = gjo_loader.load_challenge(
         forecaster_filter=20, problem_filter=20)
-    # we do this since GJO dataset has no built-in market odds
-    challenge.fill_problem_with_fair_odds()
 
     # testing scoring rule (sufficient to use Brier score)
     brier_scoring_rule = BrierScoringRule()

@@ -1,10 +1,36 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.2.23 (Current)
+### v0.2.24 (Current)
+
+- **Major Bugfix 🐛**: the `ForecastEvent` object now _independently stores the `odds` and `no_odds` fields_, which becomes consistent with the fact that different forecasts (to the same `ForecastProblem`) can have different `odds` and `no_odds` fields. As a result, the calculation of `AverageReturn` (and any related metrics) are now more accurate.
+
+- Add a new `sharpe_mode` parameter to the `.fit` method of `AverageReturn` to support the calculation of the [Sharpe Ratio](https://en.wikipedia.org/wiki/Sharpe_ratio). Specifically, we can now specify the `sharpe_mode` parameter to be `"marginal"` or `"relative"` (default is `None`). The former is the marginal sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings only. The latter is the relative sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings minus the baseline earnings.
+
+    Sample usage:
+    ```python
+    from pm_rank.model.average_return import AverageReturn
+    average_return_config = AverageReturnConfig(xxx)
+    average_return = AverageReturn(average_return_config)
+    # NOTE: new parameter `sharpe_mode` is added
+    ar_score, ar_ranking = average_return.fit(prophet_problems, sharpe_mode="relative", include_scores=True, include_per_problem_info=False, include_bootstrap_ci=False)
+    ```
+### v0.2.23
 
 - Support for an important functionality: **measuring the calibration of probablistic predictors**. Specifically:
     - The `pm_rank.model.CalibrationMetric` class implements the usual model `.fit` method that takes in a list of `ForecastProblem` and returns a ranking of forecasters -- ranked by their expected calibration error (ECE, smaller is better).
+
     - Once the model is fitted, you can draw a reliability/calibration diagram to visualize the calibration errors via `model.plot(llm_name)`.
+
+    - Demo usage:
+        ```python
+        from pm_rank.model.calibration import CalibrationMetric
+
+        # assume you already have a list of `ForecastProblem` instances in `problems`
+        calibration_metric = CalibrationMetric(num_bins=10, strategy="uniform", weight_event=False)
+        calibration_scores, calibration_ranking = calibration_metric.fit(problems, include_scores=True)
+        ```
+        The resulting `calibration_scores` and `calibration_ranking` are dictionaries that map the forecaster name to their calibration score and ranking. You can print them out via `_format_ranking_table`, similar to other metric results.
+
 
 ### v0.2.22
 

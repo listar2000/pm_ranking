@@ -21,6 +21,8 @@ class ForecastEvent(BaseModel):
     probs: List[float] = Field(description="The forecasted probabilities for each option")
     unnormalized_probs: Optional[List[float]] = Field(default=None, description="The unnormalized forecasted probabilities for each option")
     weight: float = Field(description="The weight of the forecast. This is used to weight the forecast in scoring/ranking. Default to 1.", default=1.0)
+    odds: Optional[List[float]] = Field(None, description="The odds for each option")
+    no_odds: Optional[List[float]] = Field(None, description="The odds for each option to not realize")
 
     @field_validator('weight')
     def validate_weight(cls, v):
@@ -60,6 +62,29 @@ class ForecastEvent(BaseModel):
      
         return v
 
+    @field_validator('odds')
+    def validate_odds(cls, v, info):
+        """Validate that odds match the number of probabilities if provided."""
+        if v is not None and info.data and 'probs' in info.data:
+            if len(v) != len(info.data['probs']):
+                raise ValueError(f"Number of odds ({len(v)}) must match number of probabilities ({len(info.data['probs'])})")
+
+        # check that odds each has to be in [0, 1]
+        if v is not None and not all(0 <= p <= 1 for p in v):
+            raise ValueError("All odds (implied probabilities) must be in [0, 1]")
+        return v
+
+    @model_validator(mode='after')
+    def smooth_odds(self):
+        """Smooth the odds to not be too close to 0 or 1.
+        """
+        if self.odds is not None:
+            self.odds = [max(SMOOTH_ODDS_EPS, min(1 - SMOOTH_ODDS_EPS, odd)) for odd in self.odds]
+
+        if self.no_odds is not None:
+            self.no_odds = [max(SMOOTH_ODDS_EPS, min(1 - SMOOTH_ODDS_EPS, odd)) for odd in self.no_odds]
+        return self
+
 
 class ProphetArenaForecastEvent(ForecastEvent):
     """Specialized forecast event for Prophet Arena."""
@@ -76,9 +101,6 @@ class ForecastProblem(BaseModel):
     end_time: datetime = Field(description="The end time of the problem")
     num_forecasters: int = Field(description="The number of forecasters")
     url: Optional[str] = Field(None, description="The URL of the problem")
-    # TODO: in the future, the problem might have mutiple `odds`/`no_odds` depending on the submission_id of its events.
-    odds: Optional[List[float]] = Field(None, description="The odds for each option")
-    no_odds: Optional[List[float]] = Field(None, description="The odds for each option to not realize")
     category: Optional[str] = Field(None, description="The category of the problem")
 
     @field_validator('correct_option_idx')
@@ -115,38 +137,17 @@ class ForecastProblem(BaseModel):
         
         return v
 
-    @field_validator('odds')
-    def validate_odds(cls, v, info):
-        """Validate that odds match the number of options if provided."""
-        if v is not None and info.data and 'options' in info.data:
-            if len(v) != len(info.data['options']):
-                raise ValueError(f"Number of odds ({len(v)}) must match number of options ({len(info.data['options'])})")
-
-        # check that odds each has to be in [0, 1]
-        if v is not None and not all(0 <= p <= 1 for p in v):
-            raise ValueError("All odds (implied probabilities) must be in [0, 1]")
-        return v
-
-    @model_validator(mode='after')
-    def smooth_odds(self):
-        """Smooth the odds to not be too close to 0 or 1.
-        """
-        if self.odds is not None:
-            self.odds = [max(SMOOTH_ODDS_EPS, min(1 - SMOOTH_ODDS_EPS, odd)) for odd in self.odds]
-
-        if self.no_odds is not None:
-            self.no_odds = [max(SMOOTH_ODDS_EPS, min(1 - SMOOTH_ODDS_EPS, odd)) for odd in self.no_odds]
-        return self
-
     @property
     def has_odds(self) -> bool:
         """Check if the problem has odds data."""
-        return self.odds is not None and len(self.odds) > 0
+        odds = self.forecasts[0].odds
+        return odds is not None and len(odds) > 0
 
     @property
     def has_no_odds(self) -> bool:
         """Check if the problem has no_odds data."""
-        return self.no_odds is not None and len(self.no_odds) > 0
+        no_odds = self.forecasts[0].no_odds
+        return no_odds is not None and len(no_odds) > 0
     
     @cached_property
     def crowd_probs(self) -> List[float]:
@@ -173,22 +174,6 @@ class ForecastProblem(BaseModel):
     def unique_forecasters(self) -> List[str]:
         """Get list of unique forecasters for this problem."""
         return list(set(forecast.username for forecast in self.forecasts))
-
-    @cached_property
-    def option_payoffs(self) -> List[Tuple[int, float]]:
-        """
-        Obtain a sorted list of (option_idx, payoff) for this problem.
-        The payoff is the (1 / odds) for a correct option, and 0 for an incorrect option.
-        """
-        if not self.has_odds:
-            return []
-        
-        option_payoffs = []
-        for option_idx, odd in enumerate(self.odds):
-            payoff = 1 / odd if option_idx in self.correct_option_idx else 0
-            option_payoffs.append((option_idx, payoff))
-        
-        return sorted(option_payoffs, key=lambda x: x[1], reverse=True)
 
 
 class ForecastChallenge(BaseModel):
@@ -243,11 +228,6 @@ class ForecastChallenge(BaseModel):
     def unique_forecasters(self) -> List[str]:
         """List of unique forecaster usernames."""
         return list(self.forecaster_map.keys())
-
-    @cached_property
-    def problem_option_payoffs(self) -> Dict[str, List[Tuple[int, float]]]:
-        """Map from problem_id to a sorted list of (option_idx, payoff) for this problem."""
-        return {problem.problem_id: problem.option_payoffs for problem in self.forecast_problems}
 
     def get_forecaster_problems(self, username: str) -> List[ForecastProblem]:
         """Get all problems that a specific forecaster participated in."""
@@ -366,16 +346,6 @@ class ForecastChallenge(BaseModel):
                 yield upper_boundary.isoformat(), bucket
                 # Next loop: window starts after *upper_boundary*.
                 prev_boundary = upper_boundary
-
-    def fill_problem_with_fair_odds(self, force: bool = False) -> None:
-        """
-        Certain challenge do not have odds data, we can fill in fair/uniform odds for each problem.
-        If `force` is True, we will not check whether the problem already has odds data.
-        """
-        for problem in self.forecast_problems:
-            if problem.has_odds and not force:
-                continue
-            problem.odds = [1 / len(problem.options)] * len(problem.options)
 
 class ChallengeLoader(ABC):
     """

@@ -159,7 +159,7 @@ def test_problem_properties():
         assert len(unique_forecasters) <= len(problem.forecasts)
         
         # Test odds property
-        assert problem.has_odds == (problem.odds is not None)
+        assert problem.has_odds == (problem.forecasts[0].odds is not None)
     
     print("✓ Problem properties test passed")
 

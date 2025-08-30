@@ -115,7 +115,7 @@ def _get_risk_averse_log_bets(forecast_probs: np.ndarray, implied_probs: np.ndar
     would bet proportionally to its own forecast probabilities.
 
     :param forecast_probs: A (n x d) numpy array of forecast probabilities for n forecasters and d options.
-    :param implied_probs: A (d,) numpy array of implied probabilities for d options.
+    :param implied_probs: A (d,) or (n, d) numpy array of implied probabilities for d options.
 
     :returns: The number of bets to each option that a log-risk-averse investor would make.
               Shape (n, d) where n is number of forecasters, d is number of options.
@@ -141,10 +141,10 @@ def _get_risk_generic_crra_bets(forecast_probs: np.ndarray, implied_probs: np.nd
               Shape (n, d) where n is number of forecasters, d is number of options.
 
     :raises AssertionError: If implied_probs shape doesn't match the number of options.
-    """
-    d = forecast_probs.shape[1]
-    assert implied_probs.shape == (d,), \
-        f"implied_probs must have shape (d,), but got {implied_probs.shape}"
+    """ 
+    n, d = forecast_probs.shape
+    assert implied_probs.shape == (d,) or implied_probs.shape == (n, d), \
+        f"implied_probs must have shape (d,) or (n, d), but got {implied_probs.shape}"
 
     # Calculate the unnormalized fraction (shape (n, d))
     unnormalized_frac = implied_probs ** (1 - 1 / risk_aversion) * \
@@ -168,7 +168,7 @@ def _get_risk_generic_crra_bets_approximate(
     Returns the *number of contracts* to buy on each leg (= dollars spent / leg price).
 
     :param forecast_probs: A (n x d) numpy array of forecast probabilities for n forecasters and d options.
-    :param implied_probs: A (d,) numpy array of implied probabilities for d options. 
+    :param implied_probs: A (n, d) numpy array of implied probabilities for d options. 
         This might have shape (n, d) in certain cases, e.g. when we are using the binary reduction strategy.
     :param risk_aversion: A float between 0 and 1 representing the risk aversion parameter.
     :param eps: A float representing the numerical floor to avoid division by zero when p is 0 or 1.
@@ -325,7 +325,23 @@ class AverageReturn:
         # determine the process_problem_fn based on the use_binary_reduction flag
         self.process_problem_fn = self._process_problem_with_binary_reduction if self.use_binary_reduction else self._process_problem
 
-    def _process_problem(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]]) -> np.ndarray:
+    def _calculate_and_update_earnings(self, earnings: np.ndarray, problem: ForecastProblem, forecaster_data: Dict[str, List[float]], subtract_baseline: bool = False) -> None:
+        # Update forecaster data with earnings
+        baseline_earnings = 0.0
+        for i, forecast in enumerate(problem.forecasts):
+            username = forecast.username
+            if username == "market-baseline":
+                baseline_earnings = earnings[i] * forecast.weight
+            if username not in forecaster_data:
+                forecaster_data[username] = []
+            # we will weight the earnings by the forecast weight for this event.
+            forecaster_data[username].append(earnings[i] * forecast.weight)
+
+        if subtract_baseline:
+            for forecast in problem.forecasts:
+                forecaster_data[forecast.username][-1] -= baseline_earnings
+
+    def _process_problem(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]], subtract_baseline: bool = False) -> np.ndarray:
         """Process a single problem and update forecaster_data with earnings.
 
         This method calculates the expected earnings for each forecaster based on their
@@ -333,6 +349,7 @@ class AverageReturn:
 
         :param problem: A ForecastProblem instance containing the problem data and forecasts.
         :param forecaster_data: Dictionary mapping usernames to lists of earnings.
+        :param subtract_baseline: Whether to subtract the earnings of the market-baseline from the earnings of the forecasters.
 
         :note: This method only processes problems that have odds data available.
         """
@@ -343,10 +360,10 @@ class AverageReturn:
         forecast_probs = np.array(
             [forecast.unnormalized_probs for forecast in problem.forecasts])
         # Concatenate the implied probs for all forecasters
-        implied_probs = np.array(problem.odds)
+        implied_probs = np.array([forecast.odds for forecast in problem.forecasts])
 
         # Check shape consistency
-        assert forecast_probs.shape[1] == implied_probs.shape[0], \
+        assert forecast_probs.shape == implied_probs.shape, \
             f"forecast probs and implied probs must have the same shape, but got {forecast_probs.shape} and {implied_probs.shape}"
 
         if self.use_approximate:
@@ -360,23 +377,18 @@ class AverageReturn:
                 bets = _get_risk_generic_crra_bets(
                     forecast_probs, implied_probs, self.risk_aversion)
 
-        # check that bets have value close to 1
-        assert np.allclose(bets @ implied_probs, 1.0)
+        # check that bets * implied_probs sum to 1 for each row (forecaster)
+        assert np.allclose(np.sum(bets * implied_probs, axis=1), 1.0)
         earnings = np.sum(bets[:, problem.correct_option_idx] * self.num_money_per_round, axis=1)
 
         # Update forecaster data with earnings
-        for i, forecast in enumerate(problem.forecasts):
-            username = forecast.username
-            if username not in forecaster_data:
-                forecaster_data[username] = []
-            # we will weight the earnings by the forecast weight for this event.
-            forecaster_data[username].append(earnings[i] * forecast.weight)
+        self._calculate_and_update_earnings(earnings, problem, forecaster_data, subtract_baseline)
 
         outcomes = np.zeros_like(forecast_probs)
         outcomes[:, problem.correct_option_idx] = 1
         return {"bets": bets, "effective_outcomes": outcomes, "choose_yes_contract": np.ones_like(bets).astype(bool)}
 
-    def _process_problem_with_binary_reduction(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]]) -> np.ndarray:
+    def _process_problem_with_binary_reduction(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]], subtract_baseline: bool = False) -> np.ndarray:
         """Process a single problem and update forecaster_data with earnings.
         
         The main difference between this helper method and the `_process_problem` method is that
@@ -395,7 +407,7 @@ class AverageReturn:
         spend on each option. However, this time, instead of using `p_i / q_i` as the edge for each option, we will use whether we
         will buy the `Yes` option or the `No` option for each binary market, i.e. we take the edge to be the maximum between
         `p_i / q_i` and `(1 - p_i) / (1 - q_i)`.
-
+        
         :returns: A (n, d) numpy array of booleans, indicating whether to buy the `Yes` option or the `No` option for each binary market.
         """
         if not problem.has_odds or not problem.has_no_odds:
@@ -404,8 +416,8 @@ class AverageReturn:
         forecast_probs = np.array(
             [forecast.unnormalized_probs for forecast in problem.forecasts]) # shape (n, d)
         # Concatenate the implied probs for all forecasters
-        implied_probs = np.array(problem.odds) # shape (d,)
-        implied_no_probs = np.array(problem.no_odds) # shape (d,)
+        implied_probs = np.array([forecast.odds for forecast in problem.forecasts]) # shape (n, d)
+        implied_no_probs = np.array([forecast.no_odds for forecast in problem.forecasts]) # shape (n, d)
         
         # Step 1: calculate the per-outcome YES & NO bet edges
         yes_edges = forecast_probs / implied_probs # shape (n, d)
@@ -420,10 +432,10 @@ class AverageReturn:
         
         # replace the original forecast_probs with the max of yes_edges and no_edges
         effective_forecast_probs = forecast_probs.copy() # shape (n, d)
-        effective_implied_probs = np.tile(implied_probs.copy(), (forecast_probs.shape[0], 1)) # shape (d,) -> (n, d) by expanding the dimension
+        effective_implied_probs = implied_probs.copy() # shape (n, d)
         # doing 1 - x to the forecast_probs and implied_probs when yes_edges < no_edges
-        effective_forecast_probs[no_edges > yes_edges] = 1 - effective_forecast_probs[no_edges > yes_edges]
-        effective_implied_probs[no_edges > yes_edges] = np.tile(implied_no_probs, (forecast_probs.shape[0], 1))[no_edges > yes_edges]
+        effective_forecast_probs[no_edges > yes_edges] = 1 - forecast_probs[no_edges > yes_edges]
+        effective_implied_probs[no_edges > yes_edges] = implied_no_probs[no_edges > yes_edges]
 
         # Step 2: use the older way to incorporate risk aversion and do the outside (approximate) solution
         if self.use_approximate:
@@ -454,16 +466,11 @@ class AverageReturn:
         effective_earnings = np.sum(effective_outcomes * bets * self.num_money_per_round, axis=1)
 
         # update the forecaster data with the effective earnings
-        for i, forecast in enumerate(problem.forecasts):
-            username = forecast.username
-            if username not in forecaster_data:
-                forecaster_data[username] = []
-            # we will weight the earnings by the forecast weight for this event.
-            forecaster_data[username].append(effective_earnings[i] * forecast.weight)
+        self._calculate_and_update_earnings(effective_earnings, problem, forecaster_data, subtract_baseline)
 
         return {"bets": bets, "effective_outcomes": effective_outcomes, "choose_yes_contract": (yes_edges > no_edges)}
 
-    def _fit_stream_generic(self, batch_iter: Iterator, key_fn: Callable, include_scores: bool = True, use_ordered: bool = False):
+    def _fit_stream_generic(self, batch_iter: Iterator, key_fn: Callable, include_scores: bool = True, use_ordered: bool = False, sharpe_mode: Literal[None, "marginal", "relative"] = None):
         """Generic streaming fit function for both index and timestamp keys.
 
         This is a helper method that implements the common logic for streaming fits,
@@ -473,11 +480,17 @@ class AverageReturn:
         :param key_fn: Function to extract key and batch from iterator items.
         :param include_scores: Whether to include scores in the results (default: True).
         :param use_ordered: Whether to use OrderedDict for results (default: False).
+        :param sharpe_mode: Whether to return the sharpe ratio (mean over sd). If None, we will return the average (mean) only (default: None).
+            If "marginal", we will return the marginal sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings only.
+            If "relative", we will return the relative sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings minus the baseline earnings.
 
         :returns: Mapping of keys to ranking results.
         """
         forecaster_data = {}
         batch_results = OrderedDict() if use_ordered else {}
+
+        aggregate = "sharpe" if sharpe_mode is None else "mean"
+        subtract_baseline = sharpe_mode == "relative"
 
         for i, item in enumerate(batch_iter):
             key, batch = key_fn(i, item)
@@ -487,26 +500,29 @@ class AverageReturn:
 
             # Process each problem in the batch
             for problem in batch:
-                self.process_problem_fn(problem, forecaster_data)
+                self.process_problem_fn(problem, forecaster_data, subtract_baseline=subtract_baseline)
 
             # Generate rankings for this batch
             # TODO: support bootstrap CI for streaming fit as well.
             batch_results[key] = forecaster_data_to_rankings(
-                forecaster_data, include_scores=include_scores, ascending=False, aggregate="mean"
+                forecaster_data, include_scores=include_scores, ascending=False, aggregate=aggregate
             )
             if self.verbose:
                 log_ranking_table(self.logger, batch_results[key])
 
         return batch_results
 
-    def fit(self, problems: List[ForecastProblem], include_scores: bool = True, include_bootstrap_ci: bool = False, include_per_problem_info: bool = False) -> \
-            Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
+    def fit(self, problems: List[ForecastProblem], sharpe_mode: Literal[None, "marginal", "relative"] = None, include_scores: bool = True, \
+        include_bootstrap_ci: bool = False, include_per_problem_info: bool = False) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """Fit the average return model to the given problems.
 
         This method processes all problems at once and returns the final rankings
         based on average returns across all problems.
 
         :param problems: List of ForecastProblem instances to process.
+        :param sharpe_mode: Whether to return the sharpe ratio (mean over sd). If None, we will return the average (mean) only (default: None).
+            If "marginal", we will return the marginal sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings only.
+            If "relative", we will return the relative sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings minus the baseline earnings.
         :param include_scores: Whether to include scores in the results (default: True).
         :param include_bootstrap_ci: Whether to include bootstrap confidence intervals in the results (default: False).
         :param include_per_problem_info: Whether to include per-problem info in the results (default: False).
@@ -514,12 +530,16 @@ class AverageReturn:
         :returns: Ranking results, either as a tuple of (scores, rankings) or just rankings.
                   If include_per_problem_info is True, returns a tuple of (scores, rankings, per_problem_info).
         """
+        # handle the sharpe mode
+        aggregate = "mean" if sharpe_mode is None else "sharpe"
+        subtract_baseline = sharpe_mode == "relative"
+
         forecaster_data = {}
         if include_per_problem_info:
             per_problem_info = []
 
         for problem in problems:
-            process_info = self.process_problem_fn(problem, forecaster_data)
+            process_info = self.process_problem_fn(problem, forecaster_data, subtract_baseline=subtract_baseline)
             if include_per_problem_info:
                 for i, forecast in enumerate(problem.forecasts):
                     # TODO: make this into a HOOK where the caller can customize the info
@@ -541,13 +561,14 @@ class AverageReturn:
                     per_problem_info.append(info)
 
         result = forecaster_data_to_rankings(
-            forecaster_data, include_scores=include_scores, include_bootstrap_ci=include_bootstrap_ci, ascending=False, aggregate="mean", bootstrap_ci_config=self.bootstrap_ci_config)
+            forecaster_data, include_scores=include_scores, include_bootstrap_ci=include_bootstrap_ci, ascending=False, aggregate=aggregate, \
+            bootstrap_ci_config=self.bootstrap_ci_config)
         if self.verbose:
             log_ranking_table(self.logger, result)
         
         return (*result, per_problem_info) if include_per_problem_info else result
 
-    def fit_stream(self, problem_iter: Iterator[List[ForecastProblem]], include_scores: bool = True) -> \
+    def fit_stream(self, problem_iter: Iterator[List[ForecastProblem]], sharpe_mode: Literal[None, "marginal", "relative"] = None, include_scores: bool = True) -> \
             Dict[int, Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]]:
         """Fit the model to streaming problems and return incremental results.
 
@@ -555,6 +576,9 @@ class AverageReturn:
         allowing for incremental analysis of forecaster performance.
 
         :param problem_iter: Iterator over batches of ForecastProblem instances.
+        :param sharpe_mode: Whether to return the sharpe ratio (mean over sd). If None, we will return the average (mean) only (default: None).
+            If "marginal", we will return the marginal sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings only.
+            If "relative", we will return the relative sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings minus the baseline earnings.
         :param include_scores: Whether to include scores in the results (default: True).
 
         :returns: Mapping of batch indices to ranking results.
@@ -563,16 +587,20 @@ class AverageReturn:
             problem_iter,
             key_fn=lambda i, batch: (i, batch),
             include_scores=include_scores,
-            use_ordered=False
+            use_ordered=False,
+            sharpe_mode=sharpe_mode
         )
 
-    def fit_stream_with_timestamp(self, problem_time_iter: Iterator[Tuple[str, List[ForecastProblem]]], include_scores: bool = True) -> OrderedDict:
+    def fit_stream_with_timestamp(self, problem_time_iter: Iterator[Tuple[str, List[ForecastProblem]]], sharpe_mode: Literal[None, "marginal", "relative"] = None, include_scores: bool = True) -> OrderedDict:
         """Fit the model to streaming problems with timestamps and return incremental results.
 
         This method processes problems with associated timestamps and returns rankings
         after each batch, maintaining chronological order.
 
         :param problem_time_iter: Iterator over (timestamp, problems) tuples.
+        :param sharpe_mode: Whether to return the sharpe ratio (mean over sd). If None, we will return the average (mean) only (default: None).
+            If "marginal", we will return the marginal sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings only.
+            If "relative", we will return the relative sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings minus the baseline earnings.
         :param include_scores: Whether to include scores in the results (default: True).
 
         :returns: Chronologically ordered mapping of timestamps to ranking results.
@@ -581,10 +609,11 @@ class AverageReturn:
             problem_time_iter,
             key_fn=lambda i, item: (item[0], item[1]),
             include_scores=include_scores,
-            use_ordered=True
+            use_ordered=True,
+            sharpe_mode=sharpe_mode
         )
 
-    def fit_by_category(self, problems: List[ForecastProblem], include_scores: bool = True, stream_with_timestamp: bool = False,
+    def fit_by_category(self, problems: List[ForecastProblem], sharpe_mode: Literal[None, "marginal", "relative"] = None, include_scores: bool = True, stream_with_timestamp: bool = False,
                         stream_increment_by: Literal["day", "week", "month"] = "day", min_bucket_size: int = 1) -> \
             Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
         """Fit the average return model to the given problems by category.
@@ -593,6 +622,9 @@ class AverageReturn:
         based on average returns across all problems.
 
         :param problems: List of ForecastProblem instances to process.
+        :param sharpe_mode: Whether to return the sharpe ratio (mean over sd). If None, we will return the average (mean) only (default: None).
+            If "marginal", we will return the marginal sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings only.
+            If "relative", we will return the relative sharpe ratio, i.e. the sharpe ratio calculated on the forecasters' earnings minus the baseline earnings.
         :param include_scores: Whether to include scores in the results (default: True).
         :param stream_with_timestamp: Whether to stream problems with timestamps (default: False).
         :param stream_increment_by: The increment by which to stream problems (default: "day").
@@ -608,9 +640,9 @@ class AverageReturn:
             # simply fit the model to each category
             results_dict = dict()
             for category, category_problems in category_to_problems.items():
-                results_dict[category] = self.fit(category_problems, include_scores=include_scores)
+                results_dict[category] = self.fit(category_problems, sharpe_mode=sharpe_mode, include_scores=include_scores)
 
-            results_dict["overall"] = self.fit(problems, include_scores=include_scores)
+            results_dict["overall"] = self.fit(problems, sharpe_mode=sharpe_mode, include_scores=include_scores)
             return results_dict
         else:
             # create a separate iterator for overall problems
@@ -633,14 +665,16 @@ class AverageReturn:
                     category_iterator,
                     key_fn=lambda i, item: (item[0], item[1]),
                     include_scores=include_scores,
-                    use_ordered=True
+                    use_ordered=True,
+                    sharpe_mode=sharpe_mode
                 )
 
             results_dict["overall"] = self._fit_stream_generic(
                 overall_iterator,
                 key_fn=lambda i, item: (item[0], item[1]),
                 include_scores=include_scores,
-                use_ordered=True
+                use_ordered=True,
+                sharpe_mode=sharpe_mode
             )
 
             return results_dict
