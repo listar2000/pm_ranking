@@ -74,7 +74,7 @@ Module Contents
 
 .. py:data:: DEFAULT_BOOTSTRAP_CI_CONFIG
 
-.. py:function:: forecaster_data_to_rankings(forecaster_data: Dict[str, List[float]], include_scores: bool = True, include_bootstrap_ci: bool = False, ascending: bool = True, aggregate: Literal['mean', 'median', 'max', 'min'] = 'mean', bootstrap_ci_config: BootstrapCIConfig = DEFAULT_BOOTSTRAP_CI_CONFIG)
+.. py:function:: forecaster_data_to_rankings(forecaster_data: Dict[str, List[float]], include_scores: bool = True, include_bootstrap_ci: bool = False, ascending: bool = True, aggregate: Literal['mean', 'median', 'max', 'min'] = 'mean', aggregate_fn: Callable = None, bootstrap_ci_config: BootstrapCIConfig = DEFAULT_BOOTSTRAP_CI_CONFIG)
 
    Convert the forecaster data to rankings.
    A forecaster data is a dictionary that maps forecaster name to a list of scores.
