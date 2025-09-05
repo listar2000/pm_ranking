@@ -240,7 +240,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                     warning_msg)
                 asks.append(None)
 
-        implied_probs = [(a / 100.0) if a is not None else 1e-3 for a in asks]
+        implied_probs = [(a / 100.0) if a is not None else 1.0 for a in asks]
         return implied_probs
 
     @staticmethod
@@ -299,6 +299,7 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
                 end_time = datetime.fromisoformat(close_time.replace(
                     'Z', '+00:00')) if close_time else datetime.now()
             
+            # problem_option_keys = literal_eval(first_row['markets']) TODO: need to fix this later
             problem_option_keys = list(first_market_info.keys())
 
             market_outcome = parse_json_or_eval(

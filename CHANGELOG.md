@@ -1,6 +1,12 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.2.24 (Current)
+### v0.2.25 (Current)
+
+- **Minor Bugfix 🐛**: when the `odds` or `no_odds` info is lacking for certain markets, we now set the implied probabilities to be 1.0 (i.e. there is no surprising arbitrage opportunity) instead of 1e-3.
+
+- The sharpe ratio marginal calculation (i.e. when `sharpe_mode="marginal"`) will still use default baseline of $`num_money_per_round` (constant).
+
+### v0.2.24
 
 - **Major Bugfix 🐛**: the `ForecastEvent` object now _independently stores the `odds` and `no_odds` fields_, which becomes consistent with the fact that different forecasts (to the same `ForecastProblem`) can have different `odds` and `no_odds` fields. As a result, the calculation of `AverageReturn` (and any related metrics) are now more accurate.
 

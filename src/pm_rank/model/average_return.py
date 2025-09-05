@@ -323,7 +323,7 @@ class AverageReturn:
                          f"use_approximate={self.use_approximate}, break_tie_by_uniform={self.break_tie_by_uniform}, use_binary_reduction={self.use_binary_reduction}")
 
         # determine the process_problem_fn based on the use_binary_reduction flag
-        self.process_problem_fn = self._process_problem_with_binary_reduction if self.use_binary_reduction else self._process_problem
+        self.process_problem_fn = self._process_problem_with_binary_reduction if self.use_binary_reduction else self._process_problem_market_level
 
     def _calculate_and_update_earnings(self, earnings: np.ndarray, problem: ForecastProblem, forecaster_data: Dict[str, List[float]], subtract_baseline: bool = False) -> None:
         # Update forecaster data with earnings
@@ -470,6 +470,46 @@ class AverageReturn:
 
         return {"bets": bets, "effective_outcomes": effective_outcomes, "choose_yes_contract": (yes_edges > no_edges)}
 
+    def _process_problem_market_level(self, problem: ForecastProblem, forecaster_data: Dict[str, List[float]], subtract_baseline: bool = False) -> np.ndarray:
+        """Process a single problem and update forecaster_data with earnings.
+        """
+        if not problem.has_odds or not problem.has_no_odds:
+            return
+
+        forecast_yes_probs = np.array([forecast.unnormalized_probs for forecast in problem.forecasts])
+        forecast_no_probs = 1 - forecast_yes_probs
+
+        implied_yes_probs = np.array([forecast.odds for forecast in problem.forecasts])  # shape (n, d)
+        implied_no_probs = np.array([forecast.no_odds for forecast in problem.forecasts])  # shape (n, d)
+
+        n, d = forecast_yes_probs.shape
+        # the problem.correct_option_idx is a list of indices, so we need to turn them into a mask, where 
+        # the i-th element is 1 if the i-th market is the correct market, and 0 otherwise
+        correct_market_mask = np.zeros(d, dtype=int)
+        correct_market_mask[problem.correct_option_idx] = 1
+
+        num_money_per_market = self.num_money_per_round / d  # we now work on a market-level, instead of event-level
+
+        earnings = np.zeros(n)
+        for market_idx in range(d):
+            # construct the (n, 2) forecast probs for this market by taking the i-th column of forecast_yes_probs and forecast_no_probs
+            forecast_probs = np.column_stack((forecast_yes_probs[:, market_idx], forecast_no_probs[:, market_idx]))  # shape (n, 2)
+            implied_probs = np.column_stack((implied_yes_probs[:, market_idx], implied_no_probs[:, market_idx]))  # shape (n, 2)
+            # no need for approximation here
+            if self.risk_aversion == 0:
+                bets = _get_risk_neutral_bets(forecast_probs, implied_probs)
+            elif self.risk_aversion == 1:
+                bets = _get_risk_averse_log_bets(forecast_probs, implied_probs)
+            else:
+                bets = _get_risk_generic_crra_bets(forecast_probs, implied_probs, self.risk_aversion)  # shape (n, 2)
+            
+            assert np.allclose(np.sum(bets * implied_probs, axis=1), 1.0)
+            earnings += bets[:, correct_market_mask[market_idx]] * num_money_per_market  # shape (n,)
+            
+        self._calculate_and_update_earnings(earnings, problem, forecaster_data, subtract_baseline)
+
+        return {"bets": bets, "effective_outcomes": correct_market_mask, "choose_yes_contract": np.ones_like(bets).astype(bool)}
+
     def _fit_stream_generic(self, batch_iter: Iterator, key_fn: Callable, include_scores: bool = True, use_ordered: bool = False, sharpe_mode: Literal[None, "marginal", "relative"] = None):
         """Generic streaming fit function for both index and timestamp keys.
 
@@ -489,7 +529,8 @@ class AverageReturn:
         forecaster_data = {}
         batch_results = OrderedDict() if use_ordered else {}
 
-        aggregate = "sharpe" if sharpe_mode is None else "mean"
+        aggregate_fn = self._get_sharpe_aggregate_fn(sharpe_mode)
+
         subtract_baseline = sharpe_mode == "relative"
 
         for i, item in enumerate(batch_iter):
@@ -505,12 +546,22 @@ class AverageReturn:
             # Generate rankings for this batch
             # TODO: support bootstrap CI for streaming fit as well.
             batch_results[key] = forecaster_data_to_rankings(
-                forecaster_data, include_scores=include_scores, ascending=False, aggregate=aggregate
+                forecaster_data, include_scores=include_scores, ascending=False, aggregate_fn=aggregate_fn
             )
             if self.verbose:
                 log_ranking_table(self.logger, batch_results[key])
 
         return batch_results
+
+    def _get_sharpe_aggregate_fn(self, sharpe_mode: Literal[None, "marginal", "relative"] = None):
+        if sharpe_mode is None:
+            aggregate_fn = np.mean
+        elif sharpe_mode == "marginal":
+            aggregate_fn = lambda x: (np.mean(x) - self.num_money_per_round) / (np.std(x) + 1e-8)
+        else:
+            aggregate_fn = lambda x: np.mean(x) / (np.std(x) + 1e-8)
+
+        return aggregate_fn
 
     def fit(self, problems: List[ForecastProblem], sharpe_mode: Literal[None, "marginal", "relative"] = None, include_scores: bool = True, \
         include_bootstrap_ci: bool = False, include_per_problem_info: bool = False) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
@@ -530,8 +581,9 @@ class AverageReturn:
         :returns: Ranking results, either as a tuple of (scores, rankings) or just rankings.
                   If include_per_problem_info is True, returns a tuple of (scores, rankings, per_problem_info).
         """
-        # handle the sharpe mode
-        aggregate = "mean" if sharpe_mode is None else "sharpe"
+        self.logger.info(f"Fitting the average return with sharpe mode {sharpe_mode} and process problem fn {self.process_problem_fn.__name__}")
+        
+        aggregate_fn = self._get_sharpe_aggregate_fn(sharpe_mode)
         subtract_baseline = sharpe_mode == "relative"
 
         forecaster_data = {}
@@ -561,7 +613,7 @@ class AverageReturn:
                     per_problem_info.append(info)
 
         result = forecaster_data_to_rankings(
-            forecaster_data, include_scores=include_scores, include_bootstrap_ci=include_bootstrap_ci, ascending=False, aggregate=aggregate, \
+            forecaster_data, include_scores=include_scores, include_bootstrap_ci=include_bootstrap_ci, ascending=False, aggregate_fn=aggregate_fn, \
             bootstrap_ci_config=self.bootstrap_ci_config)
         if self.verbose:
             log_ranking_table(self.logger, result)

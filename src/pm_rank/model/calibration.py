@@ -205,7 +205,9 @@ class CalibrationMetric:
     def plot(self, name: str, title: str = "Reliability diagram", save_path: str = None, figsize: tuple[float, float] = (4,4), percent: bool = True):
         if not self._fitted:
             raise ValueError("CalibrationMetric must be fitted before plotting")
-
+        if name not in self._fitted_info:
+            raise ValueError(f"Forecaster {name} not found in fitted info")
+        
         bin_centers, bin_widths, conf, acc, counts = self._fitted_info[name]
 
         ece = _calculate_ece(conf, acc, counts, counts.sum())

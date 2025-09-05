@@ -22,7 +22,6 @@ AGGREGATE_FNS = {
     "median": np.median,
     "max": np.max,
     "min": np.min,
-    "sharpe": lambda x: np.mean(x) / (np.std(x) + 1e-8)
 }
 
 class BootstrapCIConfig(BaseModel):
@@ -95,7 +94,7 @@ def _bootstrap_ci_single_process(forecaster_data: Dict[str, List[float]], aggreg
 
 
 def forecaster_data_to_rankings(forecaster_data: Dict[str, List[float]], include_scores: bool = True, include_bootstrap_ci: bool = False,
-    ascending: bool = True, aggregate: Literal["mean", "median", "max", "min"] = "mean", bootstrap_ci_config: BootstrapCIConfig = DEFAULT_BOOTSTRAP_CI_CONFIG):
+    ascending: bool = True, aggregate: Literal["mean", "median", "max", "min"] = "mean", aggregate_fn: Callable = None, bootstrap_ci_config: BootstrapCIConfig = DEFAULT_BOOTSTRAP_CI_CONFIG):
     """
     Convert the forecaster data to rankings.
     A forecaster data is a dictionary that maps forecaster name to a list of scores.
@@ -108,7 +107,8 @@ def forecaster_data_to_rankings(forecaster_data: Dict[str, List[float]], include
     Returns:
         A dictionary that maps forecaster name to a list of rankings.
     """
-    aggregate_fn = AGGREGATE_FNS[aggregate]
+    if not aggregate_fn:
+        aggregate_fn = AGGREGATE_FNS[aggregate]
     fitted_scores = {k: aggregate_fn(v) for k, v in forecaster_data.items()}
 
     sorted_forecasters = sorted(fitted_scores.keys(), key=lambda x: fitted_scores[x], reverse=not ascending)
