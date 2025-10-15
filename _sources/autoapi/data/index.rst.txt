@@ -11,7 +11,6 @@ Attributes
 
    data.WeightingStrategy
    data.logger
-   data.predictions_csv
 
 
 Classes
@@ -84,9 +83,5 @@ Module Contents
    .. py:method:: from_prophet_arena_csv(predictions_csv: str, submissions_csv: str, weight_fn=uniform_weighting())
       :classmethod:
 
-
-
-.. py:data:: predictions_csv
-   :value: 'slurm/predictions_10_11_to_09_15.csv'
 
 
