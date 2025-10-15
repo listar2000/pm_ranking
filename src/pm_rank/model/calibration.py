@@ -19,7 +19,7 @@ Reference: https://arxiv.org/pdf/2501.19047v2
 """
 
 import numpy as np
-from typing import Literal, List, Dict
+from typing import Literal, List
 from pm_rank.data.base import ForecastProblem
 from pm_rank.model.utils import get_logger
 from pm_rank.plotting.plot_reliability_diagram import plot_reliability_diagram

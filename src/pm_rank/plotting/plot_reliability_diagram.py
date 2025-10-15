@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
+plt.rcParams["font.family"] = "serif"
+plt.rcParams["font.serif"] = ["DejaVu Serif"]
 
 def plot_reliability_diagram(
     ece: float,
@@ -9,7 +11,7 @@ def plot_reliability_diagram(
     conf: np.ndarray, acc: np.ndarray, counts: np.ndarray,
     n_bins: int,
     title: str = None,
-    figsize: tuple[float, float] = (4,4),
+    figsize: tuple[float, float] = (12, 12),
     percent: bool = True,
     save_path: str = None,
 ):
@@ -68,8 +70,10 @@ def plot_reliability_diagram(
     # Axes, grid, labels
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    ax.set_xlabel("Probability", fontsize=12)
-    ax.set_ylabel("Accuracy", fontsize=12)
+    ax.set_xlabel("Probability", fontsize=32)
+    ax.set_ylabel("Real Frequency (Accuracy)", fontsize=32)
+    ax.tick_params(axis='both', labelsize=23)
+    ax.set_xticks(ax.get_xticks())
     ax.grid(True, linestyle=":", linewidth=0.7, alpha=0.7)
 
     # --- Thin "% of predictions" bars on secondary y-axis (non-intrusive) ---
@@ -82,8 +86,8 @@ def plot_reliability_diagram(
     ratio_bars = ax2.bar(centers, pct, width=thin_w, align="center",
             color="black", edgecolor="white", linewidth=0.8, alpha=0.8, zorder=1)
     ax2.set_ylim(0, max(5.0, float(pct.max()) * 1.15))
-    ax2.set_ylabel("% of predictions", fontsize=11)
-    ax2.tick_params(axis='y', labelsize=10)
+    ax2.set_ylabel("% of predictions", fontsize=32)
+    ax2.tick_params(axis='y', labelsize=23)
     # keep x ticks from the main axis only
     ax2.set_yticks(ax2.get_yticks())  # ensure it draws ticks but doesn't steal layout
 
@@ -92,7 +96,7 @@ def plot_reliability_diagram(
     fig_xy = fig.transFigure.inverted().transform(ax.transAxes.transform(ax_xy))
     gap_proxy = Rectangle((0,0), 1,1, fill=False, hatch="///", edgecolor="tab:red")
     fig.legend([bars, gap_proxy, ratio_bars], ["Binned Accuracy", "Calibration Error", r"% of predictions"],
-              loc="upper left", frameon=True, fontsize=12, bbox_to_anchor=fig_xy, bbox_transform=fig.transFigure)
+              loc="upper left", frameon=True, fontsize=25, bbox_to_anchor=fig_xy, bbox_transform=fig.transFigure)
 
     # ECE box (bottom-right)
     e_display = 100 * ece if percent else ece
@@ -100,7 +104,7 @@ def plot_reliability_diagram(
     fig.text(
         0.97, 0.03, e_label,
         transform=ax.transAxes,
-        fontsize=12,
+        fontsize=30,
         ha="right", va="bottom",
         bbox=dict(facecolor="lightgray", alpha=0.9, boxstyle="round,pad=0.35"),
         zorder=7
@@ -108,7 +112,7 @@ def plot_reliability_diagram(
 
     if title is None:
         title = f"Uncal. – Reliability (bins={n_bins})"
-    ax.set_title(title, fontsize=13)
+    ax.set_title(title, fontsize=35, fontweight='bold')
 
     plt.tight_layout()
     if save_path is not None:

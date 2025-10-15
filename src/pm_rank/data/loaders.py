@@ -222,25 +222,24 @@ class ProphetArenaChallengeLoader(ChallengeLoader):
         for opt in options:
             info = market_info.get(opt, {})
             yes_ask = info.get(ask_str, None)
-            if info.get('liquidity', None) is not None and info.get('liquidity', None) < 100:
-                asks.append(100)
-            elif yes_ask is not None and yes_ask > 0:
-                if use_bid_for_odds:
-                    if bid_str in info:
-                        yes_bid = info[bid_str]
-                        asks.append((yes_bid + yes_ask) / 2)
-                        # asks.append(max(yes_bid, yes_ask))
-                    else:
-                        asks.append(yes_ask)
-                else:
-                    asks.append(yes_ask)
-            else:
+
+            if yes_ask is None:
                 warning_msg = f"Warning: Option {opt} in market {market_info.get('title', 'Unknown Market')} does not have odds info"
                 logger.warning(warning_msg) if logger is not None else print(
                     warning_msg)
-                asks.append(None)
+                asks.append(100)
+                continue
 
-        implied_probs = [(a / 100.0) if a is not None else 1.0 for a in asks]
+            if info.get('liquidity', 0) < 100 or yes_ask <= 0:
+                asks.append(100)
+            else:
+                if use_bid_for_odds and bid_str in info:
+                    yes_bid = info[bid_str]
+                    asks.append((yes_bid + yes_ask) / 2)
+                else:
+                    asks.append(yes_ask)
+
+        implied_probs = [(a / 100.0) for a in asks]
         return implied_probs
 
     @staticmethod

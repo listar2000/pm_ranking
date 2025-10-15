@@ -1,6 +1,10 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.2.25 (Current)
+### v0.2.26 (Current)
+
+- **Nightly Version 🚀**: We add a new module `pm_rank.nightly` for scoring and ranking nightly predictions. This is to prepare for the upcoming API upgrade from the existing version and aims at improving the speed of loading data and making evaluations.
+
+### v0.2.25
 
 - **Minor Bugfix 🐛**: when the `odds` or `no_odds` info is lacking for certain markets, we now set the implied probabilities to be 1.0 (i.e. there is no surprising arbitrage opportunity) instead of 1e-3.
 

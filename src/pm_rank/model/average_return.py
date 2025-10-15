@@ -328,8 +328,15 @@ class AverageReturn:
     def _calculate_and_update_earnings(self, earnings: np.ndarray, problem: ForecastProblem, forecaster_data: Dict[str, List[float]], subtract_baseline: bool = False) -> None:
         # Update forecaster data with earnings
         baseline_earnings = 0.0
+        multiple_prediction_counter = {}  # TODO: remove this part when we finish testing
         for i, forecast in enumerate(problem.forecasts):
             username = forecast.username
+
+            if username not in multiple_prediction_counter:
+                multiple_prediction_counter[username] = 0
+            
+            multiple_prediction_counter[username] += 1
+
             if username == "market-baseline":
                 baseline_earnings = earnings[i] * forecast.weight
             if username not in forecaster_data:
@@ -337,7 +344,18 @@ class AverageReturn:
             # we will weight the earnings by the forecast weight for this event.
             forecaster_data[username].append(earnings[i] * forecast.weight)
 
+        # handle the multiple predictions from the same forecaster in a problem
+        for username, count in multiple_prediction_counter.items():
+            # take the most recent `count` elements of the forecaster_data[username] and average them
+            # then replace the most recent `count` elements of the forecaster_data[username] with the averaged value
+            avg_earnings = np.mean(forecaster_data[username][-1])
+            # delete the most recent `count` elements of the forecaster_data[username]
+            del forecaster_data[username][-count:]
+            # append the averaged value
+            forecaster_data[username].append(avg_earnings)
+
         if subtract_baseline:
+            # TODO: the `-1` here assumes that the market-baseline only predicts once
             for forecast in problem.forecasts:
                 forecaster_data[forecast.username][-1] -= baseline_earnings
 
