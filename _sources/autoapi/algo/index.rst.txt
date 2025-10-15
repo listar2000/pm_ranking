@@ -1,0 +1,135 @@
+algo
+====
+
+.. py:module:: algo
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   algo.DEFAULT_BOOTSTRAP_CONFIG
+   algo.predictions_csv
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   algo.rank_forecasters_by_score
+   algo.add_market_baseline_predictions
+   algo.compute_brier_score
+   algo.compute_average_return_neutral
+   algo.compute_calibration_ece
+
+
+Module Contents
+---------------
+
+.. py:data:: DEFAULT_BOOTSTRAP_CONFIG
+
+.. py:function:: rank_forecasters_by_score(result_df: pandas.DataFrame, normalize_by_round: bool = False, score_col: str = None, ascending: bool = None, bootstrap_config: Optional[Dict] = None) -> pandas.DataFrame
+
+   Return a rank_df with columns (forecaster, rank, score).
+
+   Args:
+       result_df: DataFrame containing forecaster scores
+       normalize_by_round: If True, downweight by the number of rounds per (forecaster, event_ticker) group
+                          (ignored for ECE scores which are already aggregated)
+       score_col: Name of the score column to rank by. If None, auto-detects from {'brier_score', 'average_return', 'ece_score'}
+       ascending: Whether lower scores are better (True for Brier/ECE, False for returns). If None, auto-detects.
+       bootstrap_config: Optional dict with bootstrap parameters for CI estimation:
+           - num_samples: Number of bootstrap samples (default: 1000)
+           - ci_level: Confidence level (default: 0.95)
+           - num_se: Number of standard errors for CI bounds (default: None, uses ci_level)
+           - random_seed: Random seed for reproducibility (default: 42)
+           - show_progress: Whether to show progress bar (default: True)
+           Only supported for 'brier_score' and 'average_return', not 'ece_score'.
+
+   Returns:
+       DataFrame with rank as index and columns (forecaster, score).
+       If bootstrap_config is provided, also includes (se, lower, upper) columns.
+
+
+.. py:function:: add_market_baseline_predictions(forecasts: pandas.DataFrame, reference_forecaster: str = None, use_both_sides: bool = False) -> pandas.DataFrame
+
+   We turn the forecasts from a certain forecaster into market baseline predictions.
+   If use_both_sides is True, we will add the market baseline predictions for both YES and NO sides.
+
+   Args:
+       forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, weight)
+       reference_forecaster: The forecaster to use as the reference for the market baseline predictions
+       use_both_sides: If True, we will add the market baseline predictions for both YES and NO sides
+
+
+.. py:function:: compute_brier_score(forecasts: pandas.DataFrame) -> pandas.DataFrame
+
+   Calculate the Brier score for the forecasts. We will proceed by grouping by `event_ticker`, as each resulting group
+   will have the same shape (i.e. number of markets), and we can manually construct a np matrix to accelerate the computation.
+
+   The result will be a DataFrame containing (forecaster, event_ticker, round, time_rank, brier_score) 
+
+   Args:
+       forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, weight)
+
+
+.. py:function:: compute_average_return_neutral(forecasts: pandas.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False) -> pandas.DataFrame
+
+   Calculate the average return for forecasters with risk-neutral utility using binary reduction strategy.
+
+   This implementation uses:
+   - Risk-neutral betting (all-in on best edge, or spread evenly)
+   - Binary reduction (can bet YES or NO on each market)
+   - Approximate CRRA betting strategy for risk_aversion=0
+
+   For each market, we compare:
+   - YES edge: forecast_prob / yes_odds
+   - NO edge: (1 - forecast_prob) / no_odds
+
+   If spread_market_even is False (default):
+       We choose the better edge for each market, then allocate all money to the market with the best edge.
+
+   If spread_market_even is True:
+       We spread the budget evenly across all markets (budget/m per market), and bet on the better edge
+       (YES or NO) in each market.
+
+   Args:
+       forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, odds, no_odds, weight)
+       num_money_per_round: Amount of money to bet per round (default: 1.0)
+       spread_market_even: If True, spread budget evenly across markets instead of all-in on best market
+
+   Returns:
+       DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
+
+
+.. py:function:: compute_calibration_ece(forecasts: pandas.DataFrame, num_bins: int = 10, strategy: Literal['uniform', 'quantile'] = 'uniform', weight_event: bool = True) -> pandas.DataFrame
+
+   Calculate the Expected Calibration Error (ECE) for each forecaster.
+
+   The ECE measures how well-calibrated a forecaster's probability predictions are.
+   For perfectly calibrated predictions, when a forecaster predicts probability p,
+   the actual outcome should occur with frequency p.
+
+   This function combines two types of weights:
+   1. Prediction-level weight: from the 'weight' column (assigned by weight_fn in data loading)
+   2. Market-level weight: either uniform (1.0) or inverse of number of markets per prediction
+
+   The final weight for each market probability is: prediction_weight * market_weight
+
+   Args:
+       forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, weight)
+       num_bins: Number of bins to use for discretization (default: 10)
+       strategy: Strategy for discretization, either "uniform" or "quantile" (default: "uniform")
+       weight_event: If True, weight each market by 1/num_markets within each prediction.
+                    If False, all markets are weighted equally (default: True)
+
+   Returns:
+       DataFrame with columns (forecaster, ece_score) containing the ECE for each forecaster
+
+
+.. py:data:: predictions_csv
+   :value: 'slurm/predictions_10_11_to_01_01.csv'
+
+

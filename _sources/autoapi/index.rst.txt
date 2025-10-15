@@ -6,5 +6,12 @@ This page contains auto-generated API reference documentation [#f1]_.
 .. toctree::
    :titlesonly:
 
+   /autoapi/plot/index
+   /autoapi/algo/index
+   /autoapi/data/index
+   /autoapi/bootstrap/index
+   /autoapi/test_algo/index
+   /autoapi/test_bootstrap/index
+   /autoapi/test_calibration/index
 
 .. [#f1] Created with `sphinx-autoapi <https://github.com/readthedocs/sphinx-autoapi>`_

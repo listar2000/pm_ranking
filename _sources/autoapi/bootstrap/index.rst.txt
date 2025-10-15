@@ -1,0 +1,60 @@
+bootstrap
+=========
+
+.. py:module:: bootstrap
+
+.. autoapi-nested-parse::
+
+   Bootstrap confidence interval calculation for forecaster rankings.
+
+   This module provides simplified bootstrap CI estimation for the nightly API,
+   focusing on symmetric confidence intervals around point estimates.
+
+   Key principle: Bootstrap resampling is done SEPARATELY for each forecaster,
+   sampling with replacement from their own predictions only. This properly
+   estimates the uncertainty in each forecaster's individual score.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   bootstrap.compute_bootstrap_ci
+
+
+Module Contents
+---------------
+
+.. py:function:: compute_bootstrap_ci(result_df: pandas.DataFrame, score_col: str, adjusted_weights: numpy.ndarray, bootstrap_config: Dict = None) -> Tuple[Dict[str, float], Dict[str, Tuple[float, float]]]
+
+   Compute bootstrap confidence intervals for forecaster scores.
+
+   This function performs weighted bootstrap resampling of individual predictions
+   to estimate confidence intervals for forecaster scores. It uses symmetric CIs
+   around the point estimate.
+
+   IMPORTANT: Resampling is done SEPARATELY for each forecaster. At each bootstrap
+   iteration, we sample (with replacement) from each forecaster's own predictions
+   using their adjusted weights. This properly captures the uncertainty in each
+   forecaster's individual score estimate.
+
+   Args:
+       result_df: DataFrame with columns (forecaster, score_col, adjusted_weight)
+                 where each row is an individual prediction
+       score_col: Name of the score column ('brier_score' or 'average_return')
+       adjusted_weights: Array of adjusted weights for each prediction (same length as result_df)
+       bootstrap_config: Dictionary with bootstrap parameters:
+           - num_samples: Number of bootstrap samples (default: 1000)
+           - ci_level: Confidence level (default: 0.95)
+           - num_se: Number of standard errors for CI bounds (default: None, uses ci_level)
+           - random_seed: Random seed for reproducibility (default: 42)
+           - show_progress: Whether to show progress bar (default: True)
+
+   Returns:
+       Tuple of (standard_errors, confidence_intervals) where:
+       - standard_errors: Dict mapping forecaster -> SE of the score
+       - confidence_intervals: Dict mapping forecaster -> (lower, upper) bounds
+
+

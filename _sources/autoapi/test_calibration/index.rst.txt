@@ -1,0 +1,33 @@
+test_calibration
+================
+
+.. py:module:: test_calibration
+
+.. autoapi-nested-parse::
+
+   Test script for the new calibration metric implementation.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   test_calibration.test_simple_calibration
+   test_calibration.test_perfect_calibration
+
+
+Module Contents
+---------------
+
+.. py:function:: test_simple_calibration()
+
+   Test calibration with a simple synthetic case.
+
+
+.. py:function:: test_perfect_calibration()
+
+   Test with perfectly calibrated predictions.
+
+

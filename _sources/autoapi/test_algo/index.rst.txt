@@ -1,0 +1,40 @@
+test_algo
+=========
+
+.. py:module:: test_algo
+
+.. autoapi-nested-parse::
+
+   Test script to compare the new nightly average return implementation 
+   with the original average_return.py implementation.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   test_algo.predictions_csv
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   test_algo.test_simple_case
+
+
+Module Contents
+---------------
+
+.. py:function:: test_simple_case()
+
+   Test with a simple synthetic case to validate the logic.
+
+
+.. py:data:: predictions_csv
+   :value: 'slurm/predictions_10_01.csv'
+
+

@@ -1,0 +1,92 @@
+data
+====
+
+.. py:module:: data
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   data.WeightingStrategy
+   data.logger
+   data.predictions_csv
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   data.NightlyForecasts
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   data.uniform_weighting
+   data.first_n_weighting
+   data.last_n_weighting
+   data.exponential_weighting
+
+
+Module Contents
+---------------
+
+.. py:data:: WeightingStrategy
+
+.. py:data:: logger
+
+.. py:function:: uniform_weighting()
+
+.. py:function:: first_n_weighting(n=1, group_col: list[str] = ['forecaster', 'event_ticker'], time_col: str = 'round')
+
+.. py:function:: last_n_weighting(n=1, group_col: list[str] = ['forecaster', 'event_ticker'], time_col: str = 'round')
+
+.. py:function:: exponential_weighting(lambda_=0.1, time_col: str = 'time_rank')
+
+.. py:class:: NightlyForecasts(forecasts: pandas.DataFrame)
+
+   .. py:attribute:: PREDICTION_COLS
+      :value: ['predictor_name', 'event_ticker', 'submission_count', 'prediction', 'market_outcome', 'category']
+
+
+
+   .. py:attribute:: SUBMISSION_COLS
+      :value: ['event_ticker', 'submission_count', 'market_data']
+
+
+
+   .. py:attribute:: RENAMES
+
+
+   .. py:attribute:: data
+
+
+   .. py:method:: turn_market_data_to_odds(market_data: dict) -> tuple[numpy.ndarray, numpy.ndarray]
+      :staticmethod:
+
+
+
+   .. py:method:: simplify_prediction(prediction: dict) -> numpy.ndarray
+      :staticmethod:
+
+
+
+   .. py:method:: simplify_market_outcome(market_outcome: dict) -> numpy.ndarray
+      :staticmethod:
+
+
+
+   .. py:method:: from_prophet_arena_csv(predictions_csv: str, submissions_csv: str, weight_fn=uniform_weighting())
+      :classmethod:
+
+
+
+.. py:data:: predictions_csv
+   :value: 'slurm/predictions_10_11_to_09_15.csv'
+
+

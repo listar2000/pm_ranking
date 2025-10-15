@@ -1,0 +1,38 @@
+test_bootstrap
+==============
+
+.. py:module:: test_bootstrap
+
+.. autoapi-nested-parse::
+
+   Test script for bootstrap confidence interval calculation.
+
+   NOTE: Bootstrap resampling is done SEPARATELY for each forecaster.
+   At each iteration, we sample (with replacement) from each forecaster's
+   own predictions using their adjusted weights. This properly estimates
+   the uncertainty in each forecaster's individual score.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   test_bootstrap.test_bootstrap_simple
+   test_bootstrap.test_bootstrap_average_return
+
+
+Module Contents
+---------------
+
+.. py:function:: test_bootstrap_simple()
+
+   Test bootstrap CI with a simple synthetic case.
+
+
+.. py:function:: test_bootstrap_average_return()
+
+   Test bootstrap CI with average return metric.
+
+

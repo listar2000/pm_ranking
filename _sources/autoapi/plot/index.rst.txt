@@ -1,0 +1,50 @@
+plot
+====
+
+.. py:module:: plot
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   plot.model_rename_dict
+   plot.predictions_csv
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   plot.plot_score_over_round
+
+
+Module Contents
+---------------
+
+.. py:data:: model_rename_dict
+
+.. py:function:: plot_score_over_round(result_df: pandas.DataFrame, filename: str, score_col: str, forecasters: list[str] = None, merge_every: int = 1, max_round: int = None)
+
+   Visualize each forecaster's average return performance over rounds.
+
+   For each round and each forecaster, we take the average of all rows (events) 
+   that have this round and record the score. The final plot shows N curves 
+   going from 1 to the max round number (N = number of forecasters).
+
+   Args:
+       result_df: DataFrame with columns ['forecaster', 'event_ticker', 'round', 'weight', score_col]
+                 Output from compute_average_return_neutral function
+       filename: filename to save the plot
+       score_col: column to plot
+       forecasters: list of forecasters to plot. If None, plot all forecasters.
+       merge_every: merge every N rounds.
+       max_round: max round to plot. If None, plot all rounds.
+
+
+.. py:data:: predictions_csv
+   :value: 'slurm/predictions_10_01_to_09_01.csv'
+
+
