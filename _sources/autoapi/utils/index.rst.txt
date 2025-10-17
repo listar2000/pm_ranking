@@ -1,0 +1,49 @@
+utils
+=====
+
+.. py:module:: utils
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   utils.calculate_time_to_last_submission
+   utils.assign_time_bins
+
+
+Module Contents
+---------------
+
+.. py:function:: calculate_time_to_last_submission(forecasts_df: pandas.DataFrame) -> pandas.DataFrame
+
+   Calculate the time gap from each prediction to the market close time.
+
+   This function calculates how many hours before the market close each prediction was made.
+   It uses the 'close_time' column (actual market close time from database) if available,
+   otherwise falls back to approximating with the last submission's snapshot_time.
+
+   Args:
+       forecasts_df: DataFrame with columns including ['event_ticker', 'snapshot_time']
+                    Optionally includes 'close_time' for accurate close times
+
+   Returns:
+       DataFrame with an additional 'time_to_last' column (in hours) representing 
+       the time gap from this prediction to the market close time
+
+
+.. py:function:: assign_time_bins(forecasts_df: pandas.DataFrame, time_bins: list) -> pandas.DataFrame
+
+   Assign each forecast to a time bin based on time to market close.
+
+   Args:
+       forecasts_df: DataFrame with 'time_to_last' column (in hours) - time before market close
+       time_bins: List of tuples (lower_bound, upper_bound, label) defining time bins.
+                 Example: [(0, 6, "0-6h"), (6, 12, "6-12h"), ...]
+
+   Returns:
+       DataFrame with an additional 'time_bin' column containing the bin label.
+       Rows that don't fit into any bin are filtered out.
+
+

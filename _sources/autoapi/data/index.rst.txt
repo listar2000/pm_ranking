@@ -30,6 +30,7 @@ Functions
    data.first_n_weighting
    data.last_n_weighting
    data.exponential_weighting
+   data.time_to_last_weighting
 
 
 Module Contents
@@ -47,7 +48,37 @@ Module Contents
 
 .. py:function:: exponential_weighting(lambda_=0.1, time_col: str = 'time_rank')
 
-.. py:class:: NightlyForecasts(forecasts: pandas.DataFrame)
+.. py:function:: time_to_last_weighting(min_hours: float = 0.0, max_hours: float = float('inf'))
+
+   Filter predictions based on their time gap to the market close time.
+
+   This weighting function filters predictions based on how many hours before market close
+   they were made. It automatically calculates 'time_to_last' if not present using the
+   calculate_time_to_last_submission function from utils.py.
+
+   Special handling for single-submission events:
+   - Events with only one submission are ALWAYS included regardless of time range
+   - This prevents filtering out events that had no opportunity for multiple predictions
+
+   Args:
+       min_hours: Minimum hours before market close (inclusive). Default: 0.0
+       max_hours: Maximum hours before market close (exclusive). Default: inf (no upper limit)
+
+   Returns:
+       A weighting function that filters predictions within [min_hours, max_hours) and assigns weight=1.0
+
+   Example:
+       # Only keep predictions made 6-12 hours before market close
+       weight_fn = time_to_last_weighting(min_hours=6.0, max_hours=12.0)
+       
+       # Only keep predictions made more than 24 hours before market close
+       weight_fn = time_to_last_weighting(min_hours=24.0, max_hours=float('inf'))
+       
+       # Only keep predictions made within 3 hours of market close
+       weight_fn = time_to_last_weighting(min_hours=0.0, max_hours=3.0)
+
+
+.. py:class:: NightlyForecasts(forecasts: pandas.DataFrame, exclude_forecasters: list[str] = None)
 
    .. py:attribute:: PREDICTION_COLS
       :value: ['predictor_name', 'event_ticker', 'submission_count', 'prediction', 'market_outcome', 'category']
@@ -55,7 +86,7 @@ Module Contents
 
 
    .. py:attribute:: SUBMISSION_COLS
-      :value: ['event_ticker', 'submission_count', 'market_data']
+      :value: ['event_ticker', 'submission_count', 'market_data', 'snapshot_time', 'close_time']
 
 
 
@@ -80,7 +111,7 @@ Module Contents
 
 
 
-   .. py:method:: from_prophet_arena_csv(predictions_csv: str, submissions_csv: str, weight_fn=uniform_weighting())
+   .. py:method:: from_prophet_arena_csv(predictions_csv: str, submissions_csv: str, weight_fn=uniform_weighting(), exclude_forecasters: list[str] = None)
       :classmethod:
 
 

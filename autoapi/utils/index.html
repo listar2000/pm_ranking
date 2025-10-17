@@ -7,9 +7,9 @@
 <meta content="white" media="(prefers-color-scheme: light)" name="theme-color"/>
 <meta content="black" media="(prefers-color-scheme: dark)" name="theme-color"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>plot | PM-RANK 0.2.27 documentation</title>
-<meta content="plot | PM-RANK 0.2.27 documentation" property="og:title"/>
-<meta content="plot | PM-RANK 0.2.27 documentation" name="twitter:title"/>
+<title>utils | PM-RANK 0.2.27 documentation</title>
+<meta content="utils | PM-RANK 0.2.27 documentation" property="og:title"/>
+<meta content="utils | PM-RANK 0.2.27 documentation" name="twitter:title"/>
 <link href="../../_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
 <link href="../../_static/theme.css?v=42baaae4" rel="stylesheet" type="text/css"/>
 <link href="../../_static/graphviz.css?v=4ae1632d" rel="stylesheet" type="text/css"/>
@@ -108,76 +108,70 @@
 </a>
 <div class="mr-1">/</div>
 <span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-    plot
+    utils
   </span>
 </nav>
 <div id="content" role="main">
-<section id="module-plot">
-<span id="plot"></span><h1>plot<a class="headerlink" href="#module-plot" title="Link to this heading"><span>¶</span></a></h1>
-<section id="attributes">
-<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#attributes'"><span>¶</span></a></h2>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#plot.model_rename_dict" title="plot.model_rename_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model_rename_dict</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#plot.predictions_csv" title="plot.predictions_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predictions_csv</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
-</section>
+<section id="module-utils">
+<span id="utils"></span><h1>utils<a class="headerlink" href="#module-utils" title="Link to this heading"><span>¶</span></a></h1>
 <section id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#functions'"><span>¶</span></a></h2>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#plot.plot_score_over_round" title="plot.plot_score_over_round"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_score_over_round</span></code></a>(result_df, filename, score_col)</p></td>
-<td><p>Visualize each forecaster's average return performance over rounds.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#utils.calculate_time_to_last_submission" title="utils.calculate_time_to_last_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_time_to_last_submission</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p>Calculate the time gap from each prediction to the market close time.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#utils.assign_time_bins" title="utils.assign_time_bins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assign_time_bins</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p>Assign each forecast to a time bin based on time to market close.</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#module-contents'"><span>¶</span></a></h2>
-<dl class="py data">
-<dt class="sig sig-object py" id="plot.model_rename_dict">
-<span class="sig-prename descclassname"><span class="pre">plot.</span></span><span class="sig-name descname"><span class="pre">model_rename_dict</span></span><a class="headerlink" href="#plot.model_rename_dict" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot.model_rename_dict'"><span>¶</span></a></dt>
-<dd></dd></dl>
 <dl class="py function">
-<dt class="sig sig-object py" id="plot.plot_score_over_round">
-<span class="sig-prename descclassname"><span class="pre">plot.</span></span><span class="sig-name descname"><span class="pre">plot_score_over_round</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecasters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_every</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_score_over_round" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot.plot_score_over_round'"><span>¶</span></a></dt>
-<dd><p>Visualize each forecaster’s average return performance over rounds.</p>
-<p>For each round and each forecaster, we take the average of all rows (events)
-that have this round and record the score. The final plot shows N curves
-going from 1 to the max round number (N = number of forecasters).</p>
-<dl>
+<dt class="sig sig-object py" id="utils.calculate_time_to_last_submission">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">calculate_time_to_last_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#utils.calculate_time_to_last_submission" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#utils.calculate_time_to_last_submission'"><span>¶</span></a></dt>
+<dd><p>Calculate the time gap from each prediction to the market close time.</p>
+<p>This function calculates how many hours before the market close each prediction was made.
+It uses the ‘close_time’ column (actual market close time from database) if available,
+otherwise falls back to approximating with the last submission’s snapshot_time.</p>
+<dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
-<dt>result_df: DataFrame with columns [‘forecaster’, ‘event_ticker’, ‘round’, ‘weight’, score_col]</dt><dd><p>Output from compute_average_return_neutral function</p>
+<dt>forecasts_df: DataFrame with columns including [‘event_ticker’, ‘snapshot_time’]</dt><dd><p>Optionally includes ‘close_time’ for accurate close times</p>
 </dd>
 </dl>
-<p>filename: filename to save the plot
-score_col: column to plot
-forecasters: list of forecasters to plot. If None, plot all forecasters.
-merge_every: merge every N rounds.
-max_round: max round to plot. If None, plot all rounds.</p>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame with an additional ‘time_to_last’ column (in hours) representing
+the time gap from this prediction to the market close time</p>
 </dd>
 </dl>
 </dd></dl>
-<dl class="py data">
-<dt class="sig sig-object py" id="plot.predictions_csv">
-<span class="sig-prename descclassname"><span class="pre">plot.</span></span><span class="sig-name descname"><span class="pre">predictions_csv</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'slurm/predictions_10_01_to_09_01.csv'</span></em><a class="headerlink" href="#plot.predictions_csv" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot.predictions_csv'"><span>¶</span></a></dt>
-<dd></dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.assign_time_bins">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">assign_time_bins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#utils.assign_time_bins" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#utils.assign_time_bins'"><span>¶</span></a></dt>
+<dd><p>Assign each forecast to a time bin based on time to market close.</p>
+<dl>
+<dt>Args:</dt><dd><p>forecasts_df: DataFrame with ‘time_to_last’ column (in hours) - time before market close
+time_bins: List of tuples (lower_bound, upper_bound, label) defining time bins.</p>
+<blockquote>
+<div><p>Example: [(0, 6, “0-6h”), (6, 12, “6-12h”), …]</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame with an additional ‘time_bin’ column containing the bin label.
+Rows that don’t fit into any bin are filtered out.</p>
+</dd>
+</dl>
+</dd></dl>
 </section>
 </section>
 </div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
 <div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
 <ul>
-<li><a :data-current="activeSection === '#attributes'" class="reference internal" href="#attributes">Attributes</a></li>
 <li><a :data-current="activeSection === '#functions'" class="reference internal" href="#functions">Functions</a></li>
 <li><a :data-current="activeSection === '#module-contents'" class="reference internal" href="#module-contents">Module Contents</a><ul>
-<li><a :data-current="activeSection === '#plot.model_rename_dict'" class="reference internal" href="#plot.model_rename_dict"><code class="docutils literal notranslate"><span class="pre">model_rename_dict</span></code></a></li>
-<li><a :data-current="activeSection === '#plot.plot_score_over_round'" class="reference internal" href="#plot.plot_score_over_round"><code class="docutils literal notranslate"><span class="pre">plot_score_over_round()</span></code></a></li>
-<li><a :data-current="activeSection === '#plot.predictions_csv'" class="reference internal" href="#plot.predictions_csv"><code class="docutils literal notranslate"><span class="pre">predictions_csv</span></code></a></li>
+<li><a :data-current="activeSection === '#utils.calculate_time_to_last_submission'" class="reference internal" href="#utils.calculate_time_to_last_submission"><code class="docutils literal notranslate"><span class="pre">calculate_time_to_last_submission()</span></code></a></li>
+<li><a :data-current="activeSection === '#utils.assign_time_bins'" class="reference internal" href="#utils.assign_time_bins"><code class="docutils literal notranslate"><span class="pre">assign_time_bins()</span></code></a></li>
 </ul>
 </li>
 </ul>

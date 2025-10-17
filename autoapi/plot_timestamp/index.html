@@ -7,9 +7,9 @@
 <meta content="white" media="(prefers-color-scheme: light)" name="theme-color"/>
 <meta content="black" media="(prefers-color-scheme: dark)" name="theme-color"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>plot | PM-RANK 0.2.27 documentation</title>
-<meta content="plot | PM-RANK 0.2.27 documentation" property="og:title"/>
-<meta content="plot | PM-RANK 0.2.27 documentation" name="twitter:title"/>
+<title>plot_timestamp | PM-RANK 0.2.27 documentation</title>
+<meta content="plot_timestamp | PM-RANK 0.2.27 documentation" property="og:title"/>
+<meta content="plot_timestamp | PM-RANK 0.2.27 documentation" name="twitter:title"/>
 <link href="../../_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
 <link href="../../_static/theme.css?v=42baaae4" rel="stylesheet" type="text/css"/>
 <link href="../../_static/graphviz.css?v=4ae1632d" rel="stylesheet" type="text/css"/>
@@ -108,20 +108,23 @@
 </a>
 <div class="mr-1">/</div>
 <span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-    plot
+    plot_timestamp
   </span>
 </nav>
 <div id="content" role="main">
-<section id="module-plot">
-<span id="plot"></span><h1>plot<a class="headerlink" href="#module-plot" title="Link to this heading"><span>¶</span></a></h1>
+<section id="module-plot_timestamp">
+<span id="plot-timestamp"></span><h1>plot_timestamp<a class="headerlink" href="#module-plot_timestamp" title="Link to this heading"><span>¶</span></a></h1>
 <section id="attributes">
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#attributes'"><span>¶</span></a></h2>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#plot.model_rename_dict" title="plot.model_rename_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model_rename_dict</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#plot_timestamp.model_rename_dict" title="plot_timestamp.model_rename_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model_rename_dict</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#plot.predictions_csv" title="plot.predictions_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predictions_csv</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#plot_timestamp.TIME_BINS" title="plot_timestamp.TIME_BINS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TIME_BINS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#plot_timestamp.predictions_csv" title="plot_timestamp.predictions_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predictions_csv</span></code></a></p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -131,8 +134,14 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#functions'"><span>¶</span></a></h2>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#plot.plot_score_over_round" title="plot.plot_score_over_round"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_score_over_round</span></code></a>(result_df, filename, score_col)</p></td>
-<td><p>Visualize each forecaster's average return performance over rounds.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#plot_timestamp.plot_score_over_time_bins" title="plot_timestamp.plot_score_over_time_bins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_score_over_time_bins</span></code></a>(result_df, filename, score_col)</p></td>
+<td><p>Visualize each forecaster's average performance over time bins (time before market close).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#plot_timestamp.plot_time_gap_distribution" title="plot_timestamp.plot_time_gap_distribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_time_gap_distribution</span></code></a>(forecasts_df, filename[, ...])</p></td>
+<td><p>Plot the empirical distribution of time gaps (time before market close) for each forecaster.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#plot_timestamp.plot_time_gap_histogram" title="plot_timestamp.plot_time_gap_histogram"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_time_gap_histogram</span></code></a>(forecasts_df, filename[, ...])</p></td>
+<td><p>Plot a histogram of time gaps for a specific forecaster (for debugging/exploration).</p></td>
 </tr>
 </tbody>
 </table>
@@ -140,32 +149,53 @@
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#module-contents'"><span>¶</span></a></h2>
 <dl class="py data">
-<dt class="sig sig-object py" id="plot.model_rename_dict">
-<span class="sig-prename descclassname"><span class="pre">plot.</span></span><span class="sig-name descname"><span class="pre">model_rename_dict</span></span><a class="headerlink" href="#plot.model_rename_dict" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot.model_rename_dict'"><span>¶</span></a></dt>
+<dt class="sig sig-object py" id="plot_timestamp.model_rename_dict">
+<span class="sig-prename descclassname"><span class="pre">plot_timestamp.</span></span><span class="sig-name descname"><span class="pre">model_rename_dict</span></span><a class="headerlink" href="#plot_timestamp.model_rename_dict" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot_timestamp.model_rename_dict'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py data">
+<dt class="sig sig-object py" id="plot_timestamp.TIME_BINS">
+<span class="sig-prename descclassname"><span class="pre">plot_timestamp.</span></span><span class="sig-name descname"><span class="pre">TIME_BINS</span></span><a class="headerlink" href="#plot_timestamp.TIME_BINS" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot_timestamp.TIME_BINS'"><span>¶</span></a></dt>
 <dd></dd></dl>
 <dl class="py function">
-<dt class="sig sig-object py" id="plot.plot_score_over_round">
-<span class="sig-prename descclassname"><span class="pre">plot.</span></span><span class="sig-name descname"><span class="pre">plot_score_over_round</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecasters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_every</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.plot_score_over_round" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot.plot_score_over_round'"><span>¶</span></a></dt>
-<dd><p>Visualize each forecaster’s average return performance over rounds.</p>
-<p>For each round and each forecaster, we take the average of all rows (events)
-that have this round and record the score. The final plot shows N curves
-going from 1 to the max round number (N = number of forecasters).</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>result_df: DataFrame with columns [‘forecaster’, ‘event_ticker’, ‘round’, ‘weight’, score_col]</dt><dd><p>Output from compute_average_return_neutral function</p>
+<dt class="sig sig-object py" id="plot_timestamp.plot_score_over_time_bins">
+<span class="sig-prename descclassname"><span class="pre">plot_timestamp.</span></span><span class="sig-name descname"><span class="pre">plot_score_over_time_bins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecasters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot_timestamp.plot_score_over_time_bins" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot_timestamp.plot_score_over_time_bins'"><span>¶</span></a></dt>
+<dd><p>Visualize each forecaster’s average performance over time bins (time before market close).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>result_df: DataFrame with columns [‘forecaster’, ‘event_ticker’, ‘time_bin’, ‘weight’, score_col]
+filename: filename to save the plot
+score_col: column to plot (‘brier_score’ or ‘average_return’)
+forecasters: list of forecasters to plot. If None, plot all forecasters.
+time_bins: List of tuples (lower, upper, label) defining time bins. If None, uses default TIME_BINS</p>
 </dd>
 </dl>
-<p>filename: filename to save the plot
-score_col: column to plot
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_timestamp.plot_time_gap_distribution">
+<span class="sig-prename descclassname"><span class="pre">plot_timestamp.</span></span><span class="sig-name descname"><span class="pre">plot_time_gap_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecasters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot_timestamp.plot_time_gap_distribution" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot_timestamp.plot_time_gap_distribution'"><span>¶</span></a></dt>
+<dd><p>Plot the empirical distribution of time gaps (time before market close) for each forecaster.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>forecasts_df: DataFrame with columns [‘forecaster’, ‘time_to_last’, ‘time_bin’]
+filename: filename to save the plot
 forecasters: list of forecasters to plot. If None, plot all forecasters.
-merge_every: merge every N rounds.
-max_round: max round to plot. If None, plot all rounds.</p>
+time_bins: List of tuples (lower, upper, label) defining time bins. If None, uses default TIME_BINS</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_timestamp.plot_time_gap_histogram">
+<span class="sig-prename descclassname"><span class="pre">plot_timestamp.</span></span><span class="sig-name descname"><span class="pre">plot_time_gap_histogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecaster</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_hours</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot_timestamp.plot_time_gap_histogram" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot_timestamp.plot_time_gap_histogram'"><span>¶</span></a></dt>
+<dd><p>Plot a histogram of time gaps for a specific forecaster (for debugging/exploration).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>forecasts_df: DataFrame with ‘time_to_last’ column
+filename: filename to save the plot
+forecaster: specific forecaster to plot. If None, plots all forecasters combined.
+max_hours: maximum hours to show on x-axis (default: 200)</p>
 </dd>
 </dl>
 </dd></dl>
 <dl class="py data">
-<dt class="sig sig-object py" id="plot.predictions_csv">
-<span class="sig-prename descclassname"><span class="pre">plot.</span></span><span class="sig-name descname"><span class="pre">predictions_csv</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'slurm/predictions_10_01_to_09_01.csv'</span></em><a class="headerlink" href="#plot.predictions_csv" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot.predictions_csv'"><span>¶</span></a></dt>
+<dt class="sig sig-object py" id="plot_timestamp.predictions_csv">
+<span class="sig-prename descclassname"><span class="pre">plot_timestamp.</span></span><span class="sig-name descname"><span class="pre">predictions_csv</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'slurm/predictions_10_01_to_09_01.csv'</span></em><a class="headerlink" href="#plot_timestamp.predictions_csv" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#plot_timestamp.predictions_csv'"><span>¶</span></a></dt>
 <dd></dd></dl>
 </section>
 </section>
@@ -175,9 +205,12 @@ max_round: max round to plot. If None, plot all rounds.</p>
 <li><a :data-current="activeSection === '#attributes'" class="reference internal" href="#attributes">Attributes</a></li>
 <li><a :data-current="activeSection === '#functions'" class="reference internal" href="#functions">Functions</a></li>
 <li><a :data-current="activeSection === '#module-contents'" class="reference internal" href="#module-contents">Module Contents</a><ul>
-<li><a :data-current="activeSection === '#plot.model_rename_dict'" class="reference internal" href="#plot.model_rename_dict"><code class="docutils literal notranslate"><span class="pre">model_rename_dict</span></code></a></li>
-<li><a :data-current="activeSection === '#plot.plot_score_over_round'" class="reference internal" href="#plot.plot_score_over_round"><code class="docutils literal notranslate"><span class="pre">plot_score_over_round()</span></code></a></li>
-<li><a :data-current="activeSection === '#plot.predictions_csv'" class="reference internal" href="#plot.predictions_csv"><code class="docutils literal notranslate"><span class="pre">predictions_csv</span></code></a></li>
+<li><a :data-current="activeSection === '#plot_timestamp.model_rename_dict'" class="reference internal" href="#plot_timestamp.model_rename_dict"><code class="docutils literal notranslate"><span class="pre">model_rename_dict</span></code></a></li>
+<li><a :data-current="activeSection === '#plot_timestamp.TIME_BINS'" class="reference internal" href="#plot_timestamp.TIME_BINS"><code class="docutils literal notranslate"><span class="pre">TIME_BINS</span></code></a></li>
+<li><a :data-current="activeSection === '#plot_timestamp.plot_score_over_time_bins'" class="reference internal" href="#plot_timestamp.plot_score_over_time_bins"><code class="docutils literal notranslate"><span class="pre">plot_score_over_time_bins()</span></code></a></li>
+<li><a :data-current="activeSection === '#plot_timestamp.plot_time_gap_distribution'" class="reference internal" href="#plot_timestamp.plot_time_gap_distribution"><code class="docutils literal notranslate"><span class="pre">plot_time_gap_distribution()</span></code></a></li>
+<li><a :data-current="activeSection === '#plot_timestamp.plot_time_gap_histogram'" class="reference internal" href="#plot_timestamp.plot_time_gap_histogram"><code class="docutils literal notranslate"><span class="pre">plot_time_gap_histogram()</span></code></a></li>
+<li><a :data-current="activeSection === '#plot_timestamp.predictions_csv'" class="reference internal" href="#plot_timestamp.predictions_csv"><code class="docutils literal notranslate"><span class="pre">predictions_csv</span></code></a></li>
 </ul>
 </li>
 </ul>

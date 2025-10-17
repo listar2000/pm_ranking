@@ -1,0 +1,71 @@
+plot_timestamp
+==============
+
+.. py:module:: plot_timestamp
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   plot_timestamp.model_rename_dict
+   plot_timestamp.TIME_BINS
+   plot_timestamp.predictions_csv
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   plot_timestamp.plot_score_over_time_bins
+   plot_timestamp.plot_time_gap_distribution
+   plot_timestamp.plot_time_gap_histogram
+
+
+Module Contents
+---------------
+
+.. py:data:: model_rename_dict
+
+.. py:data:: TIME_BINS
+
+.. py:function:: plot_score_over_time_bins(result_df: pandas.DataFrame, filename: str, score_col: str, forecasters: list[str] = None, time_bins: list = None)
+
+   Visualize each forecaster's average performance over time bins (time before market close).
+
+   Args:
+       result_df: DataFrame with columns ['forecaster', 'event_ticker', 'time_bin', 'weight', score_col]
+       filename: filename to save the plot
+       score_col: column to plot ('brier_score' or 'average_return')
+       forecasters: list of forecasters to plot. If None, plot all forecasters.
+       time_bins: List of tuples (lower, upper, label) defining time bins. If None, uses default TIME_BINS
+
+
+.. py:function:: plot_time_gap_distribution(forecasts_df: pandas.DataFrame, filename: str, forecasters: list[str] = None, time_bins: list = None)
+
+   Plot the empirical distribution of time gaps (time before market close) for each forecaster.
+
+   Args:
+       forecasts_df: DataFrame with columns ['forecaster', 'time_to_last', 'time_bin']
+       filename: filename to save the plot
+       forecasters: list of forecasters to plot. If None, plot all forecasters.
+       time_bins: List of tuples (lower, upper, label) defining time bins. If None, uses default TIME_BINS
+
+
+.. py:function:: plot_time_gap_histogram(forecasts_df: pandas.DataFrame, filename: str, forecaster: str = None, max_hours: float = 200)
+
+   Plot a histogram of time gaps for a specific forecaster (for debugging/exploration).
+
+   Args:
+       forecasts_df: DataFrame with 'time_to_last' column
+       filename: filename to save the plot
+       forecaster: specific forecaster to plot. If None, plots all forecasters combined.
+       max_hours: maximum hours to show on x-axis (default: 200)
+
+
+.. py:data:: predictions_csv
+   :value: 'slurm/predictions_10_01_to_09_01.csv'
+
+
