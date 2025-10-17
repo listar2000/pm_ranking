@@ -1,6 +1,10 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.2.26 (Current)
+### v0.2.27 (Current)
+
+- Add better handling logic for calculating each submission/prediction's time to the market close timestamp.
+
+### v0.2.26
 
 - **Nightly Version 🚀**: We add a new module `pm_rank.nightly` for scoring and ranking nightly predictions. This is to prepare for the upcoming API upgrade from the existing version and aims at improving the speed of loading data and making evaluations.
 

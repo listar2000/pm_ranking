@@ -7,7 +7,7 @@ from pm_rank.nightly.bootstrap import compute_bootstrap_ci
 
 DEFAULT_BOOTSTRAP_CONFIG = {
     'num_samples': 1000,
-    'ci_level': 0.95,
+    'ci_level': 0.9,
     'num_se': None,
     'random_seed': 42,
     'show_progress': True
@@ -96,6 +96,7 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
     ).reset_index(name='score')
     
     # Compute bootstrap confidence intervals if requested
+    ci_col_name = f'{bootstrap_config["ci_level"] * 100}% ci'
     if bootstrap_config is not None:
         standard_errors, confidence_intervals = compute_bootstrap_ci(
             df[['forecaster', score_col]].copy(),
@@ -105,17 +106,19 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
         )
         
         # Add SE and CI columns to forecaster_scores
-        forecaster_scores['se'] = forecaster_scores['forecaster'].map(standard_errors)
-        forecaster_scores['lower'] = forecaster_scores['forecaster'].map(lambda f: confidence_intervals[f][0])
-        forecaster_scores['upper'] = forecaster_scores['forecaster'].map(lambda f: confidence_intervals[f][1])
+        # forecaster_scores['se'] = forecaster_scores['forecaster'].map(standard_errors)
+        # forecaster_scores['lower'] = forecaster_scores['forecaster'].map(lambda f: confidence_intervals[f][0])
+        # forecaster_scores['upper'] = forecaster_scores['forecaster'].map(lambda f: confidence_intervals[f][1])
+        forecaster_scores[ci_col_name] = \
+            forecaster_scores['forecaster'].map(lambda f: f"±{(confidence_intervals[f][1] - confidence_intervals[f][0]) / 2:.4f}")
     
     # Rank forecasters (ascending=True means lower score = better rank)
     forecaster_scores['rank'] = forecaster_scores['score'].rank(method='min', ascending=ascending).astype(int)
     
     # Sort by rank and select required columns, then set rank as index
     if bootstrap_config is not None:
-        rank_df = forecaster_scores[['forecaster', 'rank', 'score', 'se', 'lower', 'upper']].sort_values('rank')
-        rank_df = rank_df.set_index('rank')[['forecaster', 'score', 'se', 'lower', 'upper']]
+        rank_df = forecaster_scores[['forecaster', 'rank', 'score', ci_col_name]].sort_values('rank')
+        rank_df = rank_df.set_index('rank')[['forecaster', 'score', ci_col_name]]
     else:
         rank_df = forecaster_scores[['forecaster', 'rank', 'score']].sort_values('rank')
         rank_df = rank_df.set_index('rank')[['forecaster', 'score']]
@@ -359,6 +362,10 @@ def compute_calibration_ece(forecasts: pd.DataFrame, num_bins: int = 10,
         weights = np.array(data['weights'])
         
         # Normalize weights to sum to the number of samples (required by _bin_stats)
+        if weights.sum() == 0:
+            print(f"Warning: {forecaster} has no weights. Skipping ECE calculation...")
+            continue
+        
         weights = weights * len(probs) / weights.sum()
         
         # Calculate bin statistics using the helper function from the old API

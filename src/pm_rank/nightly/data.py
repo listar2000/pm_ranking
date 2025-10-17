@@ -51,10 +51,61 @@ def exponential_weighting(lambda_ = 0.1, time_col: str = 'time_rank'):
     return weight_fn
 
 
+def time_to_last_weighting(min_hours: float = 0.0, max_hours: float = float('inf')):
+    """
+    Filter predictions based on their time gap to the market close time.
+    
+    This weighting function filters predictions based on how many hours before market close
+    they were made. It automatically calculates 'time_to_last' if not present using the
+    calculate_time_to_last_submission function from utils.py.
+    
+    Special handling for single-submission events:
+    - Events with only one submission are ALWAYS included regardless of time range
+    - This prevents filtering out events that had no opportunity for multiple predictions
+    
+    Args:
+        min_hours: Minimum hours before market close (inclusive). Default: 0.0
+        max_hours: Maximum hours before market close (exclusive). Default: inf (no upper limit)
+    
+    Returns:
+        A weighting function that filters predictions within [min_hours, max_hours) and assigns weight=1.0
+    
+    Example:
+        # Only keep predictions made 6-12 hours before market close
+        weight_fn = time_to_last_weighting(min_hours=6.0, max_hours=12.0)
+        
+        # Only keep predictions made more than 24 hours before market close
+        weight_fn = time_to_last_weighting(min_hours=24.0, max_hours=float('inf'))
+        
+        # Only keep predictions made within 3 hours of market close
+        weight_fn = time_to_last_weighting(min_hours=0.0, max_hours=3.0)
+    """
+    def weight_fn(forecasts: pd.DataFrame) -> pd.DataFrame:        
+        # Check if time_to_last column exists
+        if 'time_to_last' not in forecasts.columns:
+            from pm_rank.nightly.utils import calculate_time_to_last_submission
+            forecasts = calculate_time_to_last_submission(forecasts)
+        
+        # Filter logic: for events with multiple submissions, only keep predictions within the time range
+        mask = ((forecasts['time_to_last'] >= min_hours) & (forecasts['time_to_last'] < max_hours))
+        
+        num_before = len(forecasts)
+        forecasts = forecasts[mask]
+        num_after = len(forecasts)
+        
+        forecasts['weight'] = 1.0
+
+        print(f"Time-based filtering: Retained {num_after}/{num_before} predictions")
+        print(f"  - Time range: [{min_hours}, {max_hours}) hours before market close")
+        return forecasts
+    
+    return weight_fn
+
+
 class NightlyForecasts:
 
     PREDICTION_COLS = ['predictor_name', 'event_ticker', 'submission_count', 'prediction', 'market_outcome', 'category']
-    SUBMISSION_COLS = ['event_ticker', 'submission_count', 'market_data']
+    SUBMISSION_COLS = ['event_ticker', 'submission_count', 'market_data', 'snapshot_time', 'close_time']
 
     RENAMES = {
         'predictor_name': 'forecaster',
@@ -62,8 +113,12 @@ class NightlyForecasts:
         'market_outcome': 'outcome'
     }
 
-    def __init__(self, forecasts: pd.DataFrame):
-        self.data = forecasts  
+    def __init__(self, forecasts: pd.DataFrame, exclude_forecasters: list[str] = None):
+        prev_len = len(forecasts)
+        if exclude_forecasters is not None:
+            forecasts = forecasts[~forecasts['forecaster'].isin(exclude_forecasters)]
+            print(f"Filtered out {prev_len - len(forecasts)} forecasts. Remaining {len(forecasts)}.")
+        self.data = forecasts
 
     @staticmethod
     def turn_market_data_to_odds(market_data: dict) -> tuple[np.ndarray, np.ndarray]:
@@ -83,7 +138,7 @@ class NightlyForecasts:
         return np.array([market_outcome[mkt] for mkt in sorted(list(market_outcome.keys()))])
 
     @classmethod
-    def from_prophet_arena_csv(cls, predictions_csv: str, submissions_csv: str, weight_fn = uniform_weighting()):
+    def from_prophet_arena_csv(cls, predictions_csv: str, submissions_csv: str, weight_fn = uniform_weighting(), exclude_forecasters: list[str] = None):
         logger.info(f"Loading forecasts from {predictions_csv} and {submissions_csv}")
         logger.info(f"Weighting function: {weight_fn}")
         # Load CSVs
@@ -100,7 +155,7 @@ class NightlyForecasts:
 
         # Merge predictions with submissions for the odds and no_odds columns
         merged = predictions_df.merge(
-            submissions_df[['event_ticker', 'submission_count', 'odds', 'no_odds']],
+            submissions_df[['event_ticker', 'submission_count', 'odds', 'no_odds', 'snapshot_time', 'close_time']],
             on=['event_ticker', 'submission_count'],
             how='inner'
         )
@@ -120,4 +175,4 @@ class NightlyForecasts:
 
         logger.info(f"Loaded {len(merged)} rows")
 
-        return cls(merged)
+        return cls(merged, exclude_forecasters)
