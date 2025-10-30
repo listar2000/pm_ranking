@@ -7,9 +7,9 @@
 <meta content="white" media="(prefers-color-scheme: light)" name="theme-color"/>
 <meta content="black" media="(prefers-color-scheme: dark)" name="theme-color"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>algo | PM-RANK 0.2.27 documentation</title>
-<meta content="algo | PM-RANK 0.2.27 documentation" property="og:title"/>
-<meta content="algo | PM-RANK 0.2.27 documentation" name="twitter:title"/>
+<title>algo | PM-RANK 0.2.28 documentation</title>
+<meta content="algo | PM-RANK 0.2.28 documentation" property="og:title"/>
+<meta content="algo | PM-RANK 0.2.28 documentation" name="twitter:title"/>
 <link href="../../_static/pygments.css?v=e72c8e07" rel="stylesheet" type="text/css"/>
 <link href="../../_static/theme.css?v=42baaae4" rel="stylesheet" type="text/css"/>
 <link href="../../_static/graphviz.css?v=4ae1632d" rel="stylesheet" type="text/css"/>
@@ -34,7 +34,7 @@
       Skip to content
     </a><header class="sticky top-0 z-40 w-full border-b shadow-sm border-border supports-backdrop-blur:bg-background/60 bg-background/95 backdrop-blur"><div class="container flex items-center h-14">
 <div class="hidden mr-4 md:flex">
-<a class="flex items-center mr-6" href="../../index.html"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">PM-RANK 0.2.27 documentation</span>
+<a class="flex items-center mr-6" href="../../index.html"><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">PM-RANK 0.2.28 documentation</span>
 </a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
 <svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
 <path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
@@ -71,7 +71,7 @@
 </div>
 </header>
 <div class="flex-1"><div class="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full shrink-0 overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
-<a class="!justify-start text-sm md:!hidden bg-background" href="../../index.html"><span class="font-bold text-clip whitespace-nowrap">PM-RANK 0.2.27 documentation</span>
+<a class="!justify-start text-sm md:!hidden bg-background" href="../../index.html"><span class="font-bold text-clip whitespace-nowrap">PM-RANK 0.2.28 documentation</span>
 </a>
 <div class="relative overflow-hidden md:overflow-auto my-4 md:my-0 h-[calc(100vh-8rem)] md:h-auto">
 <div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
@@ -101,7 +101,7 @@
 <div class="w-full min-w-0 mx-auto">
 <nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
 <a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="../../index.html">
-<span class="hidden md:inline">PM-RANK 0.2.27 documentation</span>
+<span class="hidden md:inline">PM-RANK 0.2.28 documentation</span>
 <svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
 <path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
 </svg>
@@ -145,6 +145,15 @@
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_calibration_ece" title="algo.compute_calibration_ece"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_calibration_ece</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Calculate the Expected Calibration Error (ECE) for each forecaster.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_sharpe_ratio" title="algo.compute_sharpe_ratio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_sharpe_ratio</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p>Calculate the Sharpe ratio for each forecaster.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_ranked_brier_score" title="algo.compute_ranked_brier_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_ranked_brier_score</span></code></a>(→ dict)</p></td>
+<td><p>Compute the ranked forecasters for the given score function.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_ranked_average_return" title="algo.compute_ranked_average_return"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_ranked_average_return</span></code></a>(→ dict)</p></td>
+<td><p>Compute the ranked forecasters for the given score function.</p></td>
 </tr>
 </tbody>
 </table>
@@ -234,7 +243,7 @@ spread_market_even: If True, spread budget evenly across markets instead of all-
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="algo.compute_calibration_ece">
-<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_calibration_ece</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'uniform'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'quantile'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'uniform'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_calibration_ece" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_calibration_ece'"><span>¶</span></a></dt>
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_calibration_ece</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'uniform'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'quantile'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'uniform'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_details</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_calibration_ece" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_calibration_ece'"><span>¶</span></a></dt>
 <dd><p>Calculate the Expected Calibration Error (ECE) for each forecaster.</p>
 <p>The ECE measures how well-calibrated a forecaster’s probability predictions are.
 For perfectly calibrated predictions, when a forecaster predicts probability p,
@@ -251,10 +260,41 @@ weight_event: If True, weight each market by 1/num_markets within each predictio
 <blockquote>
 <div><p>If False, all markets are weighted equally (default: True)</p>
 </div></blockquote>
+<p>return_details: If True, return the details of the ECE calculation for each forecaster. Useful for plotting.</p>
 </dd>
 <dt>Returns:</dt><dd><p>DataFrame with columns (forecaster, ece_score) containing the ECE for each forecaster</p>
 </dd>
 </dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="algo.compute_sharpe_ratio">
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_sharpe_ratio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">average_return_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_return</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_by_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_sharpe_ratio" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_sharpe_ratio'"><span>¶</span></a></dt>
+<dd><p>Calculate the Sharpe ratio for each forecaster.</p>
+<p>The Sharpe ratio is defined as: E[R - R_b] / std(R - R_b), where R is the return
+and R_b is the baseline return (typically 1.0 for break-even).</p>
+<dl>
+<dt>Args:</dt><dd><p>average_return_results: DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
+baseline_return: The baseline return to subtract from the average return (default: 1.0 for break-even)
+normalize_by_round: If True, first average returns within each (forecaster, event_ticker) group,</p>
+<blockquote>
+<div><p>then calculate Sharpe ratio across events. This prevents events with more
+rounds from dominating the calculation. (default: False)</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame with columns (forecaster, sharpe_ratio, mean_excess_return, std_excess_return)
+sorted by sharpe_ratio in descending order</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="algo.compute_ranked_brier_score">
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_ranked_brier_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_every</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_by_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstrap_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#algo.compute_ranked_brier_score" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_ranked_brier_score'"><span>¶</span></a></dt>
+<dd><p>Compute the ranked forecasters for the given score function.</p>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="algo.compute_ranked_average_return">
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_ranked_average_return</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_every</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_market_even</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_money_per_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_by_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstrap_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#algo.compute_ranked_average_return" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_ranked_average_return'"><span>¶</span></a></dt>
+<dd><p>Compute the ranked forecasters for the given score function.</p>
 </dd></dl>
 <dl class="py data">
 <dt class="sig sig-object py" id="algo.predictions_csv">
@@ -274,6 +314,9 @@ weight_event: If True, weight each market by 1/num_markets within each predictio
 <li><a :data-current="activeSection === '#algo.compute_brier_score'" class="reference internal" href="#algo.compute_brier_score"><code class="docutils literal notranslate"><span class="pre">compute_brier_score()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.compute_average_return_neutral'" class="reference internal" href="#algo.compute_average_return_neutral"><code class="docutils literal notranslate"><span class="pre">compute_average_return_neutral()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.compute_calibration_ece'" class="reference internal" href="#algo.compute_calibration_ece"><code class="docutils literal notranslate"><span class="pre">compute_calibration_ece()</span></code></a></li>
+<li><a :data-current="activeSection === '#algo.compute_sharpe_ratio'" class="reference internal" href="#algo.compute_sharpe_ratio"><code class="docutils literal notranslate"><span class="pre">compute_sharpe_ratio()</span></code></a></li>
+<li><a :data-current="activeSection === '#algo.compute_ranked_brier_score'" class="reference internal" href="#algo.compute_ranked_brier_score"><code class="docutils literal notranslate"><span class="pre">compute_ranked_brier_score()</span></code></a></li>
+<li><a :data-current="activeSection === '#algo.compute_ranked_average_return'" class="reference internal" href="#algo.compute_ranked_average_return"><code class="docutils literal notranslate"><span class="pre">compute_ranked_average_return()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.predictions_csv'" class="reference internal" href="#algo.predictions_csv"><code class="docutils literal notranslate"><span class="pre">predictions_csv</span></code></a></li>
 </ul>
 </li>
@@ -290,7 +333,7 @@ weight_event: If True, weight each market by 1/num_markets within each predictio
 </div>
 </footer>
 </div>
-<script src="../../_static/documentation_options.js?v=eb697a1f"></script>
+<script src="../../_static/documentation_options.js?v=0373d9dd"></script>
 <script src="../../_static/doctools.js?v=9bcbadda"></script>
 <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
 <script defer="defer" src="../../_static/theme.js?v=073f68d9"></script>

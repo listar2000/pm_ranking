@@ -23,6 +23,9 @@ Functions
    algo.compute_brier_score
    algo.compute_average_return_neutral
    algo.compute_calibration_ece
+   algo.compute_sharpe_ratio
+   algo.compute_ranked_brier_score
+   algo.compute_ranked_average_return
 
 
 Module Contents
@@ -104,7 +107,7 @@ Module Contents
        DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
 
 
-.. py:function:: compute_calibration_ece(forecasts: pandas.DataFrame, num_bins: int = 10, strategy: Literal['uniform', 'quantile'] = 'uniform', weight_event: bool = True) -> pandas.DataFrame
+.. py:function:: compute_calibration_ece(forecasts: pandas.DataFrame, num_bins: int = 10, strategy: Literal['uniform', 'quantile'] = 'uniform', weight_event: bool = True, return_details: bool = False) -> pandas.DataFrame
 
    Calculate the Expected Calibration Error (ECE) for each forecaster.
 
@@ -124,9 +127,38 @@ Module Contents
        strategy: Strategy for discretization, either "uniform" or "quantile" (default: "uniform")
        weight_event: If True, weight each market by 1/num_markets within each prediction.
                     If False, all markets are weighted equally (default: True)
-
+       return_details: If True, return the details of the ECE calculation for each forecaster. Useful for plotting.
    Returns:
        DataFrame with columns (forecaster, ece_score) containing the ECE for each forecaster
+
+
+.. py:function:: compute_sharpe_ratio(average_return_results: pandas.DataFrame, baseline_return: float = 1.0, normalize_by_round: bool = False) -> pandas.DataFrame
+
+   Calculate the Sharpe ratio for each forecaster.
+
+   The Sharpe ratio is defined as: E[R - R_b] / std(R - R_b), where R is the return 
+   and R_b is the baseline return (typically 1.0 for break-even).
+
+   Args:
+       average_return_results: DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
+       baseline_return: The baseline return to subtract from the average return (default: 1.0 for break-even)
+       normalize_by_round: If True, first average returns within each (forecaster, event_ticker) group,
+                          then calculate Sharpe ratio across events. This prevents events with more
+                          rounds from dominating the calculation. (default: False)
+
+   Returns:
+       DataFrame with columns (forecaster, sharpe_ratio, mean_excess_return, std_excess_return)
+       sorted by sharpe_ratio in descending order
+
+
+.. py:function:: compute_ranked_brier_score(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None) -> dict
+
+   Compute the ranked forecasters for the given score function.
+
+
+.. py:function:: compute_ranked_average_return(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None) -> dict
+
+   Compute the ranked forecasters for the given score function.
 
 
 .. py:data:: predictions_csv

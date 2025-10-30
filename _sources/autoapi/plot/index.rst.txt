@@ -10,7 +10,7 @@ Attributes
 .. autoapisummary::
 
    plot.model_rename_dict
-   plot.predictions_csv
+   plot.event_tickers_df
 
 
 Functions
@@ -19,6 +19,7 @@ Functions
 .. autoapisummary::
 
    plot.plot_score_over_round
+   plot.plot_market_versus_forecaster_probs
 
 
 Module Contents
@@ -44,7 +45,10 @@ Module Contents
        max_round: max round to plot. If None, plot all rounds.
 
 
-.. py:data:: predictions_csv
-   :value: 'slurm/predictions_10_01_to_09_01.csv'
+.. py:function:: plot_market_versus_forecaster_probs(forecasts: pandas.DataFrame, forecaster: str, forecaster_title: str, event_tickers: list[str] = None, outcome: str = 'yes')
 
+   We plot a scatter plot of the for the forecaster's probability versus the market-baseline one (conditioning on the event tickers and outcome) 
+
+
+.. py:data:: event_tickers_df
 
