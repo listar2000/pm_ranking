@@ -3,6 +3,7 @@ import numpy as np
 from typing import Literal, Dict, Optional
 from pm_rank.model.calibration import _bin_stats, _calculate_ece
 from pm_rank.nightly.bootstrap import compute_bootstrap_ci
+from tqdm import tqdm
 
 
 DEFAULT_BOOTSTRAP_CONFIG = {
@@ -48,6 +49,8 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
             score_col = 'average_return'
         elif 'ece_score' in df.columns:
             score_col = 'ece_score'
+        elif 'sharpe_ratio' in df.columns:
+            score_col = 'sharpe_ratio'
         else:
             raise ValueError("Could not find score column. Please specify 'score_col' parameter.")
     
@@ -56,13 +59,13 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
         # Lower is better for Brier score and ECE score, higher is better for average return
         ascending = (score_col in ['brier_score', 'ece_score'])
     
-    # Special handling for ECE scores: they're already aggregated per forecaster
-    if score_col == 'ece_score':
+    # Special handling for ECE scores and Sharpe ratio scores: they're already aggregated per forecaster
+    if score_col in ['ece_score', 'sharpe_ratio']:
         if bootstrap_config is not None:
-            raise ValueError("Bootstrap CI is not supported for ECE scores (already aggregated)")
+            raise ValueError(f"Bootstrap CI is not supported for {score_col} scores (already aggregated)")
         
-        # ECE scores are already computed per forecaster, just need to rank and format
-        forecaster_scores = df[['forecaster', 'ece_score']].copy()
+        # These scores are already computed per forecaster, just need to rank and format
+        forecaster_scores = df[['forecaster', score_col]].copy()
         forecaster_scores.columns = ['forecaster', 'score']
         
         # Rank forecasters (ascending=True means lower score = better rank)
@@ -95,9 +98,10 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
         include_groups=False
     ).reset_index(name='score')
     
-    # Compute bootstrap confidence intervals if requested
-    ci_col_name = f'{bootstrap_config["ci_level"] * 100}% ci'
+    ci_col_name = None
     if bootstrap_config is not None:
+        # Compute bootstrap confidence intervals if requested
+        ci_col_name = f'{bootstrap_config["ci_level"] * 100}% ci'
         standard_errors, confidence_intervals = compute_bootstrap_ci(
             df[['forecaster', score_col]].copy(),
             score_col,
@@ -298,7 +302,7 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
 
 def compute_calibration_ece(forecasts: pd.DataFrame, num_bins: int = 10, 
                            strategy: Literal["uniform", "quantile"] = "uniform",
-                           weight_event: bool = True) -> pd.DataFrame:
+                           weight_event: bool = True, return_details: bool = False) -> pd.DataFrame:
     """
     Calculate the Expected Calibration Error (ECE) for each forecaster.
     
@@ -318,7 +322,7 @@ def compute_calibration_ece(forecasts: pd.DataFrame, num_bins: int = 10,
         strategy: Strategy for discretization, either "uniform" or "quantile" (default: "uniform")
         weight_event: If True, weight each market by 1/num_markets within each prediction.
                      If False, all markets are weighted equally (default: True)
-    
+        return_details: If True, return the details of the ECE calculation for each forecaster. Useful for plotting.
     Returns:
         DataFrame with columns (forecaster, ece_score) containing the ECE for each forecaster
     """
@@ -355,6 +359,7 @@ def compute_calibration_ece(forecasts: pd.DataFrame, num_bins: int = 10,
     
     # Calculate ECE for each forecaster
     ece_results = []
+    ece_details = {}
     
     for forecaster, data in forecaster_data.items():
         probs = data['probs']
@@ -380,6 +385,16 @@ def compute_calibration_ece(forecasts: pd.DataFrame, num_bins: int = 10,
             'forecaster': forecaster,
             'ece_score': ece_score
         })
+
+        if return_details:
+            ece_details[forecaster] = {
+                'ece_score': ece_score,
+                'bin_centers': bin_centers,
+                'bin_widths': bin_widths,
+                'conf': conf,
+                'acc': acc,
+                'counts': counts
+            }
     
     # Create result DataFrame
     result_df = pd.DataFrame(ece_results)
@@ -387,39 +402,241 @@ def compute_calibration_ece(forecasts: pd.DataFrame, num_bins: int = 10,
     # Sort by ECE score (lower is better)
     result_df = result_df.sort_values('ece_score').reset_index(drop=True)
     
-    return result_df
+    if return_details:
+        return result_df, ece_details
+    else:
+        return result_df
+
+
+def compute_sharpe_ratio(average_return_results: pd.DataFrame, baseline_return: float = 1.0, 
+                         normalize_by_round: bool = False) -> pd.DataFrame:
+    """
+    Calculate the Sharpe ratio for each forecaster.
     
+    The Sharpe ratio is defined as: E[R - R_b] / std(R - R_b), where R is the return 
+    and R_b is the baseline return (typically 1.0 for break-even).
+    
+    Args:
+        average_return_results: DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
+        baseline_return: The baseline return to subtract from the average return (default: 1.0 for break-even)
+        normalize_by_round: If True, first average returns within each (forecaster, event_ticker) group,
+                           then calculate Sharpe ratio across events. This prevents events with more
+                           rounds from dominating the calculation. (default: False)
+    
+    Returns:
+        DataFrame with columns (forecaster, sharpe_ratio, mean_excess_return, std_excess_return)
+        sorted by sharpe_ratio in descending order
+    """
+    df = average_return_results.copy()
+    
+    if normalize_by_round:
+        # Step 1: For each (forecaster, event_ticker), compute weighted average return across all rounds
+        # This gives us one return value per event per forecaster
+        def weighted_mean(group):
+            return np.average(group['average_return'], weights=group['weight'])
+        
+        event_returns = df.groupby(['forecaster', 'event_ticker']).apply(
+            weighted_mean, include_groups=False
+        ).reset_index(name='event_return')
+        
+        # Step 2: Calculate Sharpe ratio for each forecaster using event-level returns
+        sharpe_results = []
+        for forecaster in event_returns['forecaster'].unique():
+            forecaster_data = event_returns[event_returns['forecaster'] == forecaster]
+            returns = forecaster_data['event_return'].values
+            
+            # Calculate excess returns
+            excess_returns = returns - baseline_return
+            
+            # Calculate mean and std of excess returns
+            mean_excess = np.mean(excess_returns)
+            std_excess = np.std(excess_returns, ddof=1)  # Use sample std (ddof=1)
+            
+            # Calculate Sharpe ratio (handle case where std is 0)
+            if std_excess > 0:
+                sharpe = mean_excess / std_excess
+            else:
+                sharpe = 0.0 if mean_excess == 0 else (np.inf if mean_excess > 0 else -np.inf)
+            
+            sharpe_results.append({
+                'forecaster': forecaster,
+                'sharpe_ratio': sharpe,
+                'mean_excess_return': mean_excess,
+                'std_excess_return': std_excess
+            })
+    else:
+        # Calculate Sharpe ratio directly from all (event, round) pairs
+        sharpe_results = []
+        for forecaster in df['forecaster'].unique():
+            forecaster_data = df[df['forecaster'] == forecaster]
+            returns = forecaster_data['average_return'].values
+            
+            # Calculate excess returns
+            excess_returns = returns - baseline_return
+            
+            # Calculate mean and std of excess returns
+            mean_excess = np.mean(excess_returns)
+            std_excess = np.std(excess_returns, ddof=1)  # Use sample std (ddof=1)
+            
+            # Calculate Sharpe ratio (handle case where std is 0)
+            if std_excess > 0:
+                sharpe = mean_excess / std_excess
+            else:
+                sharpe = 0.0 if mean_excess == 0 else (np.inf if mean_excess > 0 else -np.inf)
+            
+            sharpe_results.append({
+                'forecaster': forecaster,
+                'sharpe_ratio': sharpe,
+                'mean_excess_return': mean_excess,
+                'std_excess_return': std_excess
+            })
+    
+    result_df = pd.DataFrame(sharpe_results)
+    
+    # Sort by Sharpe ratio (descending - higher is better)
+    result_df = result_df.sort_values('sharpe_ratio', ascending=False).reset_index(drop=True)
+    
+    return result_df
+        
+
+"""
+Helper functions to implement the generic category/streaming functionalities.
+"""
+def _iterate_over_categories(forecasts: pd.DataFrame) -> dict:
+    categories = forecasts['category'].unique()
+    for category in categories:
+        category_forecasts = forecasts[forecasts['category'] == category]
+        yield category, category_forecasts
+    yield "overall", forecasts
+
+
+def _stream_over_time(forecasts: pd.DataFrame, stream_every: int) -> dict:
+    """
+    Stream the forecasts each `stream_every` days, counting from the beginning.
+    Yields cumulative forecasts up to each time window.
+    
+    Args:
+        forecasts: DataFrame with 'close_time' column (string format: "2025-09-17T17:55:00+00:00")
+        stream_every: Number of days between each stream window
+    
+    Yields:
+        Tuple of (time_label, forecasts_up_to_time) for each window
+    """
+    # Create a copy and convert close_time to datetime
+    forecasts = forecasts.copy()
+    forecasts['close_time_dt'] = pd.to_datetime(forecasts['close_time'], format='ISO8601')
+    
+    # Find the earliest and latest close_time
+    close_time_beg = forecasts['close_time_dt'].min()
+    close_time_end = forecasts['close_time_dt'].max()
+    
+    # Calculate the number of days between start and end
+    total_days = (close_time_end - close_time_beg).days
+    
+    # Stream forecasts every stream_every days
+    current_days = 0
+    while current_days <= total_days:
+        # Calculate the cutoff time
+        cutoff_time = close_time_beg + pd.Timedelta(days=max(total_days, current_days))
+        
+        # Get all forecasts up to this cutoff time (cumulative)
+        stream_forecasts = forecasts[forecasts['close_time_dt'] <= cutoff_time]
+        
+        # Remove the helper column before yielding
+        stream_forecasts = stream_forecasts.drop(columns=['close_time_dt'])
+        
+        # Create a label for this window
+        time_label = str(cutoff_time.date())
+        
+        yield time_label, stream_forecasts
+        
+        current_days += stream_every
+    
+    forecasts.drop(columns=['close_time_dt'], inplace=True)
+
+
+def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = False, stream_every: int = -1, \
+    normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None) -> dict:
+    """
+    Compute the ranked forecasters for the given score function.
+    """
+    do_stream = stream_every > 0
+    if not do_stream and not by_category:
+        score = compute_brier_score(forecasts)
+        return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+    
+    if by_category:
+        results = {}
+        for category, category_forecasts in _iterate_over_categories(forecasts):
+            if do_stream:
+                results[category] = {}
+                for time_label, time_forecasts in tqdm(_stream_over_time(category_forecasts, stream_every=stream_every), desc=f"Calculating Brier score for category {category}"):
+                    results[category][time_label] = rank_forecasters_by_score(compute_brier_score(time_forecasts), \
+                        normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+            else:
+                results[category] = rank_forecasters_by_score(compute_brier_score(category_forecasts), \
+                    normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+        return results
+    else:  # do_stream might be True (otherwise handled by above)
+        results = {}
+        for time_label, time_forecasts in tqdm(_stream_over_time(forecasts, stream_every=stream_every), desc="Calculating overall"):
+            results[time_label] = rank_forecasters_by_score(compute_brier_score(time_forecasts), \
+                normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+        return results
+
+
+def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = False, stream_every: int = -1, \
+    spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None) -> dict:
+    """
+    Compute the ranked forecasters for the given score function.
+    """
+    do_stream = stream_every > 0
+    if not do_stream and not by_category:
+        score = compute_average_return_neutral(forecasts, spread_market_even=spread_market_even, num_money_per_round=num_money_per_round)
+        return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+    if by_category:
+        results = {}
+        for category, category_forecasts in _iterate_over_categories(forecasts):
+            if do_stream:
+                results[category] = {}
+                for time_label, time_forecasts in tqdm(_stream_over_time(category_forecasts, stream_every=stream_every), desc=f"Calculating average return for category {category}"):
+                    results[category][time_label] = rank_forecasters_by_score(compute_average_return_neutral(time_forecasts, spread_market_even=spread_market_even, num_money_per_round=num_money_per_round), \
+                        normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+            else:
+                results[category] = rank_forecasters_by_score(compute_average_return_neutral(category_forecasts, spread_market_even=spread_market_even, num_money_per_round=num_money_per_round), \
+                    normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+        return results
+    else:  # do_stream might be True (otherwise handled by above)
+        results = {}
+        for time_label, time_forecasts in tqdm(_stream_over_time(forecasts, stream_every=stream_every), desc="Calculating overall"):
+            results[time_label] = rank_forecasters_by_score(compute_average_return_neutral(time_forecasts, spread_market_even=spread_market_even, num_money_per_round=num_money_per_round), \
+                normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+        return results
+
 
 if __name__ == "__main__":
-    predictions_csv = "slurm/predictions_10_11_to_01_01.csv"
-    submissions_csv = "slurm/submissions_10_11_to_01_01.csv"
+    predictions_csv = "slurm/predictions_10_11_to_01_01.csv"  # Your predictions CSV file
+    submissions_csv = "slurm/submissions_10_11_to_01_01.csv"  # Your submissions CSV file
 
-    from pm_rank.nightly.data import uniform_weighting, exponential_weighting, first_n_weighting, NightlyForecasts
+    from pm_rank.nightly.data import uniform_weighting, NightlyForecasts
     
     weight_fn = uniform_weighting()
-    # weight_fn = first_n_weighting(n=1)
     forecasts = NightlyForecasts.from_prophet_arena_csv(predictions_csv, submissions_csv, weight_fn)
 
-    forecasts.data = add_market_baseline_predictions(forecasts.data)
-    
-    brier_score = compute_brier_score(forecasts.data)
-    avg_returns = compute_average_return_neutral(forecasts.data, spread_market_even=False)
-    ece_results = compute_calibration_ece(forecasts.data, num_bins=10, strategy="uniform", weight_event=False)
+    # Collect/stream the results for every 7 days, and also divide results by category.
+    ranked_brier_score = compute_ranked_brier_score(forecasts.data, by_category=True, stream_every=7, normalize_by_round=True, bootstrap_config=None)
+    ranked_average_return = compute_ranked_average_return(forecasts.data, by_category=True, stream_every=7, spread_market_even=False, num_money_per_round=1.0, normalize_by_round=True, bootstrap_config=None)
 
-    # Test Brier score with Bootstrap CI
-    print("\n" + "=" * 50)
-    print("BRIER SCORE RANKINGS (with Bootstrap CI)")
-    print("=" * 50)
-    print(rank_forecasters_by_score(brier_score, normalize_by_round=True, bootstrap_config=DEFAULT_BOOTSTRAP_CONFIG))
+    # Take the second time stamp of category "Sports", which remains a dataframe that's easy to work with.
+    example_sports_streams = ranked_brier_score["Sports"]
+    example_sports_second_stream = example_sports_streams[list(example_sports_streams.keys())[1]]
+    print(example_sports_second_stream)
 
-    # Test Average Return with Bootstrap CI
-    print("\n" + "=" * 50)
-    print("AVERAGE RETURN RANKINGS (with Bootstrap CI)")
-    print("=" * 50)
-    print(rank_forecasters_by_score(avg_returns, normalize_by_round=True, bootstrap_config=DEFAULT_BOOTSTRAP_CONFIG))
-    
-    # Test Calibration (ECE)
-    print("\n" + "=" * 50)
-    print("CALIBRATION (ECE) RANKINGS")
-    print("=" * 50)
-    print(rank_forecasters_by_score(ece_results))
+    # The streaming result for all the forecasts (no category division) is stored in the "overall" key.
+    example_overall_stream = ranked_brier_score["overall"]
+    example_overall_second_stream = example_overall_stream[list(example_overall_stream.keys())[1]]
+    print(example_overall_second_stream)
+
+    # If you want to take the overall result WITHOUT categorization or streaming, simply do not specify by_category or stream_every.
+    overall_brier_ranking = compute_ranked_brier_score(forecasts.data, normalize_by_round=True, bootstrap_config=None)
+    print(overall_brier_ranking)

@@ -1,6 +1,11 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.2.27 (Current)
+### v0.2.28 (Current)
+
+- Add the algorithm to calculate Sharpe ratio.
+- Add streaming and categorization support.
+
+### v0.2.27
 
 - Add better handling logic for calculating each submission/prediction's time to the market close timestamp.
 

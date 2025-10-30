@@ -138,18 +138,115 @@ def plot_score_over_round(result_df: pd.DataFrame, filename: str, score_col: str
     plt.savefig(f"{filename}.pdf", dpi=300, bbox_inches='tight', facecolor='white')
 
 
-if __name__ == "__main__":
-    # result_df = pd.read_csv("average_return_09_01_to_10_01.csv")
+def plot_market_versus_forecaster_probs(forecasts: pd.DataFrame, forecaster: str, forecaster_title: str, event_tickers: list[str] = None, outcome: str = "yes"):
+    """
+    We plot a scatter plot of the for the forecaster's probability versus the market-baseline one (conditioning on the event tickers and outcome) 
+    """
+    title_to_file_mapping = {
+        "GPT-5$^\\mathrm{R}$": "gpt5-on-yes.pdf",
+        "Grok 4$^\\mathrm{R}$": "grok4-on-yes.pdf",
+        "Claude Sonnet 4$^\\mathrm{R}$": "claude4-on-yes.pdf",
+        "Llama 4 Scout": "llama4-on-yes.pdf",
+    }
+    # Step 1: aggressive filtering based on forecaster and event tickers
+    model_forecasts = forecasts[forecasts['forecaster'] == forecaster]
+    baseline_forecasts = forecasts[forecasts['forecaster'] == "market-baseline"]
 
-    predictions_csv = "slurm/predictions_10_01_to_09_01.csv"
-    submissions_csv = "slurm/submissions_10_01_to_09_01.csv"
+    if event_tickers is None:
+        event_tickers = model_forecasts['event_ticker'].unique()
+        print(f"Using the {len(event_tickers)} event tickers that the forecaster have a record on")
+
+    model_forecasts = model_forecasts[model_forecasts['event_ticker'].isin(event_tickers)]
+    baseline_forecasts = baseline_forecasts[baseline_forecasts['event_ticker'].isin(event_tickers)]
+
+    # Step 2: go through each event ticker, make sure both model and baseline have it, and take the submission with time_rank = 1 from each
+    point_x, point_y = [], []
+    for i, event_ticker in enumerate(event_tickers):
+        model_event = model_forecasts[model_forecasts['event_ticker'] == event_ticker]
+        baseline_event = baseline_forecasts[baseline_forecasts['event_ticker'] == event_ticker]
+
+        if i % 10 == 0:
+            print("# model event: ", len(model_event))
+            print("# baseline event: ", len(baseline_event))
+
+        if len(model_event) == 0 or len(baseline_event) == 0:
+            continue
+        model_submission = model_event.iloc[0]
+        baseline_submission = baseline_event.iloc[0]
+        
+        # get the indices `i`s of markets within the odds list, such that outcome[i] == 1 when outcome is "yes", and outcome[i] == 0 when outcome is "no"
+        if outcome == "yes":
+            market_indices = np.where(baseline_submission['outcome'] == 1)[0]
+        else:
+            market_indices = np.where(baseline_submission['outcome'] == 0)[0]
+
+        # debugging:
+        if i % 10 == 0:
+            print("market indices: ", market_indices)
+        
+        model_probs = model_submission['prediction'][market_indices]
+        baseline_probs = baseline_submission['prediction'][market_indices]
+        
+        # turn each pair of model_prob and baseline_prob into a point (x, y)
+        for model_prob, baseline_prob in zip(model_probs, baseline_probs):
+            # we treat 1 - prob as the actual prob if the outcome is "no"
+            if outcome == "no":
+                model_prob = 1 - model_prob
+                baseline_prob = 1 - baseline_prob
+            # rule out extreme cases
+            if model_prob < 0.01 or model_prob > 0.99 or baseline_prob < 0.01 or baseline_prob > 0.99:
+                continue
+            point_x.append(baseline_prob)
+            point_y.append(model_prob)
+    
+    print(f"Number of points: {len(point_x)}")
+
+    # Step 3: plot the points
+    plt.scatter(point_x, point_y, label=f'Markets resolved to {outcome.capitalize()}', alpha=0.6)
+    plt.xlabel('Market-baseline Probability', fontsize=14)
+    plt.xlim(0, 1)
+    plt.ylabel('LLM Predicted Probability', fontsize=14)
+    plt.ylim(0, 1)
+    plt.title(forecaster_title, fontweight='bold', fontsize=18)
+    # draw a 45 degree line
+    plt.plot([0, 1], [0, 1], color='red', linestyle='--', linewidth=2, label='Parity')
+    # Add legend
+    plt.legend(loc='upper left', fontsize=12, framealpha=0.9)
+    plt.tight_layout()
+    plt.savefig(title_to_file_mapping[forecaster_title], dpi=300, bbox_inches='tight', facecolor='white')
+    print(f'Saved plot to {title_to_file_mapping[forecaster_title]}')
+
+
+if __name__ == "__main__":
+    event_tickers_df = pd.read_csv("slurm/subset_data_100.csv")
+    event_tickers = event_tickers_df['event_ticker'].unique()
+
+    predictions_csv = "slurm/predictions_10_11_to_01_01.csv"
+    submissions_csv = "slurm/submissions_10_11_to_01_01.csv"
     # predictions_csv = "slurm/predictions_09_01_to_06_01.csv"
     # submissions_csv = "slurm/submissions_09_01_to_06_01.csv"
 
     from pm_rank.nightly.data import uniform_weighting, NightlyForecasts
-    from pm_rank.nightly.algo import compute_brier_score, compute_average_return_neutral, add_market_baseline_predictions
+    from pm_rank.nightly.algo import add_market_baseline_predictions
     
     forecasts = NightlyForecasts.from_prophet_arena_csv(predictions_csv, submissions_csv, uniform_weighting())
+
+    data = add_market_baseline_predictions(forecasts.data)
+
+    plot_market_versus_forecaster_probs(data, "gpt-5", "GPT-5$^\\mathrm{R}$", event_tickers, "yes")
+    # clear plot
+    plt.clf()
+    plot_market_versus_forecaster_probs(data, "x-ai/grok-4", "Grok 4$^\\mathrm{R}$", event_tickers, "yes")
+    # clear plot
+    plt.clf()
+    plot_market_versus_forecaster_probs(data, "anthropic/claude-sonnet-4-thinking", "Claude Sonnet 4$^\\mathrm{R}$", event_tickers, "yes")
+    # clear plot
+    plt.clf()
+    plot_market_versus_forecaster_probs(data, "meta-llama/llama-4-scout", "Llama 4 Scout", event_tickers, "yes")
+    # clear plot
+    plt.clf()
+
+    exit(0)
 
     # calculate the number of events and markets
     print(f"Number of events: {len(forecasts.data['event_ticker'].unique())}")
