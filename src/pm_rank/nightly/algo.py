@@ -537,7 +537,7 @@ def _stream_over_time(forecasts: pd.DataFrame, stream_every: int) -> dict:
     current_days = 0
     while current_days <= total_days:
         # Calculate the cutoff time
-        cutoff_time = close_time_beg + pd.Timedelta(days=max(total_days, current_days))
+        cutoff_time = close_time_beg + pd.Timedelta(days=current_days)
         
         # Get all forecasts up to this cutoff time (cumulative)
         stream_forecasts = forecasts[forecasts['close_time_dt'] <= cutoff_time]
@@ -615,8 +615,8 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
 
 
 if __name__ == "__main__":
-    predictions_csv = "slurm/predictions_10_11_to_01_01.csv"  # Your predictions CSV file
-    submissions_csv = "slurm/submissions_10_11_to_01_01.csv"  # Your submissions CSV file
+    predictions_csv = "slurm/predictions_10_23_to_10_10.csv"  # Your predictions CSV file
+    submissions_csv = "slurm/submissions_10_23_to_10_10.csv"  # Your submissions CSV file
 
     from pm_rank.nightly.data import uniform_weighting, NightlyForecasts
     
