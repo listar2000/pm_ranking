@@ -141,10 +141,11 @@ def add_market_baseline_predictions(forecasts: pd.DataFrame, reference_forecaste
         use_both_sides: If True, we will add the market baseline predictions for both YES and NO sides
     """
     if reference_forecaster is None:
-        # if no reference forecaster is provided, we use the first forecaster
-        reference_forecaster = forecasts['forecaster'].unique()[0]
+        # if no reference forecaster is provided, we take the first forecast from each group (grouped by `submission_id`)
+        market_baseline_forecasts = forecasts.groupby(['event_ticker', 'round'], as_index=False).first()
+    else:
+        market_baseline_forecasts = forecasts[forecasts['forecaster'] == reference_forecaster].copy()
 
-    market_baseline_forecasts = forecasts[forecasts['forecaster'] == reference_forecaster].copy()
     market_baseline_forecasts['forecaster'] = 'market-baseline'
 
     def turn_odds_to_prediction(row: pd.Series) -> np.ndarray:
@@ -622,6 +623,8 @@ if __name__ == "__main__":
     
     weight_fn = uniform_weighting()
     forecasts = NightlyForecasts.from_prophet_arena_csv(predictions_csv, submissions_csv, weight_fn)
+
+    forecasts.data = add_market_baseline_predictions(forecasts.data)
 
     # Collect/stream the results for every 7 days, and also divide results by category.
     ranked_brier_score = compute_ranked_brier_score(forecasts.data, by_category=True, stream_every=7, normalize_by_round=True, bootstrap_config=None)
