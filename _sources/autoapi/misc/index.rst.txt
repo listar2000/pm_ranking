@@ -1,0 +1,31 @@
+misc
+====
+
+.. py:module:: misc
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   misc.ALL_CATEGORIES
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   misc.get_rebalanced_forecasts
+
+
+Module Contents
+---------------
+
+.. py:data:: ALL_CATEGORIES
+   :value: ['Sports', 'Entertainment', 'Politics', 'Companies', 'Mentions', 'Economics', 'Climate and Weather']
+
+
+.. py:function:: get_rebalanced_forecasts(original_forecasts: pm_rank.nightly.data.NightlyForecasts, balance_level: Literal['event', 'submission'] = 'event', evenly_balanced: bool = True, rebalance_quota: dict[str, float] = None, random_seed: int = 42) -> pm_rank.nightly.data.NightlyForecasts
+

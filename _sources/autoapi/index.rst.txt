@@ -8,6 +8,7 @@ This page contains auto-generated API reference documentation [#f1]_.
 
    /autoapi/plot/index
    /autoapi/algo/index
+   /autoapi/misc/index
    /autoapi/data/index
    /autoapi/utils/index
    /autoapi/bootstrap/index
