@@ -616,15 +616,24 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
 
 
 if __name__ == "__main__":
-    predictions_csv = "slurm/predictions_10_23_to_10_10.csv"  # Your predictions CSV file
-    submissions_csv = "slurm/submissions_10_23_to_10_10.csv"  # Your submissions CSV file
+    predictions_csv = "slurm/predictions_11_03_to_06_01.csv"  # Your predictions CSV file
+    submissions_csv = "slurm/submissions_11_03_to_06_01.csv"  # Your submissions CSV file
 
     from pm_rank.nightly.data import uniform_weighting, NightlyForecasts
     
     weight_fn = uniform_weighting()
     forecasts = NightlyForecasts.from_prophet_arena_csv(predictions_csv, submissions_csv, weight_fn)
 
+    from pm_rank.nightly.misc import get_rebalanced_forecasts
+    forecasts = get_rebalanced_forecasts(forecasts, balance_level='event', evenly_balanced=True, random_seed=42)
+    # or you can do
+    # desired_quota = {"Sports": 0.2, "Entertainment": 0.2, "Politics": 0.2, "Companies": 0.2, "Mentions": 0.2, "Economics": 0.2, "Climate and Weather": 0.2}
+    # forecasts = get_rebalanced_forecasts(forecasts, balance_level='event', rebalance_quota=desired_quota, random_seed=42)
+
     forecasts.data = add_market_baseline_predictions(forecasts.data)
+
+    print(compute_brier_score(forecasts.data))
+    exit(0)
 
     # Collect/stream the results for every 7 days, and also divide results by category.
     ranked_brier_score = compute_ranked_brier_score(forecasts.data, by_category=True, stream_every=7, normalize_by_round=True, bootstrap_config=None)
