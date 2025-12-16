@@ -2,7 +2,7 @@ from pm_rank.nightly.data import NightlyForecasts
 from typing import Literal
 import pandas as pd
 
-ALL_CATEGORIES = ["Sports", "Entertainment", "Politics", "Companies", "Mentions", "Economics", "Climate and Weather"]
+ALL_CATEGORIES = ["Sports", "Entertainment", "Politics", "Other"]
 
 def _balance_by_event(original_forecast_df: pd.DataFrame, rebalance_quota: dict[str, float], random_seed: int = 42) -> pd.DataFrame:
     """
@@ -12,6 +12,10 @@ def _balance_by_event(original_forecast_df: pd.DataFrame, rebalance_quota: dict[
     # step 1: get the counts of each category by summing up the category for unique event_tickers. Counts should sum to the total number of events.
     # Since each event_ticker has a unique category, we can simply get unique event_tickers and count their categories
     unique_events = original_forecast_df[['event_ticker', 'category']].drop_duplicates()
+
+    # replace the category to 'Other' if it is not in the ALL_CATEGORIES
+    unique_events['category'] = unique_events['category'].apply(lambda x: 'Other' if x not in ALL_CATEGORIES else x)
+
     category_counts = unique_events['category'].value_counts().to_dict()
     
     # step 2: for each category, divide the count by the quota, and takes the smallest result (integer) as "lower bound" across categories.

@@ -15,9 +15,79 @@ DEFAULT_BOOTSTRAP_CONFIG = {
 }
 
 
+def add_individualized_market_baselines_to_scores(result_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add individualized market baseline scores for each forecaster at aggregation time.
+    
+    This function takes per-forecast scores (e.g., from compute_brier_score or compute_average_return_neutral)
+    and creates "{forecaster}-market-baseline" entries by filtering the market-baseline scores to only
+    the (event_ticker, round) combinations where each forecaster participated.
+    
+    This is efficient because it reuses the already-computed market-baseline scores rather than
+    creating duplicate prediction rows.
+    
+    Args:
+        result_df: DataFrame with columns (forecaster, event_ticker, round, weight, <score_col>)
+                   Must contain a 'market-baseline' forecaster.
+    
+    Returns:
+        DataFrame with added "{forecaster}-market-baseline" rows for each real forecaster.
+    """
+    if 'market-baseline' not in result_df['forecaster'].values:
+        return result_df  # No market-baseline to work with
+    
+    # Get the market-baseline scores
+    market_baseline_scores = result_df[result_df['forecaster'] == 'market-baseline'].copy()
+    
+    # Get unique real forecasters (excluding market-baseline and any existing individualized baselines)
+    real_forecasters = result_df[
+        ~result_df['forecaster'].str.contains('-market-baseline', na=False) & 
+        (result_df['forecaster'] != 'market-baseline')
+    ]['forecaster'].unique()
+    
+    individualized_baselines = []
+    
+    for forecaster in tqdm(real_forecasters, desc="Adding individualized market baselines"):
+        # Get this forecaster's (event_ticker, round) combinations
+        forecaster_data = result_df[result_df['forecaster'] == forecaster]
+        forecaster_keys = forecaster_data[['event_ticker', 'round']].drop_duplicates()
+        
+        # Filter market-baseline scores to only these combinations
+        individualized = market_baseline_scores.merge(
+            forecaster_keys,
+            on=['event_ticker', 'round'],
+            how='inner'
+        ).copy()
+
+        # print the number of rows in individualized
+        print(f"Number of rows in {forecaster}-market-baseline: {len(individualized)}")
+        
+        # Also copy the weight from the original forecaster's data
+        # This ensures proper weighting when aggregating
+        weight_map = forecaster_data.set_index(['event_ticker', 'round'])['weight'].to_dict()
+        individualized['weight'] = individualized.apply(
+            lambda row: weight_map.get((row['event_ticker'], row['round']), row['weight']),
+            axis=1
+        )
+        
+        # Set the forecaster name
+        individualized['forecaster'] = f'{forecaster}-market-baseline'
+        
+        individualized_baselines.append(individualized)
+    
+    # Concatenate all individualized baselines with original result_df
+    if individualized_baselines:
+        result = pd.concat([result_df] + individualized_baselines, ignore_index=True)
+    else:
+        result = result_df
+    
+    return result
+
+
 def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool = False, 
                               score_col: str = None, ascending: bool = None,
-                              bootstrap_config: Optional[Dict] = None) -> pd.DataFrame:
+                              bootstrap_config: Optional[Dict] = None,
+                              add_individualized_baselines: bool = False) -> pd.DataFrame:
     """
     Return a rank_df with columns (forecaster, rank, score).
     
@@ -34,6 +104,10 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
             - random_seed: Random seed for reproducibility (default: 42)
             - show_progress: Whether to show progress bar (default: True)
             Only supported for 'brier_score' and 'average_return', not 'ece_score'.
+        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+            forecaster by filtering market-baseline scores to their participated (event_ticker, round)
+            combinations. Only works for Brier score and average return (not ECE/Sharpe).
+            Requires 'market-baseline' forecaster to be present in result_df.
     
     Returns:
         DataFrame with rank as index and columns (forecaster, score).
@@ -76,6 +150,10 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
         rank_df = rank_df.set_index('rank')[['forecaster', 'score']]
         
         return rank_df
+
+    # Optionally add individualized market baselines before aggregation
+    if add_individualized_baselines:
+        df = add_individualized_market_baselines_to_scores(df)
     
     # For other metrics (Brier, average return), perform weighted aggregation
     if normalize_by_round:
@@ -141,7 +219,7 @@ def add_market_baseline_predictions(forecasts: pd.DataFrame, reference_forecaste
         use_both_sides: If True, we will add the market baseline predictions for both YES and NO sides
     """
     if reference_forecaster is None:
-        # if no reference forecaster is provided, we take the first forecast from each group (grouped by `submission_id`)
+        # if no reference forecaster is provided, we take the union of all forecasts from all forecasters
         market_baseline_forecasts = forecasts.groupby(['event_ticker', 'round'], as_index=False).first()
     else:
         market_baseline_forecasts = forecasts[forecasts['forecaster'] == reference_forecaster].copy()
@@ -557,14 +635,27 @@ def _stream_over_time(forecasts: pd.DataFrame, stream_every: int) -> dict:
 
 
 def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = False, stream_every: int = -1, \
-    normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None) -> dict:
+    normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, 
+    add_individualized_baselines: bool = False) -> dict:
     """
     Compute the ranked forecasters for the given score function.
+    
+    Args:
+        forecasts: DataFrame with forecast data
+        by_category: If True, compute rankings per category
+        stream_every: If > 0, compute rankings at time intervals
+        normalize_by_round: If True, downweight by number of rounds per (forecaster, event_ticker)
+        bootstrap_config: Optional config for bootstrap CI estimation
+        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+            forecaster by filtering market-baseline scores to their participated (event_ticker, round).
+            Requires 'market-baseline' forecaster to be present.
     """
     do_stream = stream_every > 0
     if not do_stream and not by_category:
         score = compute_brier_score(forecasts)
-        return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+        return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round, 
+                                         bootstrap_config=bootstrap_config,
+                                         add_individualized_baselines=add_individualized_baselines)
     
     if by_category:
         results = {}
@@ -573,28 +664,46 @@ def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = Fals
                 results[category] = {}
                 for time_label, time_forecasts in tqdm(_stream_over_time(category_forecasts, stream_every=stream_every), desc=f"Calculating Brier score for category {category}"):
                     results[category][time_label] = rank_forecasters_by_score(compute_brier_score(time_forecasts), \
-                        normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+                        normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config,
+                        add_individualized_baselines=add_individualized_baselines)
             else:
                 results[category] = rank_forecasters_by_score(compute_brier_score(category_forecasts), \
-                    normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+                    normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config,
+                    add_individualized_baselines=add_individualized_baselines)
         return results
     else:  # do_stream might be True (otherwise handled by above)
         results = {}
         for time_label, time_forecasts in tqdm(_stream_over_time(forecasts, stream_every=stream_every), desc="Calculating overall"):
             results[time_label] = rank_forecasters_by_score(compute_brier_score(time_forecasts), \
-                normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+                normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config,
+                add_individualized_baselines=add_individualized_baselines)
         return results
 
 
 def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = False, stream_every: int = -1, \
-    spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None) -> dict:
+    spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False, 
+    bootstrap_config: Optional[Dict] = None, add_individualized_baselines: bool = False) -> dict:
     """
     Compute the ranked forecasters for the given score function.
+    
+    Args:
+        forecasts: DataFrame with forecast data
+        by_category: If True, compute rankings per category
+        stream_every: If > 0, compute rankings at time intervals
+        spread_market_even: If True, spread budget evenly across markets
+        num_money_per_round: Amount to bet per round
+        normalize_by_round: If True, downweight by number of rounds per (forecaster, event_ticker)
+        bootstrap_config: Optional config for bootstrap CI estimation
+        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+            forecaster by filtering market-baseline scores to their participated (event_ticker, round).
+            Requires 'market-baseline' forecaster to be present.
     """
     do_stream = stream_every > 0
     if not do_stream and not by_category:
         score = compute_average_return_neutral(forecasts, spread_market_even=spread_market_even, num_money_per_round=num_money_per_round)
-        return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+        return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round, 
+                                         bootstrap_config=bootstrap_config,
+                                         add_individualized_baselines=add_individualized_baselines)
     if by_category:
         results = {}
         for category, category_forecasts in _iterate_over_categories(forecasts):
@@ -602,37 +711,41 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
                 results[category] = {}
                 for time_label, time_forecasts in tqdm(_stream_over_time(category_forecasts, stream_every=stream_every), desc=f"Calculating average return for category {category}"):
                     results[category][time_label] = rank_forecasters_by_score(compute_average_return_neutral(time_forecasts, spread_market_even=spread_market_even, num_money_per_round=num_money_per_round), \
-                        normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+                        normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config,
+                        add_individualized_baselines=add_individualized_baselines)
             else:
                 results[category] = rank_forecasters_by_score(compute_average_return_neutral(category_forecasts, spread_market_even=spread_market_even, num_money_per_round=num_money_per_round), \
-                    normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+                    normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config,
+                    add_individualized_baselines=add_individualized_baselines)
         return results
     else:  # do_stream might be True (otherwise handled by above)
         results = {}
         for time_label, time_forecasts in tqdm(_stream_over_time(forecasts, stream_every=stream_every), desc="Calculating overall"):
             results[time_label] = rank_forecasters_by_score(compute_average_return_neutral(time_forecasts, spread_market_even=spread_market_even, num_money_per_round=num_money_per_round), \
-                normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config)
+                normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config,
+                add_individualized_baselines=add_individualized_baselines)
         return results
 
 
 if __name__ == "__main__":
-    predictions_csv = "slurm/predictions_11_03_to_06_01.csv"  # Your predictions CSV file
-    submissions_csv = "slurm/submissions_11_03_to_06_01.csv"  # Your submissions CSV file
+    predictions_csv = "slurm/predictions_11_20_to_01_01.csv"  # Your predictions CSV file
+    submissions_csv = "slurm/submissions_11_20_to_01_01.csv"  # Your submissions CSV file
 
     from pm_rank.nightly.data import uniform_weighting, NightlyForecasts
     
     weight_fn = uniform_weighting()
     forecasts = NightlyForecasts.from_prophet_arena_csv(predictions_csv, submissions_csv, weight_fn)
 
-    from pm_rank.nightly.misc import get_rebalanced_forecasts
-    forecasts = get_rebalanced_forecasts(forecasts, balance_level='event', evenly_balanced=True, random_seed=42)
+    # from pm_rank.nightly.misc import get_rebalanced_forecasts
+    # forecasts = get_rebalanced_forecasts(forecasts, balance_level='event', evenly_balanced=True, random_seed=42)
     # or you can do
     # desired_quota = {"Sports": 0.2, "Entertainment": 0.2, "Politics": 0.2, "Companies": 0.2, "Mentions": 0.2, "Economics": 0.2, "Climate and Weather": 0.2}
     # forecasts = get_rebalanced_forecasts(forecasts, balance_level='event', rebalance_quota=desired_quota, random_seed=42)
 
     forecasts.data = add_market_baseline_predictions(forecasts.data)
 
-    print(compute_brier_score(forecasts.data))
+    brier_score = compute_brier_score(forecasts.data)
+    print(rank_forecasters_by_score(brier_score, normalize_by_round=True, bootstrap_config=None, add_individualized_baselines=True))
     exit(0)
 
     # Collect/stream the results for every 7 days, and also divide results by category.

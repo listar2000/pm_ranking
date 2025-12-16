@@ -9,7 +9,7 @@
 project = 'PM-RANK'
 copyright = '2025, Prophet Arena Team'
 author = 'Prophet Arena Team'
-release = '0.2.31'
+release = '0.2.32'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
