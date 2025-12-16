@@ -18,6 +18,7 @@ Functions
 
 .. autoapisummary::
 
+   algo.add_individualized_market_baselines_to_scores
    algo.rank_forecasters_by_score
    algo.add_market_baseline_predictions
    algo.compute_brier_score
@@ -33,7 +34,26 @@ Module Contents
 
 .. py:data:: DEFAULT_BOOTSTRAP_CONFIG
 
-.. py:function:: rank_forecasters_by_score(result_df: pandas.DataFrame, normalize_by_round: bool = False, score_col: str = None, ascending: bool = None, bootstrap_config: Optional[Dict] = None) -> pandas.DataFrame
+.. py:function:: add_individualized_market_baselines_to_scores(result_df: pandas.DataFrame) -> pandas.DataFrame
+
+   Add individualized market baseline scores for each forecaster at aggregation time.
+
+   This function takes per-forecast scores (e.g., from compute_brier_score or compute_average_return_neutral)
+   and creates "{forecaster}-market-baseline" entries by filtering the market-baseline scores to only
+   the (event_ticker, round) combinations where each forecaster participated.
+
+   This is efficient because it reuses the already-computed market-baseline scores rather than
+   creating duplicate prediction rows.
+
+   Args:
+       result_df: DataFrame with columns (forecaster, event_ticker, round, weight, <score_col>)
+                  Must contain a 'market-baseline' forecaster.
+
+   Returns:
+       DataFrame with added "{forecaster}-market-baseline" rows for each real forecaster.
+
+
+.. py:function:: rank_forecasters_by_score(result_df: pandas.DataFrame, normalize_by_round: bool = False, score_col: str = None, ascending: bool = None, bootstrap_config: Optional[Dict] = None, add_individualized_baselines: bool = False) -> pandas.DataFrame
 
    Return a rank_df with columns (forecaster, rank, score).
 
@@ -50,6 +70,10 @@ Module Contents
            - random_seed: Random seed for reproducibility (default: 42)
            - show_progress: Whether to show progress bar (default: True)
            Only supported for 'brier_score' and 'average_return', not 'ece_score'.
+       add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+           forecaster by filtering market-baseline scores to their participated (event_ticker, round)
+           combinations. Only works for Brier score and average return (not ECE/Sharpe).
+           Requires 'market-baseline' forecaster to be present in result_df.
 
    Returns:
        DataFrame with rank as index and columns (forecaster, score).
@@ -151,17 +175,39 @@ Module Contents
        sorted by sharpe_ratio in descending order
 
 
-.. py:function:: compute_ranked_brier_score(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None) -> dict
+.. py:function:: compute_ranked_brier_score(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, add_individualized_baselines: bool = False) -> dict
 
    Compute the ranked forecasters for the given score function.
 
+   Args:
+       forecasts: DataFrame with forecast data
+       by_category: If True, compute rankings per category
+       stream_every: If > 0, compute rankings at time intervals
+       normalize_by_round: If True, downweight by number of rounds per (forecaster, event_ticker)
+       bootstrap_config: Optional config for bootstrap CI estimation
+       add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+           forecaster by filtering market-baseline scores to their participated (event_ticker, round).
+           Requires 'market-baseline' forecaster to be present.
 
-.. py:function:: compute_ranked_average_return(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None) -> dict
+
+.. py:function:: compute_ranked_average_return(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, add_individualized_baselines: bool = False) -> dict
 
    Compute the ranked forecasters for the given score function.
+
+   Args:
+       forecasts: DataFrame with forecast data
+       by_category: If True, compute rankings per category
+       stream_every: If > 0, compute rankings at time intervals
+       spread_market_even: If True, spread budget evenly across markets
+       num_money_per_round: Amount to bet per round
+       normalize_by_round: If True, downweight by number of rounds per (forecaster, event_ticker)
+       bootstrap_config: Optional config for bootstrap CI estimation
+       add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+           forecaster by filtering market-baseline scores to their participated (event_ticker, round).
+           Requires 'market-baseline' forecaster to be present.
 
 
 .. py:data:: predictions_csv
-   :value: 'slurm/predictions_11_03_to_06_01.csv'
+   :value: 'slurm/predictions_11_20_to_01_01.csv'
 
 

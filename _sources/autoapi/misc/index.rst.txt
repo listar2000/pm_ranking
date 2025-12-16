@@ -24,7 +24,7 @@ Module Contents
 ---------------
 
 .. py:data:: ALL_CATEGORIES
-   :value: ['Sports', 'Entertainment', 'Politics', 'Companies', 'Mentions', 'Economics', 'Climate and Weather']
+   :value: ['Sports', 'Entertainment', 'Politics', 'Other']
 
 
 .. py:function:: get_rebalanced_forecasts(original_forecasts: pm_rank.nightly.data.NightlyForecasts, balance_level: Literal['event', 'submission'] = 'event', evenly_balanced: bool = True, rebalance_quota: dict[str, float] = None, random_seed: int = 42) -> pm_rank.nightly.data.NightlyForecasts
