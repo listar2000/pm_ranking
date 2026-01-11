@@ -208,6 +208,6 @@ Module Contents
 
 
 .. py:data:: predictions_csv
-   :value: 'slurm/predictions_11_20_to_01_01.csv'
+   :value: 'slurm/predictions_12_31_to_01_01.csv'
 
 
