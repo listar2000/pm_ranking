@@ -1,6 +1,10 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.2.28 (Current)
+### v0.2.33 (Current)
+
+- Add more information when ranking the forecasters by Brier score or market return.
+
+### v0.2.28
 
 - Add the algorithm to calculate Sharpe ratio.
 - Add streaming and categorization support.
