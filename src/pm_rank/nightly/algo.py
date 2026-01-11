@@ -58,9 +58,6 @@ def add_individualized_market_baselines_to_scores(result_df: pd.DataFrame) -> pd
             on=['event_ticker', 'round'],
             how='inner'
         ).copy()
-
-        # print the number of rows in individualized
-        print(f"Number of rows in {forecaster}-market-baseline: {len(individualized)}")
         
         # Also copy the weight from the original forecaster's data
         # This ensures proper weighting when aggregating
@@ -176,6 +173,10 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
         include_groups=False
     ).reset_index(name='score')
     
+    # Count predictions per forecaster
+    prediction_counts = df.groupby('forecaster').size()
+    forecaster_scores['# predictions'] = forecaster_scores['forecaster'].map(prediction_counts)
+    
     ci_col_name = None
     if bootstrap_config is not None:
         # Compute bootstrap confidence intervals if requested
@@ -199,11 +200,11 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
     
     # Sort by rank and select required columns, then set rank as index
     if bootstrap_config is not None:
-        rank_df = forecaster_scores[['forecaster', 'rank', 'score', ci_col_name]].sort_values('rank')
-        rank_df = rank_df.set_index('rank')[['forecaster', 'score', ci_col_name]]
+        rank_df = forecaster_scores[['forecaster', 'rank', 'score', ci_col_name, '# predictions']].sort_values('rank')
+        rank_df = rank_df.set_index('rank')[['forecaster', 'score', ci_col_name, '# predictions']]
     else:
-        rank_df = forecaster_scores[['forecaster', 'rank', 'score']].sort_values('rank')
-        rank_df = rank_df.set_index('rank')[['forecaster', 'score']]
+        rank_df = forecaster_scores[['forecaster', 'rank', 'score', '# predictions']].sort_values('rank')
+        rank_df = rank_df.set_index('rank')[['forecaster', 'score', '# predictions']]
     
     return rank_df
 
@@ -728,8 +729,8 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
 
 
 if __name__ == "__main__":
-    predictions_csv = "slurm/predictions_11_20_to_01_01.csv"  # Your predictions CSV file
-    submissions_csv = "slurm/submissions_11_20_to_01_01.csv"  # Your submissions CSV file
+    predictions_csv = "slurm/predictions_12_31_to_01_01.csv"  # Your predictions CSV file
+    submissions_csv = "slurm/submissions_12_31_to_01_01.csv"  # Your submissions CSV file
 
     from pm_rank.nightly.data import uniform_weighting, NightlyForecasts
     
@@ -745,23 +746,27 @@ if __name__ == "__main__":
     forecasts.data = add_market_baseline_predictions(forecasts.data)
 
     brier_score = compute_brier_score(forecasts.data)
-    print(rank_forecasters_by_score(brier_score, normalize_by_round=True, bootstrap_config=None, add_individualized_baselines=True))
-    exit(0)
+    rank_df = rank_forecasters_by_score(brier_score, normalize_by_round=True, bootstrap_config=None, add_individualized_baselines=True)
+    print(rank_df)
+    
+    # filter out any row where the '# predictions' column is less than 100 or the forecaster name starts with "agent" or "AI"
+    rank_df = rank_df[(rank_df['# predictions'] >= 100) & (~rank_df['forecaster'].str.startswith('agent'))]
+    rank_df.to_csv("slurm/rank_df_12_31_to_01_01.csv")
 
     # Collect/stream the results for every 7 days, and also divide results by category.
-    ranked_brier_score = compute_ranked_brier_score(forecasts.data, by_category=True, stream_every=7, normalize_by_round=True, bootstrap_config=None)
-    ranked_average_return = compute_ranked_average_return(forecasts.data, by_category=True, stream_every=7, spread_market_even=False, num_money_per_round=1.0, normalize_by_round=True, bootstrap_config=None)
+    # ranked_brier_score = compute_ranked_brier_score(forecasts.data, by_category=True, stream_every=7, normalize_by_round=True, bootstrap_config=None)
+    # ranked_average_return = compute_ranked_average_return(forecasts.data, by_category=True, stream_every=7, spread_market_even=False, num_money_per_round=1.0, normalize_by_round=True, bootstrap_config=None)
 
-    # Take the second time stamp of category "Sports", which remains a dataframe that's easy to work with.
-    example_sports_streams = ranked_brier_score["Sports"]
-    example_sports_second_stream = example_sports_streams[list(example_sports_streams.keys())[1]]
-    print(example_sports_second_stream)
+    # # Take the second time stamp of category "Sports", which remains a dataframe that's easy to work with.
+    # example_sports_streams = ranked_brier_score["Sports"]
+    # example_sports_second_stream = example_sports_streams[list(example_sports_streams.keys())[1]]
+    # print(example_sports_second_stream)
 
-    # The streaming result for all the forecasts (no category division) is stored in the "overall" key.
-    example_overall_stream = ranked_brier_score["overall"]
-    example_overall_second_stream = example_overall_stream[list(example_overall_stream.keys())[1]]
-    print(example_overall_second_stream)
+    # # The streaming result for all the forecasts (no category division) is stored in the "overall" key.
+    # example_overall_stream = ranked_brier_score["overall"]
+    # example_overall_second_stream = example_overall_stream[list(example_overall_stream.keys())[1]]
+    # print(example_overall_second_stream)
 
-    # If you want to take the overall result WITHOUT categorization or streaming, simply do not specify by_category or stream_every.
-    overall_brier_ranking = compute_ranked_brier_score(forecasts.data, normalize_by_round=True, bootstrap_config=None)
-    print(overall_brier_ranking)
+    # # If you want to take the overall result WITHOUT categorization or streaming, simply do not specify by_category or stream_every.
+    # overall_brier_ranking = compute_ranked_brier_score(forecasts.data, normalize_by_round=True, bootstrap_config=None)
+    # print(overall_brier_ranking)
