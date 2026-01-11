@@ -749,8 +749,8 @@ if __name__ == "__main__":
     rank_df = rank_forecasters_by_score(brier_score, normalize_by_round=True, bootstrap_config=None, add_individualized_baselines=True)
     print(rank_df)
     
-    # filter out any row where the '# predictions' column is less than 100 or the forecaster name starts with "agent" or "AI"
-    rank_df = rank_df[(rank_df['# predictions'] >= 100) & (~rank_df['forecaster'].str.startswith('agent'))]
+    # filter out any row where the '# predictions' column is less than 300 or the forecaster name starts with "agent" or "AI"
+    rank_df = rank_df[(rank_df['# predictions'] >= 300) & (~rank_df['forecaster'].str.startswith('agent'))]
     rank_df.to_csv("slurm/rank_df_12_31_to_01_01.csv")
 
     # Collect/stream the results for every 7 days, and also divide results by category.
