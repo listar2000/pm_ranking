@@ -324,39 +324,45 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
         # Outcome is the same for all forecasters in this event
         outcome_vector = event_group['outcome'].iloc[0]  # shape (n_markets,)
         
-        # Step 1: Calculate edges for YES and NO bets on each market
-        # YES edge: p_i / q_i (ratio of forecast prob to YES price)
-        # NO edge: (1 - p_i) / q'_i (ratio of forecast NO prob to NO price)
-        yes_edges = forecast_probs / implied_yes_probs
-        no_edges = (1 - forecast_probs) / implied_no_probs
+        implied_no_threshold = 1 - implied_no_probs  # shape (n_forecasters, n_markets)
         
-        # Step 2: Choose YES or NO for each market based on which has better edge
-        choose_yes = yes_edges > no_edges  # boolean mask: shape (n_forecasters, n_markets)
+        # Determine which side to bet on (or skip if within spread)
+        bet_yes = forecast_probs > implied_yes_probs
+        bet_no = forecast_probs < implied_no_threshold
+        within_spread = ~bet_yes & ~bet_no  # No bet if within spread
         
-        # Create effective probabilities and prices based on choice
-        effective_forecast_probs = np.where(choose_yes, forecast_probs, 1 - forecast_probs)
-        effective_implied_probs = np.where(choose_yes, implied_yes_probs, implied_no_probs)
+        # Calculate edges for each side
+        # YES edge: p - q_yes (only positive when p > q_yes)
+        # NO edge: (1 - p) - q_no
+        yes_edge = forecast_probs - implied_yes_probs
+        no_edge = (1 - forecast_probs) - implied_no_probs
         
-        # Step 3: Risk-neutral betting strategy
+        # Select the appropriate edge and price based on bet direction
+        edge = np.where(bet_yes, yes_edge, np.where(bet_no, no_edge, 0.0))
+        effective_implied_probs = np.where(bet_yes, implied_yes_probs, 
+                                           np.where(bet_no, implied_no_probs, 1.0))  # 1.0 as placeholder for no-bet
+        
+        # Weight = edge * price (only positive weights count)
+        weights = np.maximum(edge * effective_implied_probs, 0.0)  # shape (n_forecasters, n_markets)
+        
+        # Distribute money proportionally based on weights
         n_forecasters, n_markets = forecast_probs.shape
-        bets = np.zeros((n_forecasters, n_markets))
         
-        if spread_market_even:
-            # Spread budget evenly across all markets
-            money_per_market = num_money_per_round / n_markets
-            # For each market, buy contracts with the allocated money at the effective price
-            # Number of contracts = money_per_market / effective_price
-            bets = money_per_market / effective_implied_probs
-        else:
-            # All-in on market with best edge
-            # For risk-neutral, we find the market with max edge and bet everything there
-            effective_edges = effective_forecast_probs / effective_implied_probs
-            best_market_idx = np.argmax(effective_edges, axis=1)  # shape (n_forecasters,)
-            
-            for i in range(n_forecasters):
-                market_idx = best_market_idx[i]
-                # Number of contracts = money / price
-                bets[i, market_idx] = num_money_per_round / effective_implied_probs[i, market_idx]
+        # Normalize weights per forecaster (sum to 1)
+        weight_sums = np.sum(weights, axis=1, keepdims=True)
+        # Handle case where all weights are zero (no edge anywhere)
+        weight_sums = np.where(weight_sums == 0, 1, weight_sums)
+        normalized_weights = weights / weight_sums
+        
+        # Allocate money proportionally: money_for_market = num_money_per_round * normalized_weight
+        money_per_market = num_money_per_round * normalized_weights
+        
+        # Number of contracts = money / price (avoid division by zero for no-bet cases)
+        safe_prices = np.where(weights > 0, effective_implied_probs, 1.0)
+        bets = np.where(weights > 0, money_per_market / safe_prices, 0.0)
+        
+        # Update choose_yes for outcome calculation (bet_yes means we're betting on YES outcome)
+        choose_yes = bet_yes
         
         # Step 4: Calculate effective outcomes (flip outcome if we chose NO)
         effective_outcomes = np.where(choose_yes, 
