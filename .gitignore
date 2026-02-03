@@ -9,6 +9,7 @@ wheels/
 
 # Virtual environments
 .venv
+venv
 .env
 
 # Artifacts
