@@ -326,6 +326,9 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
         
         implied_no_threshold = 1 - implied_no_probs  # shape (n_forecasters, n_markets)
         
+        # Filter out markets with excessive spread (implied_yes_probs + implied_no_threshold > 1.03)
+        valid_market_mask = (implied_yes_probs + implied_no_probs) <= 1.03
+        
         # Determine which side to bet on (or skip if within spread)
         bet_yes = forecast_probs > implied_yes_probs
         bet_no = forecast_probs < implied_no_threshold
@@ -343,7 +346,8 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
                                            np.where(bet_no, implied_no_probs, 1.0))  # 1.0 as placeholder for no-bet
         
         # Weight = edge * price (only positive weights count)
-        weights = np.maximum(edge * effective_implied_probs, 0.0)  # shape (n_forecasters, n_markets)
+        # Also apply valid_market_mask to exclude markets with excessive spread
+        weights = np.maximum(edge * effective_implied_probs, 0.0) * valid_market_mask  # shape (n_forecasters, n_markets)
         
         # Distribute money proportionally based on weights
         n_forecasters, n_markets = forecast_probs.shape
