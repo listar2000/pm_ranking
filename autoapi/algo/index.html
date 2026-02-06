@@ -258,14 +258,9 @@ will have the same shape (i.e. number of markets), and we can manually construct
 - YES edge: forecast_prob / yes_odds
 - NO edge: (1 - forecast_prob) / no_odds</p>
 <dl class="simple">
-<dt>If spread_market_even is False (default):</dt><dd><p>We choose the better edge for each market, then allocate all money to the market with the best edge.</p>
-</dd>
-<dt>If spread_market_even is True:</dt><dd><p>We spread the budget evenly across all markets (budget/m per market), and bet on the better edge
-(YES or NO) in each market.</p>
-</dd>
 <dt>Args:</dt><dd><p>forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, odds, no_odds, weight)
 num_money_per_round: Amount of money to bet per round (default: 1.0)
-spread_market_even: If True, spread budget evenly across markets instead of all-in on best market</p>
+spread_market_even: Legacy parameter. Not used anymore.</p>
 </dd>
 <dt>Returns:</dt><dd><p>DataFrame with columns (forecaster, event_ticker, round, weight, average_return)</p>
 </dd>

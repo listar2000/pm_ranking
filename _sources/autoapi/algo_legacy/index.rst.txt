@@ -1,0 +1,48 @@
+algo_legacy
+===========
+
+.. py:module:: algo_legacy
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   algo_legacy.compute_average_return_neutral_legacy
+
+
+Module Contents
+---------------
+
+.. py:function:: compute_average_return_neutral_legacy(forecasts: pandas.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False) -> pandas.DataFrame
+
+   (This is a legacy implementation of the average return calculation. Now deprecated)
+
+   Calculate the average return for forecasters with risk-neutral utility using binary reduction strategy.
+
+   This implementation uses:
+   - Risk-neutral betting (all-in on best edge, or spread evenly)
+   - Binary reduction (can bet YES or NO on each market)
+   - Approximate CRRA betting strategy for risk_aversion=0
+
+   For each market, we compare:
+   - YES edge: forecast_prob / yes_odds
+   - NO edge: (1 - forecast_prob) / no_odds
+
+   If spread_market_even is False (default):
+       We choose the better edge for each market, then allocate all money to the market with the best edge.
+
+   If spread_market_even is True:
+       We spread the budget evenly across all markets (budget/m per market), and bet on the better edge
+       (YES or NO) in each market.
+
+   Args:
+       forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, odds, no_odds, weight)
+       num_money_per_round: Amount of money to bet per round (default: 1.0)
+       spread_market_even: If True, spread budget evenly across markets instead of all-in on best market
+
+   Returns:
+       DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
+
+

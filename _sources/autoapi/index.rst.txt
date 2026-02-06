@@ -13,6 +13,7 @@ This page contains auto-generated API reference documentation [#f1]_.
    /autoapi/utils/index
    /autoapi/bootstrap/index
    /autoapi/test_algo/index
+   /autoapi/algo_legacy/index
    /autoapi/plot_timestamp/index
    /autoapi/test_bootstrap/index
    /autoapi/test_calibration/index
