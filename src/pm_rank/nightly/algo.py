@@ -290,16 +290,11 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
     the better side (YES or NO). The budget is then allocated across all markets globally,
     proportional to each market's edge, so that the total money bet sums to TOTAL_BUDGET.
 
-    Two-pass approach:
-        Pass 1: Compute per-market edges and accumulate total edge per forecaster.
-        Pass 2: Allocate money = TOTAL_BUDGET * (market_edge / total_edge), buy contracts
-                at the market price, and compute earnings based on outcomes.
-
     Edge calculation per market:
         YES edge: forecast_prob - yes_odds   (bet YES if forecast_prob > yes_odds)
         NO edge:  (1 - forecast_prob) - no_odds  (bet NO if forecast_prob < 1 - no_odds)
 
-    Markets with excessive spread (yes_odds + no_odds > 1.03) are excluded.
+    Events are excluded entirely if any market has illiquid spread (yes_odds + no_odds > 1.03).
 
     Args:
         forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction,
@@ -340,8 +335,9 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
         
         implied_no_threshold = 1 - implied_no_probs  # shape (n_forecasters, n_markets)
         
-        # Filter out markets with excessive spread (implied_yes_probs + implied_no_threshold > 1.03)
-        valid_market_mask = (implied_yes_probs + implied_no_probs) <= 1.03
+        # Skip entire event if ANY market has excessive spread (odds sum > 1.03)
+        per_market_valid = (implied_yes_probs + implied_no_probs) <= 1.03
+        valid_event_mask = np.all(per_market_valid, axis=1, keepdims=True)  # shape (n_forecasters, 1)
         
         # Determine which side to bet on (or skip if within spread)
         bet_yes = forecast_probs > implied_yes_probs
@@ -358,8 +354,8 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
         effective_implied_probs = np.where(bet_yes, implied_yes_probs, 
                                            np.where(bet_no, implied_no_probs, 1.0))  # 1.0 as placeholder for no-bet
         
-        # Also apply valid_market_mask to exclude markets with excessive spread
-        weights = np.maximum(edge, 0.0) * valid_market_mask  # shape (n_forecasters, n_markets)
+        # Zero out all markets for a forecaster if any market in the event is illiquid
+        weights = np.maximum(edge, 0.0) * valid_event_mask  # shape (n_forecasters, n_markets)
         
         # Calculate edge sum per forecaster for this event
         edge_sums = np.sum(weights, axis=1)  # shape (n_group_forecasters,)
