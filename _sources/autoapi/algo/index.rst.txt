@@ -104,23 +104,28 @@ Module Contents
 
 .. py:function:: compute_average_return_neutral(forecasts: pandas.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False) -> pandas.DataFrame
 
-   Calculate the average return for forecasters with risk-neutral utility using binary reduction strategy.
+   Simulate earnings for each forecaster using edge-proportional budget allocation.
 
-   This implementation uses:
-   - Risk-neutral betting (all-in on best edge, or spread evenly)
-   - Binary reduction (can bet YES or NO on each market)
-   - Approximate CRRA betting strategy for risk_aversion=0
+   Each forecaster receives a fixed TOTAL_BUDGET across all events. For each market,
+   we compute the edge (perceived probability advantage over the market odds) and choose
+   the better side (YES or NO). The budget is then allocated across all markets globally,
+   proportional to each market's edge, so that the total money bet sums to TOTAL_BUDGET.
 
-   For each market, we compare:
-   - YES edge: forecast_prob / yes_odds
-   - NO edge: (1 - forecast_prob) / no_odds
+   Edge calculation per market:
+       YES edge: forecast_prob - yes_odds   (bet YES if forecast_prob > yes_odds)
+       NO edge:  (1 - forecast_prob) - no_odds  (bet NO if forecast_prob < 1 - no_odds)
+
+   Events are excluded entirely if any market has illiquid spread (yes_odds + no_odds > 1.03).
 
    Args:
-       forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, odds, no_odds, weight)
-       num_money_per_round: Amount of money to bet per round (default: 1.0)
-       spread_market_even: Legacy parameter. Not used anymore.
+       forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction,
+                  outcome, odds, no_odds, weight)
+       num_money_per_round: Unused, kept for API compatibility (default: 1.0)
+       spread_market_even: Unused, kept for API compatibility (default: False)
+
    Returns:
        DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
+       where average_return is the earnings (payout) for that forecaster on that event/round.
 
 
 .. py:function:: compute_calibration_ece(forecasts: pandas.DataFrame, num_bins: int = 10, strategy: Literal['uniform', 'quantile'] = 'uniform', weight_event: bool = True, return_details: bool = False) -> pandas.DataFrame

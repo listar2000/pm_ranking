@@ -146,7 +146,7 @@
 <td><p>Calculate the Brier score for the forecasts. We will proceed by grouping by <cite>event_ticker</cite>, as each resulting group</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_average_return_neutral" title="algo.compute_average_return_neutral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_average_return_neutral</span></code></a>(→ pandas.DataFrame)</p></td>
-<td><p>Calculate the average return for forecasters with risk-neutral utility using binary reduction strategy.</p></td>
+<td><p>Simulate earnings for each forecaster using edge-proportional budget allocation.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_calibration_ece" title="algo.compute_calibration_ece"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_calibration_ece</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Calculate the Expected Calibration Error (ECE) for each forecaster.</p></td>
@@ -249,20 +249,27 @@ will have the same shape (i.e. number of markets), and we can manually construct
 <dl class="py function">
 <dt class="sig sig-object py" id="algo.compute_average_return_neutral">
 <span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_average_return_neutral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_money_per_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_market_even</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_average_return_neutral" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_average_return_neutral'"><span>¶</span></a></dt>
-<dd><p>Calculate the average return for forecasters with risk-neutral utility using binary reduction strategy.</p>
-<p>This implementation uses:
-- Risk-neutral betting (all-in on best edge, or spread evenly)
-- Binary reduction (can bet YES or NO on each market)
-- Approximate CRRA betting strategy for risk_aversion=0</p>
-<p>For each market, we compare:
-- YES edge: forecast_prob / yes_odds
-- NO edge: (1 - forecast_prob) / no_odds</p>
+<dd><p>Simulate earnings for each forecaster using edge-proportional budget allocation.</p>
+<p>Each forecaster receives a fixed TOTAL_BUDGET across all events. For each market,
+we compute the edge (perceived probability advantage over the market odds) and choose
+the better side (YES or NO). The budget is then allocated across all markets globally,
+proportional to each market’s edge, so that the total money bet sums to TOTAL_BUDGET.</p>
 <dl class="simple">
-<dt>Args:</dt><dd><p>forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, odds, no_odds, weight)
-num_money_per_round: Amount of money to bet per round (default: 1.0)
-spread_market_even: Legacy parameter. Not used anymore.</p>
+<dt>Edge calculation per market:</dt><dd><p>YES edge: forecast_prob - yes_odds   (bet YES if forecast_prob &gt; yes_odds)
+NO edge:  (1 - forecast_prob) - no_odds  (bet NO if forecast_prob &lt; 1 - no_odds)</p>
 </dd>
-<dt>Returns:</dt><dd><p>DataFrame with columns (forecaster, event_ticker, round, weight, average_return)</p>
+</dl>
+<p>Events are excluded entirely if any market has illiquid spread (yes_odds + no_odds &gt; 1.03).</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction,</dt><dd><p>outcome, odds, no_odds, weight)</p>
+</dd>
+</dl>
+<p>num_money_per_round: Unused, kept for API compatibility (default: 1.0)
+spread_market_even: Unused, kept for API compatibility (default: False)</p>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
+where average_return is the earnings (payout) for that forecaster on that event/round.</p>
 </dd>
 </dl>
 </dd></dl>
