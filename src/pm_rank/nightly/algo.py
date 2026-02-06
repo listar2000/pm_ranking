@@ -282,30 +282,47 @@ def compute_brier_score(forecasts: pd.DataFrame) -> pd.DataFrame:
 
 def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False) -> pd.DataFrame:
     """
-    Calculate the average return for forecasters with risk-neutral utility using binary reduction strategy.
-    
-    This implementation uses:
-    - Risk-neutral betting (all-in on best edge, or spread evenly)
-    - Binary reduction (can bet YES or NO on each market)
-    - Approximate CRRA betting strategy for risk_aversion=0
-    
-    For each market, we compare:
-    - YES edge: forecast_prob / yes_odds
-    - NO edge: (1 - forecast_prob) / no_odds
-    
+    Simulate earnings for each forecaster using edge-proportional budget allocation.
+
+    Each forecaster receives a fixed TOTAL_BUDGET across all events. For each market,
+    we compute the edge (perceived probability advantage over the market odds) and choose
+    the better side (YES or NO). The budget is then allocated across all markets globally,
+    proportional to each market's edge, so that the total money bet sums to TOTAL_BUDGET.
+
+    Edge calculation per market:
+        YES edge: forecast_prob - yes_odds   (bet YES if forecast_prob > yes_odds)
+        NO edge:  (1 - forecast_prob) - no_odds  (bet NO if forecast_prob < 1 - no_odds)
+
+    Events are excluded entirely if any market has illiquid spread (yes_odds + no_odds > 1.03).
+
     Args:
-        forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, odds, no_odds, weight)
-        num_money_per_round: Amount of money to bet per round (default: 1.0)
-        spread_market_even: Legacy parameter. Not used anymore.
+        forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction,
+                   outcome, odds, no_odds, weight)
+        num_money_per_round: Unused, kept for API compatibility (default: 1.0)
+        spread_market_even: Unused, kept for API compatibility (default: False)
+
     Returns:
         DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
+        where average_return is the earnings (payout) for that forecaster on that event/round.
     """
     result_df = forecasts.copy()
     result_df['average_return'] = np.nan
     
-    # Group by event_ticker and process each event
-    for _, event_group in result_df.groupby('event_ticker'):
+    # Set budget per LLM to be $10000 
+    TOTAL_BUDGET = 1e4
+    
+    # Get unique forecasters and create mapping
+    forecasters = result_df['forecaster'].unique()
+    forecaster_to_idx = {f: i for i, f in enumerate(forecasters)}
+    n_total_forecasters = len(forecasters)
+
+    # PASS 1: Calculate edge sums per event per forecaster, store intermediate data
+    event_data = {}  # {event_ticker: dict with computed data}
+    total_edge_per_forecaster = np.zeros(n_total_forecasters)
+    
+    for event_ticker, event_group in result_df.groupby('event_ticker'):
         group_indices = event_group.index
+        group_forecasters = event_group['forecaster'].values
         
         # Stack predictions and odds into matrices: shape (n_forecasters, n_markets)
         forecast_probs = np.stack(event_group['prediction'].values)  # p_i
@@ -317,13 +334,13 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
         
         implied_no_threshold = 1 - implied_no_probs  # shape (n_forecasters, n_markets)
         
-        # Filter out markets with excessive spread (implied_yes_probs + implied_no_threshold > 1.03)
-        valid_market_mask = (implied_yes_probs + implied_no_probs) <= 1.03
+        # Skip entire event if ANY market has excessive spread (odds sum > 1.03)
+        per_market_valid = (implied_yes_probs + implied_no_probs) <= 1.03
+        valid_event_mask = np.all(per_market_valid, axis=1, keepdims=True)  # shape (n_forecasters, 1)
         
         # Determine which side to bet on (or skip if within spread)
         bet_yes = forecast_probs > implied_yes_probs
         bet_no = forecast_probs < implied_no_threshold
-        within_spread = ~bet_yes & ~bet_no  # No bet if within spread
         
         # Calculate edges for each side
         # YES edge: p - q_yes (only positive when p > q_yes)
@@ -336,41 +353,54 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
         effective_implied_probs = np.where(bet_yes, implied_yes_probs, 
                                            np.where(bet_no, implied_no_probs, 1.0))  # 1.0 as placeholder for no-bet
         
-        # Weight = edge * price (only positive weights count)
-        # Also apply valid_market_mask to exclude markets with excessive spread
-        weights = np.maximum(edge * effective_implied_probs, 0.0) * valid_market_mask  # shape (n_forecasters, n_markets)
+        # Zero out all markets for a forecaster if any market in the event is illiquid
+        weights = np.maximum(edge, 0.0) * valid_event_mask  # shape (n_forecasters, n_markets)
         
-        # Distribute money proportionally based on weights
-        n_forecasters, n_markets = forecast_probs.shape
+        # Calculate edge sum per forecaster for this event
+        edge_sums = np.sum(weights, axis=1)  # shape (n_group_forecasters,)
+
+        # Accumulate total edge per forecaster
+        f_indices = np.array([forecaster_to_idx[f] for f in group_forecasters])
+        np.add.at(total_edge_per_forecaster, f_indices, edge_sums)
+
+        # Store data for pass 2
+        event_data[event_ticker] = {
+            'group_indices': group_indices,
+            'f_indices': f_indices,
+            'weights': weights,
+            'edge_sums': edge_sums,
+            'effective_implied_probs': effective_implied_probs,
+            'bet_yes': bet_yes,
+            'outcome_vector': outcome_vector
+        }
+
+    # PASS 2: Allocate budget directly to each market
+    for event_ticker, data in event_data.items():
+        group_indices = data['group_indices']
+        f_indices = data['f_indices']
+        weights = data['weights']
+        effective_implied_probs = data['effective_implied_probs']
+        bet_yes = data['bet_yes']
+        outcome_vector = data['outcome_vector']
+
+        # Get total edge per forecaster for normalization (vectorized lookup)
+        forecaster_total_edges = total_edge_per_forecaster[f_indices]
         
-        # Normalize weights per forecaster (sum to 1)
-        weight_sums = np.sum(weights, axis=1, keepdims=True)
-        # Handle case where all weights are zero (no edge anywhere)
-        weight_sums = np.where(weight_sums == 0, 1, weight_sums)
-        normalized_weights = weights / weight_sums
-        
-        # Allocate money proportionally: money_for_market = num_money_per_round * normalized_weight
-        money_per_market = num_money_per_round * normalized_weights
+        # Allocate money directly to each market: money = TOTAL_BUDGET * (weight / total_weight)
+        # Handle case where total edge is zero
+        safe_totals = np.where(forecaster_total_edges > 0, forecaster_total_edges, 1.0)
+        money_per_market = TOTAL_BUDGET * weights / safe_totals[:, np.newaxis]
         
         # Number of contracts = money / price (avoid division by zero for no-bet cases)
         safe_prices = np.where(weights > 0, effective_implied_probs, 1.0)
         bets = np.where(weights > 0, money_per_market / safe_prices, 0.0)
         
-        # Update choose_yes for outcome calculation (bet_yes means we're betting on YES outcome)
-        choose_yes = bet_yes
-        
-        # Step 4: Calculate effective outcomes (flip outcome if we chose NO)
-        effective_outcomes = np.where(choose_yes, 
+        # Calculate effective outcomes (flip outcome if we chose NO)
+        effective_outcomes = np.where(bet_yes, 
                                      outcome_vector[np.newaxis, :],  # broadcast outcome
                                      1 - outcome_vector[np.newaxis, :])
-
-        # Sanity Check: the sum of money spent should be equal to num_money_per_round
-        assert np.allclose(np.sum(bets * effective_implied_probs, axis=1), num_money_per_round)
         
-        # Step 5: Calculate earnings
-        # Earnings = sum over markets of (bets * effective_outcomes * num_money_per_round / num_money_per_round)
-        # Since bets already incorporates the money amount, we don't multiply by num_money_per_round again
-        # Each contract pays out 1 if it wins, 0 otherwise
+        # Calculate earnings
         earnings = np.sum(bets * effective_outcomes, axis=1)
         
         # Assign earnings to result dataframe
