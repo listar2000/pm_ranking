@@ -280,8 +280,7 @@ def compute_brier_score(forecasts: pd.DataFrame) -> pd.DataFrame:
     return result_df
 
 
-def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, 
-                                   spread_market_even: bool = False) -> pd.DataFrame:
+def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False) -> pd.DataFrame:
     """
     Simulate earnings for each forecaster using edge-proportional budget allocation.
 
@@ -289,11 +288,6 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
     we compute the edge (perceived probability advantage over the market odds) and choose
     the better side (YES or NO). The budget is then allocated across all markets globally,
     proportional to each market's edge, so that the total money bet sums to TOTAL_BUDGET.
-
-    Two-pass approach:
-        Pass 1: Compute per-market edges and accumulate total edge per forecaster.
-        Pass 2: Allocate money = TOTAL_BUDGET * (market_edge / total_edge), buy contracts
-                at the market price, and compute earnings based on outcomes.
 
     Edge calculation per market:
         YES edge: forecast_prob - yes_odds   (bet YES if forecast_prob > yes_odds)

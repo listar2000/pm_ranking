@@ -1,6 +1,10 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.2.33 (Current)
+### v0.3.0 (Current)
+
+- We now start to adopt a new algorithm for calculating the average return.
+
+### v0.2.33
 
 - Add more information when ranking the forecasters by Brier score or market return.
 
