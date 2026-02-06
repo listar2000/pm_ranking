@@ -25,7 +25,7 @@ class IRTObs:
     :param problem_ids: A tensor of shape `(k,)` with the problem ids
     :param forecaster_id_to_idx: A dictionary with the forecaster ids as keys and the indices as values
     :param problem_id_to_idx: A dictionary with the problem ids as keys and the indices as values
-    :param scores: A tensor of shape `(k,)` with the scores of the forecasts (discretized from scoring rules)
+    :param scores: A tensor of shape `(k,)` with the scores of the forecasts (raw scores, e.g. from the Brier scoring rule)
     :param discretized_scores: A tensor of shape `(k,)` with the discretized scores of the forecasts
     :param anchor_points: A tensor of shape `(n_bins,)` with the anchor points of the discretized scores
     """
@@ -46,7 +46,7 @@ class IRTObs:
         return {v: k for k, v in self.problem_id_to_idx.items()}
 
 
-def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6, use_empirical_quantiles: bool = False,
+def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_points: int = 6, use_empirical_quantiles: bool = False,
                       device: Literal["cpu", "cuda"] = "cpu") -> IRTObs:
     """
     Let there be `n` forecasters and `m` problems. Since not every forecaster has forecasted every problem,
@@ -56,7 +56,7 @@ def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6,
         - `problem_ids`: a tensor of shape `(k,)` with the problem ids
         - `scores`: a tensor of shape `(k,)` with the scores of the forecasts (discretized from scoring rules)
         - `discretized_scores`: a tensor of shape `(k,)` with the discretized scores of the forecasts
-        - `anchor_points`: a tensor of shape `(n_bins,)` with the anchor points of the discretized scores
+        - `anchor_points`: a tensor of shape `(n_points,)` with the anchor points of the discretized scores
         - `forecaster_id_to_idx`: a dictionary with the forecaster ids as keys and the indices as values
         - `problem_id_to_idx`: a dictionary with the problem ids as keys and the indices as values
     """
@@ -87,8 +87,8 @@ def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6,
             np.array(correct_option_idx), np.array(all_probs), negate=False))
 
     # discretize the scores
-    discretized_indices, bin_edges = _discretize_scoring_rules(
-        np.array(scores), n_bins, use_empirical_quantiles)
+    discretized_indices, anchor_points = _discretize_scoring_rules(
+        np.array(scores), n_points, use_empirical_quantiles)
 
     # convert to tensors
     return IRTObs(
@@ -101,37 +101,49 @@ def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6,
         discretized_scores=torch.tensor(
             discretized_indices, device=device, dtype=torch.long),
         anchor_points=torch.tensor(
-            bin_edges, device=device, dtype=torch.float),
+            anchor_points, device=device, dtype=torch.float),
     )
 
 
-def _discretize_scoring_rules(scores: np.ndarray, n_bins: int = 6, use_empirical_quantiles: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+def _discretize_scoring_rules(
+    scores: np.ndarray,
+    n_points: int = 6,
+    use_empirical_quantiles: bool = False,
+) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Discretize the scores into a number of bins.
+    Discretize the scores by mapping each score to the closest anchor point.
 
     Args:
-        scores: The scores (from scoring rules)to discretize.
-        n_bins: The number of bins to discretize the scores into.
-        use_empirical_quantiles: Whether to use empirical quantiles to determine the bins.
-            If True, the bins will be determined by the empirical quantiles of the scores.
-            If False, the bins will be evenly spaced between 0 and 1.
+        scores: The scores (from scoring rules) to discretize.
+        n_points: The number of anchor points. The anchor points always include endpoints 0 and 1.
+            If use_empirical_quantiles is True, the (n_points - 2) interior points are determined by
+            empirical quantiles of the scores, with endpoints fixed at 0 and 1.
+            If use_empirical_quantiles is False, the n_points anchor points are evenly spaced in [0, 1].
+        use_empirical_quantiles: Whether to use empirical quantiles to determine the interior anchor points.
 
     Returns:
-        A tuple of two arrays, where the first array is the discretized indices of the scores ([0, n_bins - 1]),
-        and the second array is the bin edges.
+        A tuple of two arrays, where the first array is the discretized indices of the scores ([0, n_points - 1]),
+        corresponding to the closest anchor point for each score, and the second array is the anchor points.
     """
     # make sure all scores are between 0 and 1
     assert np.all(scores >= 0) and np.all(
-        scores <= 1), f"Scores must be between 0 and 1, got {[score for score in scores if score < 0 or score > 1]}"
+        scores <= 1
+    ), f"Scores must be between 0 and 1, got {[score for score in scores if score < 0 or score > 1]}"
+
+    assert n_points >= 2, f"n_points must be >= 2, got {n_points}"
 
     if use_empirical_quantiles:
-        anchor_points = np.quantile(scores, np.linspace(0, 1, n_bins))
-        # change the first and last anchor points to 0 and 1
-        anchor_points[0] = 0
-        anchor_points[-1] = 1
+        # endpoints are fixed at 0 and 1; the interior points are determined by empirical quantiles
+        if n_points == 2:
+            anchor_points = np.array([0.0, 1.0], dtype=float)
+        else:
+            interior_qs = np.linspace(0, 1, n_points)[1:-1]
+            interior_points: np.ndarray = np.quantile(scores, interior_qs)  # type: ignore
+            anchor_points = np.concatenate(([0.0], interior_points, [1.0])).astype(float)
     else:
-        anchor_points = np.linspace(0, 1, n_bins)
+        anchor_points = np.linspace(0, 1, n_points)
 
+    # map each score to the closest anchor point (not to a bin)
     dists = np.abs(scores[:, None] - anchor_points[None, :])
     discretized_indices = np.argmin(dists, axis=1)
 
@@ -145,16 +157,16 @@ Some simple in-file tests.
 
 def _test_discretization():
     # test the discretization
-    scores = np.array([0, 0.1, 0.1, 0.2, 0.2, 0.8, 0.9])
-    discretized_indices, bin_edges = _discretize_scoring_rules(
-        scores, n_bins=3, use_empirical_quantiles=False)
+    scores = np.array([0, 0.1, 0.1, 0.2, 0.3, 0.8, 0.9])
+    discretized_indices, anchor_points = _discretize_scoring_rules(
+        scores, n_points=3, use_empirical_quantiles=False)
     print(discretized_indices)
-    print(bin_edges)
+    print(anchor_points)
 
-    discretized_indices, bin_edges = _discretize_scoring_rules(
-        scores, n_bins=3, use_empirical_quantiles=True)
+    discretized_indices, anchor_points = _discretize_scoring_rules(
+        scores, n_points=3, use_empirical_quantiles=True)
     print(discretized_indices)
-    print(bin_edges)
+    print(anchor_points)
 
 
 def _test_and_profile_pyro_obs():
@@ -166,23 +178,23 @@ def _test_and_profile_pyro_obs():
 
     # load the data
     challenge_loader = GJOChallengeLoader(
-        predictions_file, metadata_file, challenge_title="GJO Challenge")
+        predictions_df=None, predictions_file=predictions_file, metadata_file=metadata_file, challenge_title="GJO Challenge")
     challenge = challenge_loader.load_challenge(
         forecaster_filter=20, problem_filter=20)
 
     start_time = time.time()
     # prepare the dataset
     dataset = _prepare_pyro_obs(
-        challenge.forecast_problems, n_bins=6, use_empirical_quantiles=False, device="cpu")
+        challenge.forecast_problems, n_points=6, use_empirical_quantiles=False, device="cpu")
     end_time = time.time()
     print(
         f"Time taken to prepare the dataset: {end_time - start_time} seconds")
 
     # print the shape of the dataset
     print(
-        f"Shape of the dataset: {dataset['forecaster_ids'].shape}, {dataset['problem_ids'].shape}, {dataset['scores'].shape}, {dataset['discretized_scores'].shape}, {dataset['anchor_points'].shape}")
+        f"Shape of the dataset: {dataset.forecaster_ids.shape}, {dataset.problem_ids.shape}, {dataset.scores.shape}, {dataset.discretized_scores.shape}, {dataset.anchor_points.shape}")
     print(
-        f"Shape of the dataset: {dataset['forecaster_id_to_idx']}, {dataset['problem_id_to_idx']}")
+        f"Shape of the dataset: {dataset.forecaster_id_to_idx}, {dataset.problem_id_to_idx}")
 
 
 if __name__ == "__main__":

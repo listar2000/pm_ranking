@@ -5,7 +5,7 @@ import logging
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from pyro.infer import SVI, Trace_ELBO
-from pyro.infer.mcmc import NUTS, MCMC, HMC
+from pyro.infer.mcmc import NUTS, MCMC
 from pyro.optim import Adam, SGD  # type: ignore
 import pyro
 import pyro.distributions as dist
@@ -13,9 +13,9 @@ from pydantic import BaseModel, Field
 from typing import Literal, List, Dict, Any, Tuple
 
 from pm_rank.model.utils import forecaster_data_to_rankings, get_logger, log_ranking_table
-from pm_rank.model.irt._dataset import _prepare_pyro_obs
+from pm_rank.model.irt._dataset import _prepare_pyro_obs, IRTObs
 from pm_rank.data.base import ForecastProblem
-from pm_rank.data.loaders import GJOChallengeLoader
+
 
 OUTPUT_DIR = __file__.replace(__file__.split(
     "/")[-1], "output")  # the output directory
@@ -111,15 +111,21 @@ class IRTModel(object):
         self.logger.info(f"Initialized {self.__class__.__name__} with hyperparam: \n" +
                          f"n_bins={n_bins}, use_empirical_quantiles={use_empirical_quantiles}")
 
-    def fit(self, problems: List[ForecastProblem], include_scores: bool = True, method: Literal["SVI", "NUTS"] = "SVI",
+    def fit_from_problems(self, problems: List[ForecastProblem], include_scores: bool = True, method: Literal["SVI", "NUTS"] = "SVI",
             config: MCMCConfig | SVIConfig | None = None) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
-        """Fit the IRT model to the given problems and return rankings.
+        """Fit the IRT model to the given problems and return rankings."""
+        irt_obs = _prepare_pyro_obs(problems, self.n_bins, self.use_empirical_quantiles, self.device)
+        return self.fit(irt_obs, include_scores, method, config)
+
+    def fit(self, irt_obs: IRTObs, include_scores: bool = True, method: Literal["SVI", "NUTS"] = "SVI",
+            config: MCMCConfig | SVIConfig | None = None) -> Tuple[Dict[str, Any], Dict[str, int]] | Dict[str, int]:
+        """Fit the IRT model to the given IRTObs object and return rankings.
 
         This method fits the IRT model using either SVI or MCMC inference, depending on
         the specified method. The model estimates latent abilities for each forecaster
         and difficulty/discrimination parameters for each problem.
 
-        :param problems: List of ForecastProblem instances to fit the model to.
+        :param irt_obs: IRTObs object containing the forecaster and problem ids, discretized scores, and anchor points.
         :param include_scores: Whether to include scores in the results (default: True).
         :param method: Inference method to use ("SVI" for fast approximate inference
                        or "NUTS" for exact MCMC inference) (default: "SVI").
@@ -147,8 +153,7 @@ class IRTModel(object):
                 config, MCMCConfig), "MCMC configuration must be provided."
 
         self.device = config.device
-        self.irt_obs = _prepare_pyro_obs(
-            problems, self.n_bins, self.use_empirical_quantiles, self.device)  # type: ignore
+        self.irt_obs = irt_obs
 
         if self.method == "NUTS":
             mcmc_config: MCMCConfig = config  # type: ignore
@@ -159,8 +164,9 @@ class IRTModel(object):
 
             if mcmc_config.save_result:
                 import time
-                torch.save(
-                    posterior_samples, f"{OUTPUT_DIR}/posterior_samples_{time.strftime('%m%d_%H%M')}.pt")
+                save_path = f"{OUTPUT_DIR}/posterior_samples_{time.strftime('%y-%m-%d_%H%M')}.pt"
+                torch.save(posterior_samples, save_path)
+                print(f"Saved posterior samples to {save_path}")
 
             result = self._score_and_rank_mcmc(
                 self.posterior_samples, include_scores=include_scores)
