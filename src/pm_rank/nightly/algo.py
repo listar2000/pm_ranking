@@ -280,8 +280,7 @@ def compute_brier_score(forecasts: pd.DataFrame) -> pd.DataFrame:
     return result_df
 
 
-def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, 
-                                   spread_market_even: bool = False) -> pd.DataFrame:
+def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False) -> pd.DataFrame:
     """
     Simulate earnings for each forecaster using edge-proportional budget allocation.
 
