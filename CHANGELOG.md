@@ -1,6 +1,10 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.3.0 (Current)
+### v0.3.1 (Current)
+
+- Anri fixed some bugs with the new average return algorithm.
+
+### v0.3.0
 
 - We now start to adopt a new algorithm for calculating the average return.
 
