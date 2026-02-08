@@ -123,9 +123,6 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#algo.DEFAULT_BOOTSTRAP_CONFIG" title="algo.DEFAULT_BOOTSTRAP_CONFIG"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_BOOTSTRAP_CONFIG</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algo.predictions_csv" title="algo.predictions_csv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predictions_csv</span></code></a></p></td>
-<td><p></p></td>
-</tr>
 </tbody>
 </table>
 </section>
@@ -143,10 +140,10 @@
 <td><p>We turn the forecasts from a certain forecaster into market baseline predictions.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_brier_score" title="algo.compute_brier_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_brier_score</span></code></a>(→ pandas.DataFrame)</p></td>
-<td><p>Calculate the Brier score for the forecasts. We will proceed by grouping by <cite>event_ticker</cite>, as each resulting group</p></td>
+<td><p>Calculate the Brier score for the forecasts using row-by-row processing.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_average_return_neutral" title="algo.compute_average_return_neutral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_average_return_neutral</span></code></a>(→ pandas.DataFrame)</p></td>
-<td><p>Simulate earnings for each forecaster using edge-proportional budget allocation.</p></td>
+<td><p>Each forecaster is given a fixed $1000 budget spread across ALL markets they</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_calibration_ece" title="algo.compute_calibration_ece"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_calibration_ece</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Calculate the Expected Calibration Error (ECE) for each forecaster.</p></td>
@@ -238,38 +235,55 @@ use_both_sides: If True, we will add the market baseline predictions for both YE
 <dl class="py function">
 <dt class="sig sig-object py" id="algo.compute_brier_score">
 <span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_brier_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_brier_score" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_brier_score'"><span>¶</span></a></dt>
-<dd><p>Calculate the Brier score for the forecasts. We will proceed by grouping by <cite>event_ticker</cite>, as each resulting group
-will have the same shape (i.e. number of markets), and we can manually construct a np matrix to accelerate the computation.</p>
-<p>The result will be a DataFrame containing (forecaster, event_ticker, round, time_rank, brier_score)</p>
+<dd><p>Calculate the Brier score for the forecasts using row-by-row processing.
+Handles predictions with different array lengths via key intersection.
+Automatically filters out illiquid events (yes_ask + no_ask &gt; 1.03).</p>
+<p>The result will be a DataFrame containing (forecaster, event_ticker, round, weight, brier_score)</p>
 <dl class="simple">
-<dt>Args:</dt><dd><p>forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, weight)</p>
+<dt>Args:</dt><dd><p>forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, weight, odds, no_odds)</p>
 </dd>
 </dl>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="algo.compute_average_return_neutral">
-<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_average_return_neutral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_money_per_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_market_even</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_average_return_neutral" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_average_return_neutral'"><span>¶</span></a></dt>
-<dd><p>Simulate earnings for each forecaster using edge-proportional budget allocation.</p>
-<p>Each forecaster receives a fixed TOTAL_BUDGET across all events. For each market,
-we compute the edge (perceived probability advantage over the market odds) and choose
-the better side (YES or NO). The budget is then allocated across all markets globally,
-proportional to each market’s edge, so that the total money bet sums to TOTAL_BUDGET.</p>
-<dl class="simple">
-<dt>Edge calculation per market:</dt><dd><p>YES edge: forecast_prob - yes_odds   (bet YES if forecast_prob &gt; yes_odds)
-NO edge:  (1 - forecast_prob) - no_odds  (bet NO if forecast_prob &lt; 1 - no_odds)</p>
-</dd>
-</dl>
-<p>Events are excluded entirely if any market has illiquid spread (yes_odds + no_odds &gt; 1.03).</p>
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_average_return_neutral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_money_per_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_market_even</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.03</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_average_return_neutral" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_average_return_neutral'"><span>¶</span></a></dt>
+<dd><p>Each forecaster is given a fixed $1000 budget spread across ALL markets they
+participate in. For each outcome within an event, the forecaster either bets
+YES or NO depending on their edge.</p>
+<p>Betting logic (per outcome):
+diff = p - yes_ask</p>
+<p>If diff &gt; 0: bet YES at price yes_ask
+If diff &lt; 0: bet NO  at price no_ask
+If diff = 0: skip</p>
 <dl>
+<dt>Budget allocation:</dt><dd><p>amount_i = BUDGET * weight_i / sum(weight_j for all j across all events)</p>
+</dd>
+<dt>Liquidity filter:</dt><dd><p>Entire events are skipped if ANY outcome has yes_ask + no_ask &gt; max_spread.
+This avoids betting into illiquid markets with excessive vig.</p>
+</dd>
 <dt>Args:</dt><dd><dl class="simple">
-<dt>forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction,</dt><dd><p>outcome, odds, no_odds, weight)</p>
+<dt>forecasts: DataFrame with columns:</dt><dd><ul class="simple">
+<li><p>forecaster: str, model/forecaster identifier</p></li>
+<li><p>event_ticker: str, event identifier</p></li>
+<li><p>round: int, forecast round number</p></li>
+<li><p>prediction: np.ndarray, forecaster’s probability for each outcome</p></li>
+<li><p>outcome: np.ndarray, actual binary outcomes (0 or 1) per market</p></li>
+<li><p>odds: np.ndarray, YES ask prices (implied probabilities) per market</p></li>
+<li><p>no_odds: np.ndarray, NO ask prices per market</p></li>
+<li><p>weight: float, external weight (passed through, not used in computation)</p></li>
+</ul>
 </dd>
 </dl>
-<p>num_money_per_round: Unused, kept for API compatibility (default: 1.0)
-spread_market_even: Unused, kept for API compatibility (default: False)</p>
+<p>num_money_per_round: Unused, kept for API compatibility.
+spread_market_even: Unused, kept for API compatibility.
+max_spread: Maximum allowed spread (yes_ask + no_ask) for liquidity filter.</p>
+<blockquote>
+<div><p>Events with any outcome exceeding this threshold are skipped entirely.</p>
+</div></blockquote>
 </dd>
 <dt>Returns:</dt><dd><p>DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
-where average_return is the earnings (payout) for that forecaster on that event/round.</p>
+where average_return is the net profit (can be negative) for that
+forecaster on that event/round.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -356,10 +370,6 @@ Requires ‘market-baseline’ forecaster to be present.</p>
 </dd>
 </dl>
 </dd></dl>
-<dl class="py data">
-<dt class="sig sig-object py" id="algo.predictions_csv">
-<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">predictions_csv</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'slurm/predictions_12_31_to_01_01.csv'</span></em><a class="headerlink" href="#algo.predictions_csv" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.predictions_csv'"><span>¶</span></a></dt>
-<dd></dd></dl>
 </section>
 </section>
 </div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
@@ -378,7 +388,6 @@ Requires ‘market-baseline’ forecaster to be present.</p>
 <li><a :data-current="activeSection === '#algo.compute_sharpe_ratio'" class="reference internal" href="#algo.compute_sharpe_ratio"><code class="docutils literal notranslate"><span class="pre">compute_sharpe_ratio()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.compute_ranked_brier_score'" class="reference internal" href="#algo.compute_ranked_brier_score"><code class="docutils literal notranslate"><span class="pre">compute_ranked_brier_score()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.compute_ranked_average_return'" class="reference internal" href="#algo.compute_ranked_average_return"><code class="docutils literal notranslate"><span class="pre">compute_ranked_average_return()</span></code></a></li>
-<li><a :data-current="activeSection === '#algo.predictions_csv'" class="reference internal" href="#algo.predictions_csv"><code class="docutils literal notranslate"><span class="pre">predictions_csv</span></code></a></li>
 </ul>
 </li>
 </ul>

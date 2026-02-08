@@ -10,7 +10,6 @@ Attributes
 .. autoapisummary::
 
    algo.DEFAULT_BOOTSTRAP_CONFIG
-   algo.predictions_csv
 
 
 Functions
@@ -93,39 +92,55 @@ Module Contents
 
 .. py:function:: compute_brier_score(forecasts: pandas.DataFrame) -> pandas.DataFrame
 
-   Calculate the Brier score for the forecasts. We will proceed by grouping by `event_ticker`, as each resulting group
-   will have the same shape (i.e. number of markets), and we can manually construct a np matrix to accelerate the computation.
+   Calculate the Brier score for the forecasts using row-by-row processing.
+   Handles predictions with different array lengths via key intersection.
+   Automatically filters out illiquid events (yes_ask + no_ask > 1.03).
 
-   The result will be a DataFrame containing (forecaster, event_ticker, round, time_rank, brier_score) 
-
-   Args:
-       forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, weight)
-
-
-.. py:function:: compute_average_return_neutral(forecasts: pandas.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False) -> pandas.DataFrame
-
-   Simulate earnings for each forecaster using edge-proportional budget allocation.
-
-   Each forecaster receives a fixed TOTAL_BUDGET across all events. For each market,
-   we compute the edge (perceived probability advantage over the market odds) and choose
-   the better side (YES or NO). The budget is then allocated across all markets globally,
-   proportional to each market's edge, so that the total money bet sums to TOTAL_BUDGET.
-
-   Edge calculation per market:
-       YES edge: forecast_prob - yes_odds   (bet YES if forecast_prob > yes_odds)
-       NO edge:  (1 - forecast_prob) - no_odds  (bet NO if forecast_prob < 1 - no_odds)
-
-   Events are excluded entirely if any market has illiquid spread (yes_odds + no_odds > 1.03).
+   The result will be a DataFrame containing (forecaster, event_ticker, round, weight, brier_score)
 
    Args:
-       forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction,
-                  outcome, odds, no_odds, weight)
-       num_money_per_round: Unused, kept for API compatibility (default: 1.0)
-       spread_market_even: Unused, kept for API compatibility (default: False)
+       forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, weight, odds, no_odds)
+
+
+.. py:function:: compute_average_return_neutral(forecasts: pandas.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False, max_spread: float = 1.03) -> pandas.DataFrame
+
+   Each forecaster is given a fixed $1000 budget spread across ALL markets they
+   participate in. For each outcome within an event, the forecaster either bets
+   YES or NO depending on their edge. 
+
+   Betting logic (per outcome):
+   diff = p - yes_ask
+
+   If diff > 0: bet YES at price yes_ask 
+   If diff < 0: bet NO  at price no_ask  
+   If diff = 0: skip                     
+
+   Budget allocation:
+       amount_i = BUDGET * weight_i / sum(weight_j for all j across all events)
+
+   Liquidity filter:
+       Entire events are skipped if ANY outcome has yes_ask + no_ask > max_spread.
+       This avoids betting into illiquid markets with excessive vig.
+
+   Args:
+       forecasts: DataFrame with columns:
+           - forecaster: str, model/forecaster identifier
+           - event_ticker: str, event identifier
+           - round: int, forecast round number
+           - prediction: np.ndarray, forecaster's probability for each outcome
+           - outcome: np.ndarray, actual binary outcomes (0 or 1) per market
+           - odds: np.ndarray, YES ask prices (implied probabilities) per market
+           - no_odds: np.ndarray, NO ask prices per market
+           - weight: float, external weight (passed through, not used in computation)
+       num_money_per_round: Unused, kept for API compatibility.
+       spread_market_even: Unused, kept for API compatibility.
+       max_spread: Maximum allowed spread (yes_ask + no_ask) for liquidity filter.
+           Events with any outcome exceeding this threshold are skipped entirely.
 
    Returns:
        DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
-       where average_return is the earnings (payout) for that forecaster on that event/round.
+       where average_return is the net profit (can be negative) for that
+       forecaster on that event/round.
 
 
 .. py:function:: compute_calibration_ece(forecasts: pandas.DataFrame, num_bins: int = 10, strategy: Literal['uniform', 'quantile'] = 'uniform', weight_event: bool = True, return_details: bool = False) -> pandas.DataFrame
@@ -202,9 +217,5 @@ Module Contents
        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
            forecaster by filtering market-baseline scores to their participated (event_ticker, round).
            Requires 'market-baseline' forecaster to be present.
-
-
-.. py:data:: predictions_csv
-   :value: 'slurm/predictions_12_31_to_01_01.csv'
 
 
