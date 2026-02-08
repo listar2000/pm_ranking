@@ -148,10 +148,13 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
         
         return rank_df
 
-    # Optionally add individualized market baselines before aggregation
-    if add_individualized_baselines:
-        df = add_individualized_market_baselines_to_scores(df)
+    # # Optionally add individualized market baselines before aggregation
+    # if add_individualized_baselines:
+    #     df = add_individualized_market_baselines_to_scores(df)
     
+    # Drop rows with NaN scores (e.g. illiquid events skipped by average return)
+    df = df.dropna(subset=[score_col])
+
     # For other metrics (Brier, average return), perform weighted aggregation
     if normalize_by_round:
         # For each (forecaster, event_ticker) group, downweight by number of rounds
@@ -243,171 +246,251 @@ def add_market_baseline_predictions(forecasts: pd.DataFrame, reference_forecaste
 
 def compute_brier_score(forecasts: pd.DataFrame) -> pd.DataFrame:
     """
-    Calculate the Brier score for the forecasts. We will proceed by grouping by `event_ticker`, as each resulting group
-    will have the same shape (i.e. number of markets), and we can manually construct a np matrix to accelerate the computation.
+    Calculate the Brier score for the forecasts using row-by-row processing.
+    Handles predictions with different array lengths via key intersection.
+    Automatically filters out illiquid events (yes_ask + no_ask > 1.03).
 
-    The result will be a DataFrame containing (forecaster, event_ticker, round, time_rank, brier_score) 
+    The result will be a DataFrame containing (forecaster, event_ticker, round, weight, brier_score)
 
     Args:
-        forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, weight)
+        forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, weight, odds, no_odds)
     """
-    result_df = forecasts.copy()
-    
+    MAX_SPREAD = 1.03
+
+    # Filter out rows with mismatched array lengths
+    def _arrays_same_length(row):
+        try:
+            return len(row['prediction']) == len(row['odds']) == len(row['no_odds']) == len(row['outcome'])
+        except Exception:
+            return False
+
+    length_mask = forecasts.apply(_arrays_same_length, axis=1)
+    filtered_count = (~length_mask).sum()
+    if filtered_count > 0:
+        print(f"Filtered out {filtered_count} rows with mismatched array lengths")
+    result_df = forecasts[length_mask].copy()
+
     # Initialize brier_score column
     result_df['brier_score'] = np.nan
-    
-    # Group by event_ticker and process each group
-    for _, event_group in result_df.groupby('event_ticker'):
-        # Get indices for this group
-        group_indices = event_group.index
-        
-        # prepare the predictions matrix with shape (num_group_elements, num_markets)
-        prediction_matrix = np.stack(event_group['prediction'].values)
-        
-        # prepare the outcome vector with shape (num_markets,) since it's the same for all group elements
-        outcome_vector = event_group['outcome'].iloc[0]
-        
-        # Calculate Brier score: mean squared difference between predictions and outcomes
-        # Brier score = mean((prediction - outcome)^2) for each forecast
-        squared_diffs = (prediction_matrix - outcome_vector) ** 2
-        brier_scores = np.mean(squared_diffs, axis=1)
-        
-        # Assign brier scores back to the result dataframe
-        result_df.loc[group_indices, 'brier_score'] = brier_scores
-    
+
+    skipped_illiquid = 0
+
+    for idx, row in result_df.iterrows():
+        try:
+            prediction = row['prediction']
+            outcome = row['outcome']
+            odds = row['odds']
+            no_odds = row['no_odds']
+
+            # Skip illiquid events (spread > 1.03 for any market)
+            spreads = odds + no_odds
+            if np.any(spreads > MAX_SPREAD):
+                skipped_illiquid += 1
+                continue
+
+            if len(prediction) == 0:
+                continue
+
+            # Calculate Brier score: mean squared difference
+            brier_score = np.mean((prediction - outcome) ** 2)
+            result_df.at[idx, 'brier_score'] = brier_score
+
+        except Exception:
+            continue
+
+    if skipped_illiquid > 0:
+        print(f"Skipped {skipped_illiquid} illiquid events (spread > {MAX_SPREAD})")
+
+    # Drop rows with NaN brier_score (illiquid events or failed computations)
+    result_df = result_df.dropna(subset=['brier_score'])
+
     # Select only the required columns
     result_df = result_df[['forecaster', 'event_ticker', 'weight', 'round', 'brier_score']]
     return result_df
 
 
-def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False) -> pd.DataFrame:
+def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False, max_spread: float = 1.03) -> pd.DataFrame:
     """
-    Simulate earnings for each forecaster using edge-proportional budget allocation.
+    Each forecaster is given a fixed $1000 budget spread across ALL markets they
+    participate in. For each outcome within an event, the forecaster either bets
+    YES or NO depending on their edge. 
 
-    Each forecaster receives a fixed TOTAL_BUDGET across all events. For each market,
-    we compute the edge (perceived probability advantage over the market odds) and choose
-    the better side (YES or NO). The budget is then allocated across all markets globally,
-    proportional to each market's edge, so that the total money bet sums to TOTAL_BUDGET.
+    Betting logic (per outcome):
+    diff = p - yes_ask
 
-    Edge calculation per market:
-        YES edge: forecast_prob - yes_odds   (bet YES if forecast_prob > yes_odds)
-        NO edge:  (1 - forecast_prob) - no_odds  (bet NO if forecast_prob < 1 - no_odds)
+    If diff > 0: bet YES at price yes_ask 
+    If diff < 0: bet NO  at price no_ask  
+    If diff = 0: skip                     
 
-    Events are excluded entirely if any market has illiquid spread (yes_odds + no_odds > 1.03).
+    Budget allocation:
+        amount_i = BUDGET * weight_i / sum(weight_j for all j across all events)
+
+    Liquidity filter:
+        Entire events are skipped if ANY outcome has yes_ask + no_ask > max_spread.
+        This avoids betting into illiquid markets with excessive vig.
 
     Args:
-        forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction,
-                   outcome, odds, no_odds, weight)
-        num_money_per_round: Unused, kept for API compatibility (default: 1.0)
-        spread_market_even: Unused, kept for API compatibility (default: False)
+        forecasts: DataFrame with columns:
+            - forecaster: str, model/forecaster identifier
+            - event_ticker: str, event identifier
+            - round: int, forecast round number
+            - prediction: np.ndarray, forecaster's probability for each outcome
+            - outcome: np.ndarray, actual binary outcomes (0 or 1) per market
+            - odds: np.ndarray, YES ask prices (implied probabilities) per market
+            - no_odds: np.ndarray, NO ask prices per market
+            - weight: float, external weight (passed through, not used in computation)
+        num_money_per_round: Unused, kept for API compatibility.
+        spread_market_even: Unused, kept for API compatibility.
+        max_spread: Maximum allowed spread (yes_ask + no_ask) for liquidity filter.
+            Events with any outcome exceeding this threshold are skipped entirely.
 
     Returns:
         DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
-        where average_return is the earnings (payout) for that forecaster on that event/round.
+        where average_return is the net profit (can be negative) for that
+        forecaster on that event/round.
     """
-    result_df = forecasts.copy()
-    result_df['average_return'] = np.nan
-    
-    # Set budget per LLM to be $10000 
-    TOTAL_BUDGET = 1e4
-    
-    # Get unique forecasters and create mapping
-    forecasters = result_df['forecaster'].unique()
-    forecaster_to_idx = {f: i for i, f in enumerate(forecasters)}
-    n_total_forecasters = len(forecasters)
+    # Filter out rows with mismatched array lengths
+    def _arrays_same_length(row):
+        try:
+            return len(row['prediction']) == len(row['odds']) == len(row['no_odds']) == len(row['outcome'])
+        except Exception:
+            return False
 
-    # PASS 1: Calculate edge sums per event per forecaster, store intermediate data
-    event_data = {}  # {event_ticker: dict with computed data}
-    total_edge_per_forecaster = np.zeros(n_total_forecasters)
-    
-    for event_ticker, event_group in result_df.groupby('event_ticker'):
-        group_indices = event_group.index
-        group_forecasters = event_group['forecaster'].values
-        
-        # Stack predictions and odds into matrices: shape (n_forecasters, n_markets)
-        forecast_probs = np.stack(event_group['prediction'].values)  # p_i
-        implied_yes_probs = np.stack(event_group['odds'].values)    # q_i (YES odds)
-        implied_no_probs = np.stack(event_group['no_odds'].values)  # q'_i (NO odds)
-        
-        # Outcome is the same for all forecasters in this event
-        outcome_vector = event_group['outcome'].iloc[0]  # shape (n_markets,)
-        
-        implied_no_threshold = 1 - implied_no_probs  # shape (n_forecasters, n_markets)
-        
-        # Skip entire event if ANY market has excessive spread (odds sum > 1.03)
-        per_market_valid = (implied_yes_probs + implied_no_probs) <= 1.03
-        valid_event_mask = np.all(per_market_valid, axis=1, keepdims=True)  # shape (n_forecasters, 1)
-        
-        # Determine which side to bet on (or skip if within spread)
-        bet_yes = forecast_probs > implied_yes_probs
-        bet_no = forecast_probs < implied_no_threshold
-        
-        # Calculate edges for each side
-        # YES edge: p - q_yes (only positive when p > q_yes)
-        # NO edge: (1 - p) - q_no
-        yes_edge = forecast_probs - implied_yes_probs
-        no_edge = (1 - forecast_probs) - implied_no_probs
-        
-        # Select the appropriate edge and price based on bet direction
-        edge = np.where(bet_yes, yes_edge, np.where(bet_no, no_edge, 0.0))
-        effective_implied_probs = np.where(bet_yes, implied_yes_probs, 
-                                           np.where(bet_no, implied_no_probs, 1.0))  # 1.0 as placeholder for no-bet
-        
-        # Zero out all markets for a forecaster if any market in the event is illiquid
-        weights = np.maximum(edge, 0.0) * valid_event_mask  # shape (n_forecasters, n_markets)
-        
-        # Calculate edge sum per forecaster for this event
-        edge_sums = np.sum(weights, axis=1)  # shape (n_group_forecasters,)
+    length_mask = forecasts.apply(_arrays_same_length, axis=1)
+    filtered_count = (~length_mask).sum()
+    if filtered_count > 0:
+        print(f"Filtered out {filtered_count} rows with mismatched array lengths")
+    forecasts = forecasts[length_mask].copy()
 
-        # Accumulate total edge per forecaster
-        f_indices = np.array([forecaster_to_idx[f] for f in group_forecasters])
-        np.add.at(total_edge_per_forecaster, f_indices, edge_sums)
+    # Deduplicate: keep only the median round per (forecaster, event_ticker)
+    median_rounds = forecasts.groupby(['forecaster', 'event_ticker'])['round'].median().reset_index()
+    median_rounds.columns = ['forecaster', 'event_ticker', 'median_round']
+    forecasts = forecasts.merge(median_rounds, on=['forecaster', 'event_ticker'])
+    # Pick the round closest to the median for each group
+    forecasts['round_dist'] = (forecasts['round'] - forecasts['median_round']).abs()
+    forecasts = forecasts.sort_values('round_dist').drop_duplicates(subset=['forecaster', 'event_ticker'], keep='first')
+    forecasts = forecasts.drop(columns=['median_round', 'round_dist'])
+    print(f"After median-round dedup: {len(forecasts)} rows (1 per forecaster-event)")
 
-        # Store data for pass 2
-        event_data[event_ticker] = {
-            'group_indices': group_indices,
-            'f_indices': f_indices,
-            'weights': weights,
-            'edge_sums': edge_sums,
-            'effective_implied_probs': effective_implied_probs,
-            'bet_yes': bet_yes,
-            'outcome_vector': outcome_vector
-        }
+    TOTAL_BUDGET = 1000
 
-    # PASS 2: Allocate budget directly to each market
-    for event_ticker, data in event_data.items():
-        group_indices = data['group_indices']
-        f_indices = data['f_indices']
-        weights = data['weights']
-        effective_implied_probs = data['effective_implied_probs']
-        bet_yes = data['bet_yes']
-        outcome_vector = data['outcome_vector']
+    # PASS 1: Calculate total weights per forecaster (row by row)
+    forecaster_total_weights = {}
+    row_weights = {}  # {idx: (weight_sum, weights_array, ...)}
 
-        # Get total edge per forecaster for normalization (vectorized lookup)
-        forecaster_total_edges = total_edge_per_forecaster[f_indices]
-        
-        # Allocate money directly to each market: money = TOTAL_BUDGET * (weight / total_weight)
-        # Handle case where total edge is zero
-        safe_totals = np.where(forecaster_total_edges > 0, forecaster_total_edges, 1.0)
-        money_per_market = TOTAL_BUDGET * weights / safe_totals[:, np.newaxis]
-        
-        # Number of contracts = money / price (avoid division by zero for no-bet cases)
-        safe_prices = np.where(weights > 0, effective_implied_probs, 1.0)
-        bets = np.where(weights > 0, money_per_market / safe_prices, 0.0)
-        
-        # Calculate effective outcomes (flip outcome if we chose NO)
-        effective_outcomes = np.where(bet_yes, 
-                                     outcome_vector[np.newaxis, :],  # broadcast outcome
-                                     1 - outcome_vector[np.newaxis, :])
-        
-        # Calculate earnings
-        earnings = np.sum(bets * effective_outcomes, axis=1)
-        
-        # Assign earnings to result dataframe
-        result_df.loc[group_indices, 'average_return'] = earnings
-    
-    # Select only the required columns
-    result_df = result_df[['forecaster', 'event_ticker', 'round', 'weight', 'average_return']]
+    for idx, row in forecasts.iterrows():
+        forecaster = row['forecaster']
+
+        try:
+            prediction = row['prediction']
+            odds = row['odds']
+            no_odds = row['no_odds']
+
+            if len(prediction) == 0:
+                continue
+
+            # Sanity check: skip outcomes with invalid prices (<=0 or >=1)
+            valid_prices = (odds > 0) & (odds < 1) & (no_odds > 0) & (no_odds < 1)
+            if not np.any(valid_prices):
+                continue
+
+            # Check liquidity for ALL outcomes
+            spreads = odds + no_odds
+            if np.any(spreads > max_spread):
+                continue
+
+            # Calculate weights: |p - yes_ask| * price
+            diff = prediction - odds
+            bet_yes = diff > 0
+            bet_no = diff < 0
+
+            # Price is yes_ask for YES bets, no_ask for NO bets
+            price = np.where(bet_yes, odds, np.where(bet_no, no_odds, 1.0))
+
+            # Weight = |diff| * price, but only for non-zero diffs and valid prices
+            weights = np.where((diff != 0) & valid_prices, np.abs(diff) * price, 0.0)
+            total_weight = np.sum(weights)
+
+            if forecaster not in forecaster_total_weights:
+                forecaster_total_weights[forecaster] = 0.0
+            forecaster_total_weights[forecaster] += total_weight
+
+            # Store for pass 2
+            row_weights[idx] = {
+                'weights': weights,
+                'price': price,
+                'bet_yes': bet_yes,
+                'forecaster': forecaster
+            }
+
+        except Exception:
+            continue
+
+    # PASS 2: Calculate profit row by row
+    result_data = []
+
+    for idx, row in forecasts.iterrows():
+        forecaster = row['forecaster']
+
+        try:
+            if idx in row_weights:
+                data = row_weights[idx]
+                weights = data['weights']
+                price = data['price']
+                bet_yes = data['bet_yes']
+
+                outcome = row['outcome']
+
+                # Get total weight for this forecaster
+                total_weight = forecaster_total_weights.get(forecaster, 0.0)
+                if total_weight == 0:
+                    profit = 0.0
+                else:
+                    # Allocate budget proportionally
+                    amount_per_market = TOTAL_BUDGET * weights / total_weight
+
+                    # Calculate win/loss
+                    is_yes_win = outcome == 1
+                    is_no_win = outcome == 0
+                    is_win = np.where(bet_yes, is_yes_win, is_no_win)
+
+                    # Calculate profit per market
+                    safe_prices = np.where(weights > 0, price, 1.0)
+                    win_profit = (amount_per_market / safe_prices) - amount_per_market
+                    lose_profit = -amount_per_market
+
+                    profit_per_market = np.where(is_win, win_profit, lose_profit)
+                    profit_per_market = np.where(weights > 0, profit_per_market, 0.0)
+
+                    profit = np.sum(profit_per_market)
+
+                result_data.append({
+                    'forecaster': forecaster,
+                    'event_ticker': row['event_ticker'],
+                    'round': row['round'],
+                    'weight': row['weight'],
+                    'average_return': profit
+                })
+            else:
+                # Row was skipped (illiquid or failed)
+                result_data.append({
+                    'forecaster': forecaster,
+                    'event_ticker': row['event_ticker'],
+                    'round': row['round'],
+                    'weight': row['weight'],
+                    'average_return': np.nan
+                })
+
+        except Exception:
+            result_data.append({
+                'forecaster': forecaster,
+                'event_ticker': row['event_ticker'],
+                'round': row['round'],
+                'weight': row['weight'],
+                'average_return': np.nan
+            })
+
+    result_df = pd.DataFrame(result_data)
     return result_df
 
 
@@ -757,47 +840,3 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
                 normalize_by_round=normalize_by_round, bootstrap_config=bootstrap_config,
                 add_individualized_baselines=add_individualized_baselines)
         return results
-
-
-if __name__ == "__main__":
-    predictions_csv = "slurm/predictions_12_31_to_01_01.csv"  # Your predictions CSV file
-    submissions_csv = "slurm/submissions_12_31_to_01_01.csv"  # Your submissions CSV file
-
-    from pm_rank.nightly.data import uniform_weighting, NightlyForecasts
-    
-    weight_fn = uniform_weighting()
-    forecasts = NightlyForecasts.from_prophet_arena_csv(predictions_csv, submissions_csv, weight_fn)
-
-    # from pm_rank.nightly.misc import get_rebalanced_forecasts
-    # forecasts = get_rebalanced_forecasts(forecasts, balance_level='event', evenly_balanced=True, random_seed=42)
-    # or you can do
-    # desired_quota = {"Sports": 0.2, "Entertainment": 0.2, "Politics": 0.2, "Companies": 0.2, "Mentions": 0.2, "Economics": 0.2, "Climate and Weather": 0.2}
-    # forecasts = get_rebalanced_forecasts(forecasts, balance_level='event', rebalance_quota=desired_quota, random_seed=42)
-
-    forecasts.data = add_market_baseline_predictions(forecasts.data)
-
-    brier_score = compute_brier_score(forecasts.data)
-    rank_df = rank_forecasters_by_score(brier_score, normalize_by_round=True, bootstrap_config=None, add_individualized_baselines=True)
-    print(rank_df)
-    
-    # filter out any row where the '# predictions' column is less than 300 or the forecaster name starts with "agent" or "AI"
-    rank_df = rank_df[(rank_df['# predictions'] >= 300) & (~rank_df['forecaster'].str.startswith('agent'))]
-    rank_df.to_csv("slurm/rank_df_12_31_to_01_01.csv")
-
-    # Collect/stream the results for every 7 days, and also divide results by category.
-    # ranked_brier_score = compute_ranked_brier_score(forecasts.data, by_category=True, stream_every=7, normalize_by_round=True, bootstrap_config=None)
-    # ranked_average_return = compute_ranked_average_return(forecasts.data, by_category=True, stream_every=7, spread_market_even=False, num_money_per_round=1.0, normalize_by_round=True, bootstrap_config=None)
-
-    # # Take the second time stamp of category "Sports", which remains a dataframe that's easy to work with.
-    # example_sports_streams = ranked_brier_score["Sports"]
-    # example_sports_second_stream = example_sports_streams[list(example_sports_streams.keys())[1]]
-    # print(example_sports_second_stream)
-
-    # # The streaming result for all the forecasts (no category division) is stored in the "overall" key.
-    # example_overall_stream = ranked_brier_score["overall"]
-    # example_overall_second_stream = example_overall_stream[list(example_overall_stream.keys())[1]]
-    # print(example_overall_second_stream)
-
-    # # If you want to take the overall result WITHOUT categorization or streaming, simply do not specify by_category or stream_every.
-    # overall_brier_ranking = compute_ranked_brier_score(forecasts.data, normalize_by_round=True, bootstrap_config=None)
-    # print(overall_brier_ranking)
