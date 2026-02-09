@@ -2,7 +2,44 @@ import pandas as pd
 import numpy as np
 import warnings
 
+def compute_brier_score(forecasts: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate the Brier score for the forecasts. We will proceed by grouping by `event_ticker`, as each resulting group
+    will have the same shape (i.e. number of markets), and we can manually construct a np matrix to accelerate the computation.
 
+    The result will be a DataFrame containing (forecaster, event_ticker, round, time_rank, brier_score) 
+
+    Args:
+        forecasts: DataFrame with columns (forecaster, event_ticker, round, prediction, outcome, weight)
+    """
+    result_df = forecasts.copy()
+    
+    # Initialize brier_score column
+    result_df['brier_score'] = np.nan
+    
+    # Group by event_ticker and process each group
+    for _, event_group in result_df.groupby('event_ticker'):
+        # Get indices for this group
+        group_indices = event_group.index
+        
+        # prepare the predictions matrix with shape (num_group_elements, num_markets)
+        prediction_matrix = np.stack(event_group['prediction'].values)
+        
+        # prepare the outcome vector with shape (num_markets,) since it's the same for all group elements
+        outcome_vector = event_group['outcome'].iloc[0]
+        
+        # Calculate Brier score: mean squared difference between predictions and outcomes
+        # Brier score = mean((prediction - outcome)^2) for each forecast
+        squared_diffs = (prediction_matrix - outcome_vector) ** 2
+        brier_scores = np.mean(squared_diffs, axis=1)
+        
+        # Assign brier scores back to the result dataframe
+        result_df.loc[group_indices, 'brier_score'] = brier_scores
+    
+    # Select only the required columns
+    result_df = result_df[['forecaster', 'event_ticker', 'weight', 'round', 'brier_score']]
+    return result_df
+    
 def compute_average_return_neutral_legacy(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, 
                                    spread_market_even: bool = False) -> pd.DataFrame:
     """
