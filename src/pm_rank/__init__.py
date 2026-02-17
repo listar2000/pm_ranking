@@ -22,6 +22,7 @@ from .model import (
     LogScoringRule,
     SphericalScoringRule,
     AverageReturn,
+    AverageReturnConfig,
     spearman_correlation,
     kendall_correlation,
     CalibrationMetric
@@ -46,6 +47,7 @@ __all__ = [
     'LogScoringRule',
     'SphericalScoringRule',
     'AverageReturn',
+    'AverageReturnConfig',
     'spearman_correlation',
     'kendall_correlation',
     'CalibrationMetric'
