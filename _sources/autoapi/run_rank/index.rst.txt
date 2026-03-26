@@ -1,0 +1,38 @@
+run_rank
+========
+
+.. py:module:: run_rank
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   run_rank.predictions_csv
+   run_rank.submissions_csv
+   run_rank.weight_fn
+   run_rank.forecasts
+   run_rank.event_rank_df
+   run_rank.event_rank_df
+
+
+Module Contents
+---------------
+
+.. py:data:: predictions_csv
+   :value: 'slurm/predictions_04_01_to_02_01.csv'
+
+
+.. py:data:: submissions_csv
+   :value: 'slurm/submissions_04_01_to_02_01.csv'
+
+
+.. py:data:: weight_fn
+
+.. py:data:: forecasts
+
+.. py:data:: event_rank_df
+
+.. py:data:: event_rank_df
+
