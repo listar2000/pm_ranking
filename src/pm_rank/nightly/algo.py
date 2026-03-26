@@ -84,7 +84,6 @@ def add_individualized_market_baselines_to_scores(result_df: pd.DataFrame) -> pd
 def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool = False,
                               score_col: str = None, ascending: bool = None,
                               bootstrap_config: Optional[Dict] = None,
-                              add_individualized_baselines: bool = False,
                               bootstrap_scores_df: pd.DataFrame = None) -> pd.DataFrame:
     """
     Return a rank_df with columns (forecaster, rank, score).
@@ -846,7 +845,6 @@ def _stream_over_time(forecasts: pd.DataFrame, stream_every: int) -> dict:
 
 def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = False, stream_every: int = -1, \
     normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None,
-    add_individualized_baselines: bool = False,
     resample_level: Literal["market", "event"] = "market") -> dict:
     """
     Compute the ranked forecasters for the given score function.
@@ -857,9 +855,6 @@ def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = Fals
         stream_every: If > 0, compute rankings at time intervals
         normalize_by_round: If True, downweight by number of rounds per (forecaster, event_ticker)
         bootstrap_config: Optional config for bootstrap CI estimation
-        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
-            forecaster by filtering market-baseline scores to their participated (event_ticker, round).
-            Requires 'market-baseline' forecaster to be present.
         resample_level: Granularity for bootstrap resampling. "market" resamples individual markets
             (flattened across events), "event" resamples event-level aggregated scores. Default "market".
     """
@@ -870,7 +865,6 @@ def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = Fals
         bs_scores = compute_brier_score(fc, per_market=True) if use_market_bootstrap else None
         return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round,
                                          bootstrap_config=bootstrap_config,
-                                         add_individualized_baselines=add_individualized_baselines,
                                          bootstrap_scores_df=bs_scores)
 
     do_stream = stream_every > 0
@@ -896,7 +890,7 @@ def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = Fals
 
 def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = False, stream_every: int = -1, \
     spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False,
-    bootstrap_config: Optional[Dict] = None, add_individualized_baselines: bool = False,
+    bootstrap_config: Optional[Dict] = None,
     resample_level: Literal["market", "event"] = "market") -> dict:
     """
     Compute the ranked forecasters for the given score function.
@@ -909,9 +903,6 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
         num_money_per_round: Amount to bet per round
         normalize_by_round: If True, downweight by number of rounds per (forecaster, event_ticker)
         bootstrap_config: Optional config for bootstrap CI estimation
-        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
-            forecaster by filtering market-baseline scores to their participated (event_ticker, round).
-            Requires 'market-baseline' forecaster to be present.
         resample_level: Granularity for bootstrap resampling. "market" resamples individual markets
             (flattened across events), "event" resamples event-level aggregated scores. Default "market".
     """
@@ -926,7 +917,6 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
                                                     per_market=True) if use_market_bootstrap else None
         return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round,
                                          bootstrap_config=bootstrap_config,
-                                         add_individualized_baselines=add_individualized_baselines,
                                          bootstrap_scores_df=bs_scores)
 
     do_stream = stream_every > 0

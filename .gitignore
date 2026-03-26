@@ -30,3 +30,4 @@ docs_env/
 
 # artifacts
 *.pt
+visualize/
