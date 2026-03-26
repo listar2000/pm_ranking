@@ -122,6 +122,12 @@ focusing on symmetric confidence intervals around point estimates.</p>
 <p>Key principle: Bootstrap resampling is done SEPARATELY for each forecaster,
 sampling with replacement from their own predictions only. This properly
 estimates the uncertainty in each forecaster’s individual score.</p>
+<p>Granularity: The resampling unit depends on the input data. When the input
+contains per-market rows (one row per individual market outcome), bootstrap
+resamples at the market level. When the input contains per-event rows (one
+row per problem/event with scores averaged across markets), bootstrap resamples
+at the event level. Market-level resampling is the default and captures both
+within-event and across-event variance.</p>
 <section id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#functions'"><span>¶</span></a></h2>
 <table class="autosummary longtable docutils align-default">
