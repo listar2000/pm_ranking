@@ -25,7 +25,8 @@ def compute_bootstrap_ci(
     result_df: pd.DataFrame,
     score_col: str,
     adjusted_weights: np.ndarray,
-    bootstrap_config: Dict = None
+    bootstrap_config: Dict = None,
+    aggregation: str = 'mean',
 ) -> Tuple[Dict[str, float], Dict[str, Tuple[float, float]]]:
     """
     Compute bootstrap confidence intervals for forecaster scores.
@@ -50,6 +51,10 @@ def compute_bootstrap_ci(
             - num_se: Number of standard errors for CI bounds (default: None, uses ci_level)
             - random_seed: Random seed for reproducibility (default: 42)
             - show_progress: Whether to show progress bar (default: True)
+        aggregation: Aggregation mode for forecaster scores.
+            - 'mean': weighted mean of score_col
+            - 'sum': sum of score_col
+            - 'roi': sum(score_col) / sum(cost), requiring a 'cost' column in result_df.
     
     Returns:
         Tuple of (standard_errors, confidence_intervals) where:
@@ -81,6 +86,9 @@ def compute_bootstrap_ci(
     if random_seed is not None:
         np.random.seed(random_seed)
     
+    if aggregation == 'roi' and 'cost' not in result_df.columns:
+        raise ValueError("ROI bootstrap aggregation requires a 'cost' column in result_df")
+
     # Get unique forecasters
     forecasters = result_df['forecaster'].unique()
     
@@ -103,6 +111,8 @@ def compute_bootstrap_ci(
             'scores': result_df.loc[forecaster_mask, score_col].values,
             'weights': adjusted_weights[forecaster_mask]
         }
+        if aggregation == 'roi':
+            forecaster_data[forecaster]['costs'] = result_df.loc[forecaster_mask, 'cost'].values
     
     for _ in iterator:
         # For each forecaster, sample from THEIR OWN predictions
@@ -114,8 +124,9 @@ def compute_bootstrap_ci(
                 bootstrap_samples[forecaster].append(np.nan)
                 continue
             
-            # Normalize weights to sum to 1 for this forecaster's predictions
-            sampling_probs = data['weights'] / data['weights'].sum()
+            # Normalize weights to sum to 1 for this forecaster's predictions.
+            weight_sum = data['weights'].sum()
+            sampling_probs = None if weight_sum <= 0 else (data['weights'] / weight_sum)
             
             # Sample with replacement from this forecaster's predictions
             sampled_indices = np.random.choice(
@@ -129,8 +140,15 @@ def compute_bootstrap_ci(
             resampled_scores = data['scores'][sampled_indices]
             resampled_weights = data['weights'][sampled_indices]
             
-            # Calculate weighted average score for this forecaster in this resample
-            weighted_score = np.average(resampled_scores, weights=resampled_weights)
+            # Calculate the resampled score for this forecaster.
+            if aggregation == 'sum':
+                weighted_score = np.sum(resampled_scores)
+            elif aggregation == 'roi':
+                resampled_costs = data['costs'][sampled_indices]
+                total_cost = np.sum(resampled_costs)
+                weighted_score = np.sum(resampled_scores) / total_cost if total_cost > 0 else 0.0
+            else:
+                weighted_score = np.average(resampled_scores, weights=resampled_weights)
             bootstrap_samples[forecaster].append(weighted_score)
     
     # Calculate point estimates (original weighted averages)
@@ -139,7 +157,14 @@ def compute_bootstrap_ci(
         forecaster_mask = result_df['forecaster'] == forecaster
         forecaster_scores = result_df.loc[forecaster_mask, score_col].values
         forecaster_weights = adjusted_weights[forecaster_mask]
-        point_estimates[forecaster] = np.average(forecaster_scores, weights=forecaster_weights)
+        if aggregation == 'sum':
+            point_estimates[forecaster] = np.sum(forecaster_scores)
+        elif aggregation == 'roi':
+            forecaster_costs = result_df.loc[forecaster_mask, 'cost'].values
+            total_cost = np.sum(forecaster_costs)
+            point_estimates[forecaster] = np.sum(forecaster_scores) / total_cost if total_cost > 0 else 0.0
+        else:
+            point_estimates[forecaster] = np.average(forecaster_scores, weights=forecaster_weights)
     
     # Calculate standard errors and confidence intervals
     standard_errors = {}
@@ -180,4 +205,3 @@ def compute_bootstrap_ci(
         confidence_intervals[forecaster] = (lower, upper)
     
     return standard_errors, confidence_intervals
-

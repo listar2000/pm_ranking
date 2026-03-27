@@ -84,6 +84,7 @@ def add_individualized_market_baselines_to_scores(result_df: pd.DataFrame) -> pd
 def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool = False,
                               score_col: str = None, ascending: bool = None,
                               bootstrap_config: Optional[Dict] = None,
+                              add_individualized_baselines: bool = False,
                               bootstrap_scores_df: pd.DataFrame = None,
                               aggregation: str = 'mean') -> pd.DataFrame:
     """
@@ -102,15 +103,18 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
             - random_seed: Random seed for reproducibility (default: 42)
             - show_progress: Whether to show progress bar (default: True)
             Only supported for 'brier_score' and 'average_return', not 'ece_score'.
+        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+            forecaster by filtering market-baseline scores to their participated (event_ticker, round)
+            combinations. Requires 'market-baseline' forecaster to be present in result_df.
         bootstrap_scores_df: Optional separate DataFrame for bootstrap resampling. When provided,
             the point estimate is computed from result_df (event-level) while bootstrap CI is
             computed from this DataFrame (e.g. market-level). Must contain the same score column
             and 'forecaster' column. If None, bootstrap uses result_df.
         aggregation: Aggregation mode for score_col.
             - 'mean': weighted mean of score_col (default)
-            - 'sum': weighted sum of score_col
-            - 'roi': weighted return on investment, computed as
-              sum(weight * score_col) / sum(weight * cost). Requires a 'cost' column.
+            - 'sum': sum of score_col
+            - 'roi': return on investment, computed as
+              sum(score_col) / sum(cost). Requires a 'cost' column.
 
     Returns:
         DataFrame with rank as index and columns (forecaster, score).
@@ -157,9 +161,9 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
         
         return rank_df
 
-    # # Optionally add individualized market baselines before aggregation
-    # if add_individualized_baselines:
-    #     df = add_individualized_market_baselines_to_scores(df)
+    # Optionally add individualized market baselines before aggregation.
+    if add_individualized_baselines:
+        df = add_individualized_market_baselines_to_scores(df)
     
     # Drop rows with NaN scores (e.g. illiquid events skipped by average return)
     df = df.dropna(subset=[score_col])
@@ -185,14 +189,12 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
         if 'cost' not in df.columns:
             raise ValueError("ROI aggregation requires a 'cost' column in result_df")
         forecaster_scores = df.groupby('forecaster').apply(
-            lambda group: (
-                np.sum(group[score_col] * group['adjusted_weight']) /
-                np.sum(group['cost'] * group['adjusted_weight'])
-            ) if np.sum(group['cost'] * group['adjusted_weight']) > 0 else 0.0,
+            lambda group: group[score_col].sum() / group['cost'].sum()
+            if group['cost'].sum() > 0 else 0.0,
         ).reset_index(name='score')
     elif aggregation == 'sum':
         forecaster_scores = df.groupby('forecaster').apply(
-            lambda group: np.sum(group[score_col] * group['adjusted_weight'])
+            lambda group: group[score_col].sum()
         ).reset_index(name='score')
     else:
         forecaster_scores = df.groupby('forecaster').apply(
@@ -212,6 +214,8 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
         # Use separate bootstrap DataFrame if provided (e.g. market-level data)
         if bootstrap_scores_df is not None:
             bs_df = bootstrap_scores_df.copy()
+            if add_individualized_baselines:
+                bs_df = add_individualized_market_baselines_to_scores(bs_df)
             bs_df = bs_df.dropna(subset=[score_col])
             if normalize_by_round:
                 bs_round_counts = bs_df.groupby(['forecaster', 'event_ticker'])['round'].nunique().reset_index(name='round_count')
@@ -423,7 +427,7 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
         are treated as no-bet markets.
 
     Liquidity filter:
-        Entire events are skipped if ANY valid market has yes_ask + no_ask > max_spread.
+        Entire events are skipped if ANY market has yes_ask + no_ask > max_spread.
 
     Args:
         forecasts: DataFrame with columns:
@@ -472,7 +476,6 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
     print(f"After median-round dedup: {len(forecasts)} rows (1 per forecaster-event)")
 
     result_data = []
-    skipped_illiquid = 0
 
     for _, row in forecasts.iterrows():
         forecaster = row['forecaster']
@@ -486,50 +489,15 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
             if len(prediction) == 0:
                 continue
 
-            valid_prices = (odds > 0) & (odds < 1) & (no_odds > 0) & (no_odds < 1)
-            if not np.any(valid_prices):
-                if per_market:
-                    continue
-                result_data.append({
-                    'forecaster': forecaster,
-                    'event_ticker': row['event_ticker'],
-                    'round': row['round'],
-                    'weight': row['weight'],
-                    'average_return': 0.0,
-                    'cost': 0.0,
-                })
-                continue
-
             spreads = odds + no_odds
-            if np.any(spreads[valid_prices] > max_spread):
-                skipped_illiquid += 1
-                if per_market:
-                    continue
-                result_data.append({
-                    'forecaster': forecaster,
-                    'event_ticker': row['event_ticker'],
-                    'round': row['round'],
-                    'weight': row['weight'],
-                    'average_return': np.nan,
-                    'cost': np.nan,
-                })
+            if np.any(spreads > max_spread):
                 continue
 
             diff = prediction - odds
             within_spread = (prediction >= (1 - no_odds)) & (prediction <= odds)
-            active_mask = valid_prices & ~within_spread & (diff != 0)
+            active_mask = ~within_spread
 
             if not np.any(active_mask):
-                if per_market:
-                    continue
-                result_data.append({
-                    'forecaster': forecaster,
-                    'event_ticker': row['event_ticker'],
-                    'round': row['round'],
-                    'weight': row['weight'],
-                    'average_return': 0.0,
-                    'cost': 0.0,
-                })
                 continue
 
             active_indices = np.where(active_mask)[0]
@@ -540,16 +508,21 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
             diff = diff[active_mask]
 
             bet_yes = diff > 0
+            bet_no = diff < 0
+            has_bet = diff != 0
             shares = np.where(bet_yes, prediction - odds, (1 - prediction) - no_odds)
-            price = np.where(bet_yes, odds, no_odds)
+            price = np.where(bet_yes, odds, np.where(bet_no, no_odds, 1.0))
 
-            cost_per_market = shares * price
+            cost_per_market = np.where(has_bet, shares * price, 0.0)
             is_win = np.where(bet_yes, outcome == 1, outcome == 0)
-            payout_per_market = np.where(is_win, shares, 0.0)
+            payout_per_market = np.where(has_bet & is_win, shares, 0.0)
             profit_per_market = payout_per_market - cost_per_market
 
             if per_market:
-                for market_index, market_profit, market_cost in zip(active_indices, profit_per_market, cost_per_market):
+                traded_indices = active_indices[has_bet]
+                traded_profits = profit_per_market[has_bet]
+                traded_costs = cost_per_market[has_bet]
+                for market_index, market_profit, market_cost in zip(traded_indices, traded_profits, traded_costs):
                     result_data.append({
                         'forecaster': forecaster,
                         'event_ticker': row['event_ticker'],
@@ -580,9 +553,6 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
                 'average_return': np.nan,
                 'cost': np.nan,
             })
-
-    if skipped_illiquid > 0:
-        print(f"Skipped {skipped_illiquid} illiquid events (spread > {max_spread})")
 
     result_df = pd.DataFrame(result_data)
     return result_df
@@ -840,7 +810,8 @@ def _stream_over_time(forecasts: pd.DataFrame, stream_every: int) -> dict:
 
 def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = False, stream_every: int = -1, \
     normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None,
-    resample_level: Literal["market", "event"] = "market") -> dict:
+    resample_level: Literal["market", "event"] = "market",
+    add_individualized_baselines: bool = False) -> dict:
     """
     Compute the ranked forecasters for the given score function.
 
@@ -852,6 +823,9 @@ def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = Fals
         bootstrap_config: Optional config for bootstrap CI estimation
         resample_level: Granularity for bootstrap resampling. "market" resamples individual markets
             (flattened across events), "event" resamples event-level aggregated scores. Default "market".
+        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+            forecaster by filtering market-baseline scores to their participated (event_ticker, round).
+            Requires 'market-baseline' forecaster to be present.
     """
     use_market_bootstrap = (resample_level == "market") and (bootstrap_config is not None)
 
@@ -860,6 +834,7 @@ def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = Fals
         bs_scores = compute_brier_score(fc, per_market=True) if use_market_bootstrap else None
         return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round,
                                          bootstrap_config=bootstrap_config,
+                                         add_individualized_baselines=add_individualized_baselines,
                                          bootstrap_scores_df=bs_scores)
 
     do_stream = stream_every > 0
@@ -886,7 +861,8 @@ def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = Fals
 def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = False, stream_every: int = -1, \
     spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False,
     bootstrap_config: Optional[Dict] = None,
-    resample_level: Literal["market", "event"] = "market") -> dict:
+    resample_level: Literal["market", "event"] = "market",
+    add_individualized_baselines: bool = False) -> dict:
     """
     Compute the ranked forecasters for the given score function.
 
@@ -900,6 +876,9 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
         bootstrap_config: Optional config for bootstrap CI estimation
         resample_level: Granularity for bootstrap resampling. "market" resamples individual markets
             (flattened across events), "event" resamples event-level aggregated scores. Default "market".
+        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+            forecaster by filtering market-baseline scores to their participated (event_ticker, round).
+            Requires 'market-baseline' forecaster to be present.
     """
     use_market_bootstrap = (resample_level == "market") and (bootstrap_config is not None)
 
@@ -912,6 +891,7 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
                                                     per_market=True) if use_market_bootstrap else None
         return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round,
                                          bootstrap_config=bootstrap_config,
+                                         add_individualized_baselines=add_individualized_baselines,
                                          bootstrap_scores_df=bs_scores,
                                          aggregation='roi')
 
