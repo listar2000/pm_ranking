@@ -13,6 +13,7 @@ DEFAULT_BOOTSTRAP_CONFIG = {
     'random_seed': 42,
     'show_progress': True
 }
+DEFAULT_MAX_SPREAD = 1.03
 
 
 def add_individualized_market_baselines_to_scores(result_df: pd.DataFrame) -> pd.DataFrame:
@@ -306,11 +307,44 @@ def add_market_baseline_predictions(forecasts: pd.DataFrame, reference_forecaste
     return forecasts
 
 
-def compute_brier_score(forecasts: pd.DataFrame, per_market: bool = False) -> pd.DataFrame:
+def _filter_length_matched_forecasts(forecasts: pd.DataFrame) -> pd.DataFrame:
+    """Keep only rows whose prediction/odds/outcome arrays line up."""
+    def _arrays_same_length(row):
+        try:
+            return len(row['prediction']) == len(row['odds']) == len(row['no_odds']) == len(row['outcome'])
+        except Exception:
+            return False
+
+    length_mask = forecasts.apply(_arrays_same_length, axis=1)
+    filtered_count = (~length_mask).sum()
+    if filtered_count > 0:
+        print(f"Filtered out {filtered_count} rows with mismatched array lengths")
+    return forecasts[length_mask].copy()
+
+
+def _dedupe_to_median_round(forecasts: pd.DataFrame) -> pd.DataFrame:
+    """Keep the round closest to the median for each (forecaster, event_ticker)."""
+    if forecasts.empty:
+        return forecasts.copy()
+
+    median_rounds = forecasts.groupby(['forecaster', 'event_ticker'])['round'].median().reset_index()
+    median_rounds.columns = ['forecaster', 'event_ticker', 'median_round']
+    deduped = forecasts.merge(median_rounds, on=['forecaster', 'event_ticker'])
+    deduped['round_dist'] = (deduped['round'] - deduped['median_round']).abs()
+    deduped = deduped.sort_values('round_dist').drop_duplicates(
+        subset=['forecaster', 'event_ticker'],
+        keep='first',
+    )
+    deduped = deduped.drop(columns=['median_round', 'round_dist'])
+    print(f"After median-round dedup: {len(deduped)} rows (1 per forecaster-event)")
+    return deduped
+
+
+def compute_brier_score(forecasts: pd.DataFrame, per_market: bool = False, max_spread: float = DEFAULT_MAX_SPREAD) -> pd.DataFrame:
     """
     Calculate the Brier score for the forecasts using row-by-row processing.
     Handles predictions with different array lengths via key intersection.
-    Automatically filters out illiquid events (yes_ask + no_ask > 1.03).
+    Automatically filters out illiquid events (yes_ask + no_ask > max_spread).
 
     The result will be a DataFrame containing (forecaster, event_ticker, round, weight, brier_score).
     If per_market=True, returns one row per individual market (outcome) within each event,
@@ -322,36 +356,24 @@ def compute_brier_score(forecasts: pd.DataFrame, per_market: bool = False) -> pd
                     Brier score is the individual squared error, and its weight is the event weight
                     divided by the number of markets. This preserves the same weighted-average
                     point estimate as event-level scoring.
+        max_spread: Maximum allowed spread for illiquidity filtering.
     """
-    MAX_SPREAD = 1.03
-
-    # Filter out rows with mismatched array lengths
-    def _arrays_same_length(row):
-        try:
-            return len(row['prediction']) == len(row['odds']) == len(row['no_odds']) == len(row['outcome'])
-        except Exception:
-            return False
-
-    length_mask = forecasts.apply(_arrays_same_length, axis=1)
-    filtered_count = (~length_mask).sum()
-    if filtered_count > 0:
-        print(f"Filtered out {filtered_count} rows with mismatched array lengths")
-    result_df = forecasts[length_mask].copy()
+    result_df = _dedupe_to_median_round(_filter_length_matched_forecasts(forecasts))
 
     skipped_illiquid = 0
 
     if per_market:
         # Output one row per market within each event
         market_rows = []
-        for idx, row in result_df.iterrows():
+        for _, row in result_df.iterrows():
             try:
-                prediction = row['prediction']
-                outcome = row['outcome']
-                odds = row['odds']
-                no_odds = row['no_odds']
+                prediction = np.asarray(row['prediction'], dtype=float)
+                outcome = np.asarray(row['outcome'], dtype=float)
+                odds = np.asarray(row['odds'], dtype=float)
+                no_odds = np.asarray(row['no_odds'], dtype=float)
 
                 spreads = odds + no_odds
-                if np.any(spreads > MAX_SPREAD):
+                if np.any(spreads > max_spread):
                     skipped_illiquid += 1
                     continue
 
@@ -359,7 +381,8 @@ def compute_brier_score(forecasts: pd.DataFrame, per_market: bool = False) -> pd
                     continue
 
                 num_markets = len(prediction)
-                market_weight = row['weight'] / num_markets
+                event_weight = float(num_markets)
+                market_weight = event_weight / num_markets
 
                 for i in range(num_markets):
                     market_rows.append({
@@ -374,7 +397,7 @@ def compute_brier_score(forecasts: pd.DataFrame, per_market: bool = False) -> pd
                 continue
 
         if skipped_illiquid > 0:
-            print(f"Skipped {skipped_illiquid} illiquid events (spread > {MAX_SPREAD})")
+            print(f"Skipped {skipped_illiquid} illiquid events (spread > {max_spread})")
 
         result_df = pd.DataFrame(market_rows)
         return result_df
@@ -384,13 +407,13 @@ def compute_brier_score(forecasts: pd.DataFrame, per_market: bool = False) -> pd
 
         for idx, row in result_df.iterrows():
             try:
-                prediction = row['prediction']
-                outcome = row['outcome']
-                odds = row['odds']
-                no_odds = row['no_odds']
+                prediction = np.asarray(row['prediction'], dtype=float)
+                outcome = np.asarray(row['outcome'], dtype=float)
+                odds = np.asarray(row['odds'], dtype=float)
+                no_odds = np.asarray(row['no_odds'], dtype=float)
 
                 spreads = odds + no_odds
-                if np.any(spreads > MAX_SPREAD):
+                if np.any(spreads > max_spread):
                     skipped_illiquid += 1
                     continue
 
@@ -399,19 +422,213 @@ def compute_brier_score(forecasts: pd.DataFrame, per_market: bool = False) -> pd
 
                 brier_score = np.mean((prediction - outcome) ** 2)
                 result_df.at[idx, 'brier_score'] = brier_score
+                result_df.at[idx, 'weight'] = float(len(prediction))
 
             except Exception:
                 continue
 
         if skipped_illiquid > 0:
-            print(f"Skipped {skipped_illiquid} illiquid events (spread > {MAX_SPREAD})")
+            print(f"Skipped {skipped_illiquid} illiquid events (spread > {max_spread})")
 
         result_df = result_df.dropna(subset=['brier_score'])
         result_df = result_df[['forecaster', 'event_ticker', 'weight', 'round', 'brier_score']]
         return result_df
 
 
-def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False, max_spread: float = 1.03, per_market: bool = False) -> pd.DataFrame:
+def compute_global_market_brier(
+    forecasts: pd.DataFrame,
+    max_spread: float = DEFAULT_MAX_SPREAD,
+) -> float:
+    """
+    Compute global market baseline Brier score: (yes_brier + no_brier) / 2.
+
+    For each market across all events:
+      - yes_brier = (odds - outcome)^2
+      - no_brier = (no_odds - (1 - outcome))^2
+      - market_brier = (yes_brier + no_brier) / 2
+
+    Returns a single global average across all markets.
+    """
+
+    def _arrays_same_length(row):
+        try:
+            return len(row['odds']) == len(row['no_odds']) == len(row['outcome'])
+        except Exception:
+            return False
+
+    length_mask = forecasts.apply(_arrays_same_length, axis=1)
+    df = forecasts[length_mask].copy()
+
+    # One row per event (market data is the same for all forecasters)
+    df = df.drop_duplicates(subset=['event_ticker'], keep='first')
+
+    total_brier = 0.0
+    total_markets = 0
+    skipped_illiquid = 0
+
+    for _, row in df.iterrows():
+        try:
+            outcome = np.asarray(row['outcome'], dtype=float)
+            odds = np.asarray(row['odds'], dtype=float)
+            no_odds = np.asarray(row['no_odds'], dtype=float)
+
+            if len(odds) == 0:
+                continue
+
+            spreads = odds + no_odds
+            if np.any(spreads > max_spread):
+                skipped_illiquid += 1
+                continue
+
+            market_yes_brier = (odds - outcome) ** 2
+            market_no_brier = (no_odds - (1.0 - outcome)) ** 2
+            per_market_brier = (market_yes_brier + market_no_brier) / 2.0
+
+            total_brier += np.sum(per_market_brier)
+            total_markets += len(per_market_brier)
+
+        except Exception:
+            continue
+
+    if skipped_illiquid > 0:
+        print(f"Skipped {skipped_illiquid} illiquid events (spread > {max_spread})")
+
+    if total_markets == 0:
+        return 0.0
+    return total_brier / total_markets
+
+
+def compute_per_forecaster_market_brier(
+    forecasts: pd.DataFrame,
+    max_spread: float = DEFAULT_MAX_SPREAD,
+) -> Dict[str, float]:
+    """
+    Compute individualized market baseline Brier score per forecaster.
+
+    For each forecaster, computes the market baseline Brier only over the events
+    that forecaster participated in (using the median round per event).
+
+    Returns:
+        Dict mapping forecaster name -> market baseline Brier score (raw, not 1-brier).
+    """
+
+    def _arrays_same_length(row):
+        try:
+            return len(row['odds']) == len(row['no_odds']) == len(row['outcome'])
+        except Exception:
+            return False
+
+    length_mask = forecasts.apply(_arrays_same_length, axis=1)
+    df = forecasts[length_mask].copy()
+
+    # Exclude the synthetic market-baseline forecaster
+    df = df[df['forecaster'] != 'market-baseline']
+
+    # Build per-event market brier lookup (one row per event)
+    events_df = df.drop_duplicates(subset=['event_ticker'], keep='first')
+    event_brier: Dict[str, float] = {}
+    event_market_count: Dict[str, int] = {}
+    skipped_illiquid = 0
+    for _, row in events_df.iterrows():
+        try:
+            outcome = np.asarray(row['outcome'], dtype=float)
+            odds = np.asarray(row['odds'], dtype=float)
+            no_odds = np.asarray(row['no_odds'], dtype=float)
+            if len(odds) == 0:
+                continue
+            spreads = odds + no_odds
+            if np.any(spreads > max_spread):
+                skipped_illiquid += 1
+                continue
+            yes_b = (odds - outcome) ** 2
+            no_b = (no_odds - (1.0 - outcome)) ** 2
+            per_market = (yes_b + no_b) / 2.0
+            event_brier[row['event_ticker']] = float(np.sum(per_market))
+            event_market_count[row['event_ticker']] = len(per_market)
+        except Exception:
+            continue
+
+    # Deduplicate to one row per (forecaster, event_ticker) using median round
+    deduped = _dedupe_to_median_round(df)
+
+    result: Dict[str, float] = {}
+    for forecaster, group in deduped.groupby('forecaster'):
+        total_brier = 0.0
+        total_markets = 0
+        for evt in group['event_ticker'].unique():
+            if evt in event_brier:
+                total_brier += event_brier[evt]
+                total_markets += event_market_count[evt]
+        if total_markets > 0:
+            result[str(forecaster)] = total_brier / total_markets
+    if skipped_illiquid > 0:
+        print(f"Skipped {skipped_illiquid} illiquid events (spread > {max_spread})")
+    return result
+
+
+def compute_avg_market_distance(
+    forecasts: pd.DataFrame,
+    max_spread: float = DEFAULT_MAX_SPREAD,
+) -> dict:
+    """
+    Compute the average L2 distance |prediction - yes_ask| per forecaster across all markets.
+    Uses the same dedup filters as compute_brier_score and skips illiquid events
+    where any market has yes_ask + no_ask > max_spread.
+
+    Returns:
+        Dict mapping forecaster name -> average |prediction - odds| across all markets.
+    """
+
+    df = _dedupe_to_median_round(_filter_length_matched_forecasts(forecasts))
+
+    # Accumulate per-forecaster: total distance and total market count
+    forecaster_total_dist = {}
+    forecaster_total_markets = {}
+    skipped_illiquid = 0
+
+    for _, row in df.iterrows():
+        try:
+            prediction = np.asarray(row['prediction'], dtype=float)
+            odds = np.asarray(row['odds'], dtype=float)
+            no_odds = np.asarray(row['no_odds'], dtype=float)
+
+            if len(prediction) == 0:
+                continue
+
+            spreads = odds + no_odds
+            if np.any(spreads > max_spread):
+                skipped_illiquid += 1
+                continue
+
+            distances = np.where(
+                prediction > odds,
+                (prediction - odds) ** 2,
+                (1 - prediction - no_odds) ** 2
+            )
+
+            within_spread = (prediction >= (1 - no_odds)) & (prediction <= odds)
+            distances = distances[~within_spread]
+
+            if len(distances) == 0:
+                continue
+
+            forecaster = row['forecaster']
+            forecaster_total_dist[forecaster] = forecaster_total_dist.get(forecaster, 0.0) + np.sum(distances)
+            forecaster_total_markets[forecaster] = forecaster_total_markets.get(forecaster, 0) + len(distances)
+
+        except Exception:
+            continue
+
+    result = {}
+    for forecaster in forecaster_total_dist:
+        if forecaster_total_markets[forecaster] > 0:
+            result[forecaster] = forecaster_total_dist[forecaster] / forecaster_total_markets[forecaster]
+    if skipped_illiquid > 0:
+        print(f"Skipped {skipped_illiquid} illiquid events (spread > {max_spread})")
+    return result
+
+
+def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False, max_spread: float = DEFAULT_MAX_SPREAD, per_market: bool = False) -> pd.DataFrame:
     """
     Buy market shares directly from the forecaster's edge.
 
@@ -452,28 +669,7 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
         where average_return is net profit and cost is total amount spent.
         If per_market=True, also includes market_index.
     """
-    # Filter out rows with mismatched array lengths
-    def _arrays_same_length(row):
-        try:
-            return len(row['prediction']) == len(row['odds']) == len(row['no_odds']) == len(row['outcome'])
-        except Exception:
-            return False
-
-    length_mask = forecasts.apply(_arrays_same_length, axis=1)
-    filtered_count = (~length_mask).sum()
-    if filtered_count > 0:
-        print(f"Filtered out {filtered_count} rows with mismatched array lengths")
-    forecasts = forecasts[length_mask].copy()
-
-    # Deduplicate: keep only the median round per (forecaster, event_ticker)
-    median_rounds = forecasts.groupby(['forecaster', 'event_ticker'])['round'].median().reset_index()
-    median_rounds.columns = ['forecaster', 'event_ticker', 'median_round']
-    forecasts = forecasts.merge(median_rounds, on=['forecaster', 'event_ticker'])
-    # Pick the round closest to the median for each group
-    forecasts['round_dist'] = (forecasts['round'] - forecasts['median_round']).abs()
-    forecasts = forecasts.sort_values('round_dist').drop_duplicates(subset=['forecaster', 'event_ticker'], keep='first')
-    forecasts = forecasts.drop(columns=['median_round', 'round_dist'])
-    print(f"After median-round dedup: {len(forecasts)} rows (1 per forecaster-event)")
+    forecasts = _dedupe_to_median_round(_filter_length_matched_forecasts(forecasts))
 
     result_data = []
 
