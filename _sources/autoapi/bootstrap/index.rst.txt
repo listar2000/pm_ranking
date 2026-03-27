@@ -34,7 +34,7 @@ Functions
 Module Contents
 ---------------
 
-.. py:function:: compute_bootstrap_ci(result_df: pandas.DataFrame, score_col: str, adjusted_weights: numpy.ndarray, bootstrap_config: Dict = None) -> Tuple[Dict[str, float], Dict[str, Tuple[float, float]]]
+.. py:function:: compute_bootstrap_ci(result_df: pandas.DataFrame, score_col: str, adjusted_weights: numpy.ndarray, bootstrap_config: Dict = None, aggregation: str = 'mean') -> Tuple[Dict[str, float], Dict[str, Tuple[float, float]]]
 
    Compute bootstrap confidence intervals for forecaster scores.
 
@@ -58,6 +58,10 @@ Module Contents
            - num_se: Number of standard errors for CI bounds (default: None, uses ci_level)
            - random_seed: Random seed for reproducibility (default: 42)
            - show_progress: Whether to show progress bar (default: True)
+       aggregation: Aggregation mode for forecaster scores.
+           - 'mean': weighted mean of score_col
+           - 'sum': sum of score_col
+           - 'roi': sum(score_col) / sum(cost), requiring a 'cost' column in result_df.
 
    Returns:
        Tuple of (standard_errors, confidence_intervals) where:

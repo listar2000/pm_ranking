@@ -52,7 +52,7 @@ Module Contents
        DataFrame with added "{forecaster}-market-baseline" rows for each real forecaster.
 
 
-.. py:function:: rank_forecasters_by_score(result_df: pandas.DataFrame, normalize_by_round: bool = False, score_col: str = None, ascending: bool = None, bootstrap_config: Optional[Dict] = None, bootstrap_scores_df: pandas.DataFrame = None, aggregation: str = 'mean') -> pandas.DataFrame
+.. py:function:: rank_forecasters_by_score(result_df: pandas.DataFrame, normalize_by_round: bool = False, score_col: str = None, ascending: bool = None, bootstrap_config: Optional[Dict] = None, add_individualized_baselines: bool = False, bootstrap_scores_df: pandas.DataFrame = None, aggregation: str = 'mean') -> pandas.DataFrame
 
    Return a rank_df with columns (forecaster, rank, score).
 
@@ -69,15 +69,18 @@ Module Contents
            - random_seed: Random seed for reproducibility (default: 42)
            - show_progress: Whether to show progress bar (default: True)
            Only supported for 'brier_score' and 'average_return', not 'ece_score'.
+       add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+           forecaster by filtering market-baseline scores to their participated (event_ticker, round)
+           combinations. Requires 'market-baseline' forecaster to be present in result_df.
        bootstrap_scores_df: Optional separate DataFrame for bootstrap resampling. When provided,
            the point estimate is computed from result_df (event-level) while bootstrap CI is
            computed from this DataFrame (e.g. market-level). Must contain the same score column
            and 'forecaster' column. If None, bootstrap uses result_df.
        aggregation: Aggregation mode for score_col.
            - 'mean': weighted mean of score_col (default)
-           - 'sum': weighted sum of score_col
-           - 'roi': weighted return on investment, computed as
-             sum(weight * score_col) / sum(weight * cost). Requires a 'cost' column.
+           - 'sum': sum of score_col
+           - 'roi': return on investment, computed as
+             sum(score_col) / sum(cost). Requires a 'cost' column.
 
    Returns:
        DataFrame with rank as index and columns (forecaster, score).
@@ -129,7 +132,7 @@ Module Contents
        are treated as no-bet markets.
 
    Liquidity filter:
-       Entire events are skipped if ANY valid market has yes_ask + no_ask > max_spread.
+       Entire events are skipped if ANY market has yes_ask + no_ask > max_spread.
 
    Args:
        forecasts: DataFrame with columns:
@@ -197,7 +200,7 @@ Module Contents
        sorted by sharpe_ratio in descending order
 
 
-.. py:function:: compute_ranked_brier_score(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, resample_level: Literal['market', 'event'] = 'market') -> dict
+.. py:function:: compute_ranked_brier_score(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, resample_level: Literal['market', 'event'] = 'market', add_individualized_baselines: bool = False) -> dict
 
    Compute the ranked forecasters for the given score function.
 
@@ -209,9 +212,12 @@ Module Contents
        bootstrap_config: Optional config for bootstrap CI estimation
        resample_level: Granularity for bootstrap resampling. "market" resamples individual markets
            (flattened across events), "event" resamples event-level aggregated scores. Default "market".
+       add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+           forecaster by filtering market-baseline scores to their participated (event_ticker, round).
+           Requires 'market-baseline' forecaster to be present.
 
 
-.. py:function:: compute_ranked_average_return(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, resample_level: Literal['market', 'event'] = 'market') -> dict
+.. py:function:: compute_ranked_average_return(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, resample_level: Literal['market', 'event'] = 'market', add_individualized_baselines: bool = False) -> dict
 
    Compute the ranked forecasters for the given score function.
 
@@ -225,5 +231,8 @@ Module Contents
        bootstrap_config: Optional config for bootstrap CI estimation
        resample_level: Granularity for bootstrap resampling. "market" resamples individual markets
            (flattened across events), "event" resamples event-level aggregated scores. Default "market".
+       add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
+           forecaster by filtering market-baseline scores to their participated (event_ticker, round).
+           Requires 'market-baseline' forecaster to be present.
 
 
