@@ -1,0 +1,32 @@
+algo_betting_
+=============
+
+.. py:module:: algo_betting_
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   algo_betting_.compute_individualized_market_brier
+
+
+Module Contents
+---------------
+
+.. py:function:: compute_individualized_market_brier(forecasts: pandas.DataFrame) -> dict
+
+   Compute per-forecaster individualized market baseline Brier scores.
+
+   For each forecaster, uses the same filtered event set (dedup) and
+   computes the Brier score as if the market prices were the predictions:
+     - YES side: (yes_ask - outcome)^2
+     - NO side: (no_ask - (1 - outcome))^2  [uses actual no_odds, NOT 1 - odds]
+   Direction is determined by the forecaster's actual prediction vs odds.
+   Forecaster-events with any market prediction inside the bid-ask spread are skipped.
+
+   Returns:
+       Dict mapping forecaster name -> individualized market baseline Brier score.
+
+

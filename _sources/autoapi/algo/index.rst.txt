@@ -10,6 +10,7 @@ Attributes
 .. autoapisummary::
 
    algo.DEFAULT_BOOTSTRAP_CONFIG
+   algo.DEFAULT_MAX_SPREAD
 
 
 Functions
@@ -21,6 +22,9 @@ Functions
    algo.rank_forecasters_by_score
    algo.add_market_baseline_predictions
    algo.compute_brier_score
+   algo.compute_global_market_brier
+   algo.compute_per_forecaster_market_brier
+   algo.compute_avg_market_distance
    algo.compute_average_return_neutral
    algo.compute_calibration_ece
    algo.compute_sharpe_ratio
@@ -32,6 +36,10 @@ Module Contents
 ---------------
 
 .. py:data:: DEFAULT_BOOTSTRAP_CONFIG
+
+.. py:data:: DEFAULT_MAX_SPREAD
+   :value: 1.03
+
 
 .. py:function:: add_individualized_market_baselines_to_scores(result_df: pandas.DataFrame) -> pandas.DataFrame
 
@@ -98,11 +106,11 @@ Module Contents
        use_both_sides: If True, we will add the market baseline predictions for both YES and NO sides
 
 
-.. py:function:: compute_brier_score(forecasts: pandas.DataFrame, per_market: bool = False) -> pandas.DataFrame
+.. py:function:: compute_brier_score(forecasts: pandas.DataFrame, per_market: bool = False, max_spread: float = DEFAULT_MAX_SPREAD) -> pandas.DataFrame
 
    Calculate the Brier score for the forecasts using row-by-row processing.
    Handles predictions with different array lengths via key intersection.
-   Automatically filters out illiquid events (yes_ask + no_ask > 1.03).
+   Automatically filters out illiquid events (yes_ask + no_ask > max_spread).
 
    The result will be a DataFrame containing (forecaster, event_ticker, round, weight, brier_score).
    If per_market=True, returns one row per individual market (outcome) within each event,
@@ -114,9 +122,43 @@ Module Contents
                    Brier score is the individual squared error, and its weight is the event weight
                    divided by the number of markets. This preserves the same weighted-average
                    point estimate as event-level scoring.
+       max_spread: Maximum allowed spread for illiquidity filtering.
 
 
-.. py:function:: compute_average_return_neutral(forecasts: pandas.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False, max_spread: float = 1.03, per_market: bool = False) -> pandas.DataFrame
+.. py:function:: compute_global_market_brier(forecasts: pandas.DataFrame, max_spread: float = DEFAULT_MAX_SPREAD) -> float
+
+   Compute global market baseline Brier score: (yes_brier + no_brier) / 2.
+
+   For each market across all events:
+     - yes_brier = (odds - outcome)^2
+     - no_brier = (no_odds - (1 - outcome))^2
+     - market_brier = (yes_brier + no_brier) / 2
+
+   Returns a single global average across all markets.
+
+
+.. py:function:: compute_per_forecaster_market_brier(forecasts: pandas.DataFrame, max_spread: float = DEFAULT_MAX_SPREAD) -> Dict[str, float]
+
+   Compute individualized market baseline Brier score per forecaster.
+
+   For each forecaster, computes the market baseline Brier only over the events
+   that forecaster participated in (using the median round per event).
+
+   Returns:
+       Dict mapping forecaster name -> market baseline Brier score (raw, not 1-brier).
+
+
+.. py:function:: compute_avg_market_distance(forecasts: pandas.DataFrame, max_spread: float = DEFAULT_MAX_SPREAD) -> dict
+
+   Compute the average L2 distance |prediction - yes_ask| per forecaster across all markets.
+   Uses the same dedup filters as compute_brier_score and skips illiquid events
+   where any market has yes_ask + no_ask > max_spread.
+
+   Returns:
+       Dict mapping forecaster name -> average |prediction - odds| across all markets.
+
+
+.. py:function:: compute_average_return_neutral(forecasts: pandas.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False, max_spread: float = DEFAULT_MAX_SPREAD, per_market: bool = False) -> pandas.DataFrame
 
    Buy market shares directly from the forecaster's edge.
 

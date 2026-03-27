@@ -123,6 +123,9 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#algo.DEFAULT_BOOTSTRAP_CONFIG" title="algo.DEFAULT_BOOTSTRAP_CONFIG"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_BOOTSTRAP_CONFIG</span></code></a></p></td>
 <td><p></p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algo.DEFAULT_MAX_SPREAD" title="algo.DEFAULT_MAX_SPREAD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_MAX_SPREAD</span></code></a></p></td>
+<td><p></p></td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -142,19 +145,28 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_brier_score" title="algo.compute_brier_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_brier_score</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Calculate the Brier score for the forecasts using row-by-row processing.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_average_return_neutral" title="algo.compute_average_return_neutral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_average_return_neutral</span></code></a>(→ pandas.DataFrame)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_global_market_brier" title="algo.compute_global_market_brier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_global_market_brier</span></code></a>(→ float)</p></td>
+<td><p>Compute global market baseline Brier score: (yes_brier + no_brier) / 2.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_per_forecaster_market_brier" title="algo.compute_per_forecaster_market_brier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_per_forecaster_market_brier</span></code></a>(→ Dict[str, float])</p></td>
+<td><p>Compute individualized market baseline Brier score per forecaster.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_avg_market_distance" title="algo.compute_avg_market_distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_avg_market_distance</span></code></a>(→ dict)</p></td>
+<td><p>Compute the average L2 distance <a href="#id1"><span class="problematic" id="id2">|prediction - yes_ask|</span></a> per forecaster across all markets.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_average_return_neutral" title="algo.compute_average_return_neutral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_average_return_neutral</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Buy market shares directly from the forecaster's edge.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_calibration_ece" title="algo.compute_calibration_ece"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_calibration_ece</span></code></a>(→ pandas.DataFrame)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_calibration_ece" title="algo.compute_calibration_ece"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_calibration_ece</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Calculate the Expected Calibration Error (ECE) for each forecaster.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_sharpe_ratio" title="algo.compute_sharpe_ratio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_sharpe_ratio</span></code></a>(→ pandas.DataFrame)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_sharpe_ratio" title="algo.compute_sharpe_ratio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_sharpe_ratio</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Calculate the Sharpe ratio for each forecaster using per-dollar returns (ROI).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_ranked_brier_score" title="algo.compute_ranked_brier_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_ranked_brier_score</span></code></a>(→ dict)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_ranked_brier_score" title="algo.compute_ranked_brier_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_ranked_brier_score</span></code></a>(→ dict)</p></td>
 <td><p>Compute the ranked forecasters for the given score function.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_ranked_average_return" title="algo.compute_ranked_average_return"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_ranked_average_return</span></code></a>(→ dict)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_ranked_average_return" title="algo.compute_ranked_average_return"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_ranked_average_return</span></code></a>(→ dict)</p></td>
 <td><p>Compute the ranked forecasters for the given score function.</p></td>
 </tr>
 </tbody>
@@ -165,6 +177,10 @@
 <dl class="py data">
 <dt class="sig sig-object py" id="algo.DEFAULT_BOOTSTRAP_CONFIG">
 <span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_BOOTSTRAP_CONFIG</span></span><a class="headerlink" href="#algo.DEFAULT_BOOTSTRAP_CONFIG" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.DEFAULT_BOOTSTRAP_CONFIG'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py data">
+<dt class="sig sig-object py" id="algo.DEFAULT_MAX_SPREAD">
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_MAX_SPREAD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.03</span></em><a class="headerlink" href="#algo.DEFAULT_MAX_SPREAD" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.DEFAULT_MAX_SPREAD'"><span>¶</span></a></dt>
 <dd></dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="algo.add_individualized_market_baselines_to_scores">
@@ -244,10 +260,10 @@ use_both_sides: If True, we will add the market baseline predictions for both YE
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="algo.compute_brier_score">
-<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_brier_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_market</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_brier_score" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_brier_score'"><span>¶</span></a></dt>
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_brier_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_market</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DEFAULT_MAX_SPREAD</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_brier_score" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_brier_score'"><span>¶</span></a></dt>
 <dd><p>Calculate the Brier score for the forecasts using row-by-row processing.
 Handles predictions with different array lengths via key intersection.
-Automatically filters out illiquid events (yes_ask + no_ask &gt; 1.03).</p>
+Automatically filters out illiquid events (yes_ask + no_ask &gt; max_spread).</p>
 <p>The result will be a DataFrame containing (forecaster, event_ticker, round, weight, brier_score).
 If per_market=True, returns one row per individual market (outcome) within each event,
 with brier_score = (prediction_i - outcome_i)^2 and weight = event_weight / num_markets.</p>
@@ -259,12 +275,49 @@ per_market: If True, return one row per market instead of one per event. Each ma
 divided by the number of markets. This preserves the same weighted-average
 point estimate as event-level scoring.</p>
 </div></blockquote>
+<p>max_spread: Maximum allowed spread for illiquidity filtering.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="algo.compute_global_market_brier">
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_global_market_brier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DEFAULT_MAX_SPREAD</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#algo.compute_global_market_brier" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_global_market_brier'"><span>¶</span></a></dt>
+<dd><p>Compute global market baseline Brier score: (yes_brier + no_brier) / 2.</p>
+<dl class="simple">
+<dt>For each market across all events:</dt><dd><ul class="simple">
+<li><p>yes_brier = (odds - outcome)^2</p></li>
+<li><p>no_brier = (no_odds - (1 - outcome))^2</p></li>
+<li><p>market_brier = (yes_brier + no_brier) / 2</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns a single global average across all markets.</p>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="algo.compute_per_forecaster_market_brier">
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_per_forecaster_market_brier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DEFAULT_MAX_SPREAD</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#algo.compute_per_forecaster_market_brier" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_per_forecaster_market_brier'"><span>¶</span></a></dt>
+<dd><p>Compute individualized market baseline Brier score per forecaster.</p>
+<p>For each forecaster, computes the market baseline Brier only over the events
+that forecaster participated in (using the median round per event).</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Dict mapping forecaster name -&gt; market baseline Brier score (raw, not 1-brier).</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="algo.compute_avg_market_distance">
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_avg_market_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DEFAULT_MAX_SPREAD</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#algo.compute_avg_market_distance" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_avg_market_distance'"><span>¶</span></a></dt>
+<dd><p>Compute the average L2 distance <a href="#id3"><span class="problematic" id="id4">|prediction - yes_ask|</span></a> per forecaster across all markets.
+Uses the same dedup filters as compute_brier_score and skips illiquid events
+where any market has yes_ask + no_ask &gt; max_spread.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Dict mapping forecaster name -&gt; average <a href="#id5"><span class="problematic" id="id6">|prediction - odds|</span></a> across all markets.</p>
 </dd>
 </dl>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="algo.compute_average_return_neutral">
-<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_average_return_neutral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_money_per_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_market_even</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_market</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_average_return_neutral" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_average_return_neutral'"><span>¶</span></a></dt>
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_average_return_neutral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_money_per_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_market_even</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DEFAULT_MAX_SPREAD</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_market</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_average_return_neutral" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_average_return_neutral'"><span>¶</span></a></dt>
 <dd><p>Buy market shares directly from the forecaster’s edge.</p>
 <dl>
 <dt>Betting logic (per market):</dt><dd><p>diff = p - yes_ask</p>
@@ -407,10 +460,14 @@ Requires ‘market-baseline’ forecaster to be present.</p>
 <li><a :data-current="activeSection === '#functions'" class="reference internal" href="#functions">Functions</a></li>
 <li><a :data-current="activeSection === '#module-contents'" class="reference internal" href="#module-contents">Module Contents</a><ul>
 <li><a :data-current="activeSection === '#algo.DEFAULT_BOOTSTRAP_CONFIG'" class="reference internal" href="#algo.DEFAULT_BOOTSTRAP_CONFIG"><code class="docutils literal notranslate"><span class="pre">DEFAULT_BOOTSTRAP_CONFIG</span></code></a></li>
+<li><a :data-current="activeSection === '#algo.DEFAULT_MAX_SPREAD'" class="reference internal" href="#algo.DEFAULT_MAX_SPREAD"><code class="docutils literal notranslate"><span class="pre">DEFAULT_MAX_SPREAD</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.add_individualized_market_baselines_to_scores'" class="reference internal" href="#algo.add_individualized_market_baselines_to_scores"><code class="docutils literal notranslate"><span class="pre">add_individualized_market_baselines_to_scores()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.rank_forecasters_by_score'" class="reference internal" href="#algo.rank_forecasters_by_score"><code class="docutils literal notranslate"><span class="pre">rank_forecasters_by_score()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.add_market_baseline_predictions'" class="reference internal" href="#algo.add_market_baseline_predictions"><code class="docutils literal notranslate"><span class="pre">add_market_baseline_predictions()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.compute_brier_score'" class="reference internal" href="#algo.compute_brier_score"><code class="docutils literal notranslate"><span class="pre">compute_brier_score()</span></code></a></li>
+<li><a :data-current="activeSection === '#algo.compute_global_market_brier'" class="reference internal" href="#algo.compute_global_market_brier"><code class="docutils literal notranslate"><span class="pre">compute_global_market_brier()</span></code></a></li>
+<li><a :data-current="activeSection === '#algo.compute_per_forecaster_market_brier'" class="reference internal" href="#algo.compute_per_forecaster_market_brier"><code class="docutils literal notranslate"><span class="pre">compute_per_forecaster_market_brier()</span></code></a></li>
+<li><a :data-current="activeSection === '#algo.compute_avg_market_distance'" class="reference internal" href="#algo.compute_avg_market_distance"><code class="docutils literal notranslate"><span class="pre">compute_avg_market_distance()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.compute_average_return_neutral'" class="reference internal" href="#algo.compute_average_return_neutral"><code class="docutils literal notranslate"><span class="pre">compute_average_return_neutral()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.compute_calibration_ece'" class="reference internal" href="#algo.compute_calibration_ece"><code class="docutils literal notranslate"><span class="pre">compute_calibration_ece()</span></code></a></li>
 <li><a :data-current="activeSection === '#algo.compute_sharpe_ratio'" class="reference internal" href="#algo.compute_sharpe_ratio"><code class="docutils literal notranslate"><span class="pre">compute_sharpe_ratio()</span></code></a></li>
