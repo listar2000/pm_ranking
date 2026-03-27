@@ -143,13 +143,13 @@
 <td><p>Calculate the Brier score for the forecasts using row-by-row processing.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_average_return_neutral" title="algo.compute_average_return_neutral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_average_return_neutral</span></code></a>(→ pandas.DataFrame)</p></td>
-<td><p>Each forecaster is given a fixed $1000 budget spread across ALL markets they</p></td>
+<td><p>Buy market shares directly from the forecaster's edge.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_calibration_ece" title="algo.compute_calibration_ece"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_calibration_ece</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Calculate the Expected Calibration Error (ECE) for each forecaster.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algo.compute_sharpe_ratio" title="algo.compute_sharpe_ratio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_sharpe_ratio</span></code></a>(→ pandas.DataFrame)</p></td>
-<td><p>Calculate the Sharpe ratio for each forecaster.</p></td>
+<td><p>Calculate the Sharpe ratio for each forecaster using per-dollar returns (ROI).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#algo.compute_ranked_brier_score" title="algo.compute_ranked_brier_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_ranked_brier_score</span></code></a>(→ dict)</p></td>
 <td><p>Compute the ranked forecasters for the given score function.</p></td>
@@ -187,7 +187,7 @@ creating duplicate prediction rows.</p>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="algo.rank_forecasters_by_score">
-<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">rank_forecasters_by_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_by_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ascending</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstrap_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstrap_scores_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.rank_forecasters_by_score" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.rank_forecasters_by_score'"><span>¶</span></a></dt>
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">rank_forecasters_by_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_by_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ascending</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstrap_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstrap_scores_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.rank_forecasters_by_score" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.rank_forecasters_by_score'"><span>¶</span></a></dt>
 <dd><p>Return a rank_df with columns (forecaster, rank, score).</p>
 <dl>
 <dt>Args:</dt><dd><p>result_df: DataFrame containing forecaster scores (used for point estimates and ranking)
@@ -209,13 +209,16 @@ bootstrap_config: Optional dict with bootstrap parameters for CI estimation:</p>
 <p>Only supported for ‘brier_score’ and ‘average_return’, not ‘ece_score’.</p>
 </div></blockquote>
 <dl class="simple">
-<dt>add_individualized_baselines: If True, create “{forecaster}-market-baseline” entries for each</dt><dd><p>forecaster by filtering market-baseline scores to their participated (event_ticker, round)
-combinations. Only works for Brier score and average return (not ECE/Sharpe).
-Requires ‘market-baseline’ forecaster to be present in result_df.</p>
-</dd>
 <dt>bootstrap_scores_df: Optional separate DataFrame for bootstrap resampling. When provided,</dt><dd><p>the point estimate is computed from result_df (event-level) while bootstrap CI is
 computed from this DataFrame (e.g. market-level). Must contain the same score column
 and ‘forecaster’ column. If None, bootstrap uses result_df.</p>
+</dd>
+<dt>aggregation: Aggregation mode for score_col.</dt><dd><ul class="simple">
+<li><p>‘mean’: weighted mean of score_col (default)</p></li>
+<li><p>‘sum’: weighted sum of score_col</p></li>
+<li><p>‘roi’: weighted return on investment, computed as
+sum(weight * score_col) / sum(weight * cost). Requires a ‘cost’ column.</p></li>
+</ul>
 </dd>
 </dl>
 </dd>
@@ -259,19 +262,17 @@ point estimate as event-level scoring.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="algo.compute_average_return_neutral">
 <span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_average_return_neutral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecasts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_money_per_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_market_even</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_spread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_market</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_average_return_neutral" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_average_return_neutral'"><span>¶</span></a></dt>
-<dd><p>Each forecaster is given a fixed $1000 budget spread across ALL markets they
-participate in. For each outcome within an event, the forecaster either bets
-YES or NO depending on their edge.</p>
-<p>Betting logic (per outcome):
-diff = p - yes_ask</p>
-<p>If diff &gt; 0: bet YES at price yes_ask
-If diff &lt; 0: bet NO  at price no_ask
-If diff = 0: skip</p>
+<dd><p>Buy market shares directly from the forecaster’s edge.</p>
 <dl>
-<dt>Budget allocation:</dt><dd><p>amount_i = BUDGET * weight_i / sum(weight_j for all j across all events)</p>
+<dt>Betting logic (per market):</dt><dd><p>diff = p - yes_ask</p>
+<p>If diff &gt; 0: buy YES at price yes_ask  with shares = p - yes_ask
+If diff &lt; 0: buy NO  at price no_ask   with shares = (1 - p) - no_ask
+If diff = 0: skip</p>
 </dd>
-<dt>Liquidity filter:</dt><dd><p>Entire events are skipped if ANY outcome has yes_ask + no_ask &gt; max_spread.
-This avoids betting into illiquid markets with excessive vig.</p>
+<dt>Spread handling:</dt><dd><p>Markets where prediction falls inside the bid-ask spread [1 - no_odds, odds]
+are treated as no-bet markets.</p>
+</dd>
+<dt>Liquidity filter:</dt><dd><p>Entire events are skipped if ANY valid market has yes_ask + no_ask &gt; max_spread.</p>
 </dd>
 <dt>Args:</dt><dd><dl class="simple">
 <dt>forecasts: DataFrame with columns:</dt><dd><ul class="simple">
@@ -293,14 +294,14 @@ max_spread: Maximum allowed spread (yes_ask + no_ask) for liquidity filter.</p>
 <div><p>Events with any outcome exceeding this threshold are skipped entirely.</p>
 </div></blockquote>
 <dl class="simple">
-<dt>per_market: If True, return one row per individual market instead of one per event.</dt><dd><p>Each market’s average_return is its individual profit, and its weight is the
-event weight divided by the number of markets in that event.</p>
+<dt>per_market: If True, return one row per traded market instead of one per event.</dt><dd><p>Each market row keeps the full event weight so ROI aggregation matches
+between event-level and market-level representations.</p>
 </dd>
 </dl>
 </dd>
-<dt>Returns:</dt><dd><p>DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
-where average_return is the net profit (can be negative) for that
-forecaster on that event/round. If per_market=True, also includes market_index.</p>
+<dt>Returns:</dt><dd><p>DataFrame with columns (forecaster, event_ticker, round, weight, average_return, cost)
+where average_return is net profit and cost is total amount spent.
+If per_market=True, also includes market_index.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -331,20 +332,19 @@ weight_event: If True, weight each market by 1/num_markets within each predictio
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="algo.compute_sharpe_ratio">
-<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_sharpe_ratio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">average_return_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_return</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_by_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_sharpe_ratio" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_sharpe_ratio'"><span>¶</span></a></dt>
-<dd><p>Calculate the Sharpe ratio for each forecaster.</p>
-<p>The Sharpe ratio is defined as: E[R - R_b] / std(R - R_b), where R is the return
-and R_b is the baseline return (typically 1.0 for break-even).</p>
-<dl>
-<dt>Args:</dt><dd><p>average_return_results: DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
-baseline_return: The baseline return to subtract from the average return (default: 1.0 for break-even)
-normalize_by_round: If True, first average returns within each (forecaster, event_ticker) group,</p>
-<blockquote>
-<div><p>then calculate Sharpe ratio across events. This prevents events with more
-rounds from dominating the calculation. (default: False)</p>
-</div></blockquote>
+<span class="sig-prename descclassname"><span class="pre">algo.</span></span><span class="sig-name descname"><span class="pre">compute_sharpe_ratio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">average_return_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_return</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_by_round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#algo.compute_sharpe_ratio" title="Link to this definition" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#algo.compute_sharpe_ratio'"><span>¶</span></a></dt>
+<dd><p>Calculate the Sharpe ratio for each forecaster using per-dollar returns (ROI).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>average_return_results: DataFrame with columns</dt><dd><p>(forecaster, event_ticker, round, weight, average_return, cost)</p>
 </dd>
-<dt>Returns:</dt><dd><p>DataFrame with columns (forecaster, sharpe_ratio, mean_excess_return, std_excess_return)
+<dt>baseline_return: The baseline ROI to subtract from realized ROI</dt><dd><p>(default: 0.0 for break-even)</p>
+</dd>
+<dt>normalize_by_round: If True, first average returns within each (forecaster, event_ticker) group,</dt><dd><p>then calculate Sharpe ratio across events. (default: False)</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>DataFrame with columns (forecaster, sharpe_ratio, mean_roi, std_roi, num_events)
 sorted by sharpe_ratio in descending order</p>
 </dd>
 </dl>
