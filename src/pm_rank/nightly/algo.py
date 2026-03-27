@@ -84,7 +84,8 @@ def add_individualized_market_baselines_to_scores(result_df: pd.DataFrame) -> pd
 def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool = False,
                               score_col: str = None, ascending: bool = None,
                               bootstrap_config: Optional[Dict] = None,
-                              bootstrap_scores_df: pd.DataFrame = None) -> pd.DataFrame:
+                              bootstrap_scores_df: pd.DataFrame = None,
+                              aggregation: str = 'mean') -> pd.DataFrame:
     """
     Return a rank_df with columns (forecaster, rank, score).
 
@@ -101,20 +102,24 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
             - random_seed: Random seed for reproducibility (default: 42)
             - show_progress: Whether to show progress bar (default: True)
             Only supported for 'brier_score' and 'average_return', not 'ece_score'.
-        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
-            forecaster by filtering market-baseline scores to their participated (event_ticker, round)
-            combinations. Only works for Brier score and average return (not ECE/Sharpe).
-            Requires 'market-baseline' forecaster to be present in result_df.
         bootstrap_scores_df: Optional separate DataFrame for bootstrap resampling. When provided,
             the point estimate is computed from result_df (event-level) while bootstrap CI is
             computed from this DataFrame (e.g. market-level). Must contain the same score column
             and 'forecaster' column. If None, bootstrap uses result_df.
+        aggregation: Aggregation mode for score_col.
+            - 'mean': weighted mean of score_col (default)
+            - 'sum': weighted sum of score_col
+            - 'roi': weighted return on investment, computed as
+              sum(weight * score_col) / sum(weight * cost). Requires a 'cost' column.
 
     Returns:
         DataFrame with rank as index and columns (forecaster, score).
         If bootstrap_config is provided, also includes CI columns.
     """
     df = result_df.copy()
+
+    if df.empty:
+        return pd.DataFrame(columns=['forecaster', 'score']).rename_axis('rank')
     
     # Auto-detect score column if not provided
     if score_col is None:
@@ -158,6 +163,8 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
     
     # Drop rows with NaN scores (e.g. illiquid events skipped by average return)
     df = df.dropna(subset=[score_col])
+    if df.empty:
+        return pd.DataFrame(columns=['forecaster', 'score']).rename_axis('rank')
 
     # For other metrics (Brier, average return), perform weighted aggregation
     if normalize_by_round:
@@ -173,12 +180,24 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
     else:
         df['adjusted_weight'] = df['weight']
     
-    # Calculate weighted average score for each forecaster
-    # Group by forecaster and compute weighted mean
-    forecaster_scores = df.groupby('forecaster').apply(
-        lambda group: np.dot(group[score_col], group['adjusted_weight']) / np.sum(group['adjusted_weight']),
-        include_groups=False
-    ).reset_index(name='score')
+    # Calculate the aggregated score for each forecaster.
+    if aggregation == 'roi':
+        if 'cost' not in df.columns:
+            raise ValueError("ROI aggregation requires a 'cost' column in result_df")
+        forecaster_scores = df.groupby('forecaster').apply(
+            lambda group: (
+                np.sum(group[score_col] * group['adjusted_weight']) /
+                np.sum(group['cost'] * group['adjusted_weight'])
+            ) if np.sum(group['cost'] * group['adjusted_weight']) > 0 else 0.0,
+        ).reset_index(name='score')
+    elif aggregation == 'sum':
+        forecaster_scores = df.groupby('forecaster').apply(
+            lambda group: np.sum(group[score_col] * group['adjusted_weight'])
+        ).reset_index(name='score')
+    else:
+        forecaster_scores = df.groupby('forecaster').apply(
+            lambda group: np.dot(group[score_col], group['adjusted_weight']) / np.sum(group['adjusted_weight'])
+        ).reset_index(name='score')
     
     # Count predictions per forecaster
     prediction_counts = df.groupby('forecaster').size()
@@ -187,7 +206,8 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
     ci_col_name = None
     if bootstrap_config is not None:
         # Compute bootstrap confidence intervals if requested
-        ci_col_name = f'{bootstrap_config["ci_level"] * 100}% ci'
+        ci_level = bootstrap_config.get('ci_level', DEFAULT_BOOTSTRAP_CONFIG['ci_level'])
+        ci_col_name = f'{ci_level * 100}% ci'
 
         # Use separate bootstrap DataFrame if provided (e.g. market-level data)
         if bootstrap_scores_df is not None:
@@ -199,25 +219,42 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
                 bs_df['adjusted_weight'] = bs_df['weight'] / bs_df['round_count']
             else:
                 bs_df['adjusted_weight'] = bs_df['weight']
-            bs_input = bs_df[['forecaster', score_col]].copy()
+            bs_cols = ['forecaster', score_col]
+            if aggregation == 'roi':
+                if 'cost' not in bs_df.columns:
+                    raise ValueError("ROI aggregation requires a 'cost' column in bootstrap_scores_df")
+                bs_cols.append('cost')
+            bs_input = bs_df[bs_cols].copy()
             bs_weights = bs_df['adjusted_weight'].values
         else:
-            bs_input = df[['forecaster', score_col]].copy()
+            bs_cols = ['forecaster', score_col]
+            if aggregation == 'roi':
+                bs_cols.append('cost')
+            bs_input = df[bs_cols].copy()
             bs_weights = df['adjusted_weight'].values
 
-        standard_errors, confidence_intervals = compute_bootstrap_ci(
-            bs_input,
-            score_col,
-            bs_weights,
-            bootstrap_config
-        )
+        if bs_input.empty:
+            confidence_intervals = {}
+        else:
+            _, confidence_intervals = compute_bootstrap_ci(
+                bs_input,
+                score_col,
+                bs_weights,
+                bootstrap_config,
+                aggregation=aggregation,
+            )
         
         # Add SE and CI columns to forecaster_scores
         # forecaster_scores['se'] = forecaster_scores['forecaster'].map(standard_errors)
         # forecaster_scores['lower'] = forecaster_scores['forecaster'].map(lambda f: confidence_intervals[f][0])
         # forecaster_scores['upper'] = forecaster_scores['forecaster'].map(lambda f: confidence_intervals[f][1])
-        forecaster_scores[ci_col_name] = \
-            forecaster_scores['forecaster'].map(lambda f: f"±{(confidence_intervals[f][1] - confidence_intervals[f][0]) / 2:.4f}")
+        forecaster_scores[ci_col_name] = forecaster_scores['forecaster'].map(
+            lambda f: (
+                f"±{(confidence_intervals[f][1] - confidence_intervals[f][0]) / 2:.4f}"
+                if f in confidence_intervals and not np.isnan(confidence_intervals[f][0]) and not np.isnan(confidence_intervals[f][1])
+                else np.nan
+            )
+        )
     
     # Rank forecasters (ascending=True means lower score = better rank)
     forecaster_scores['rank'] = forecaster_scores['score'].rank(method='min', ascending=ascending).astype(int)
@@ -372,23 +409,21 @@ def compute_brier_score(forecasts: pd.DataFrame, per_market: bool = False) -> pd
 
 def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round: float = 1.0, spread_market_even: bool = False, max_spread: float = 1.03, per_market: bool = False) -> pd.DataFrame:
     """
-    Each forecaster is given a fixed $1000 budget spread across ALL markets they
-    participate in. For each outcome within an event, the forecaster either bets
-    YES or NO depending on their edge.
+    Buy market shares directly from the forecaster's edge.
 
-    Betting logic (per outcome):
-    diff = p - yes_ask
+    Betting logic (per market):
+        diff = p - yes_ask
 
-    If diff > 0: bet YES at price yes_ask
-    If diff < 0: bet NO  at price no_ask
-    If diff = 0: skip
+        If diff > 0: buy YES at price yes_ask  with shares = p - yes_ask
+        If diff < 0: buy NO  at price no_ask   with shares = (1 - p) - no_ask
+        If diff = 0: skip
 
-    Budget allocation:
-        amount_i = BUDGET * weight_i / sum(weight_j for all j across all events)
+    Spread handling:
+        Markets where prediction falls inside the bid-ask spread [1 - no_odds, odds]
+        are treated as no-bet markets.
 
     Liquidity filter:
-        Entire events are skipped if ANY outcome has yes_ask + no_ask > max_spread.
-        This avoids betting into illiquid markets with excessive vig.
+        Entire events are skipped if ANY valid market has yes_ask + no_ask > max_spread.
 
     Args:
         forecasts: DataFrame with columns:
@@ -404,14 +439,14 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
         spread_market_even: Unused, kept for API compatibility.
         max_spread: Maximum allowed spread (yes_ask + no_ask) for liquidity filter.
             Events with any outcome exceeding this threshold are skipped entirely.
-        per_market: If True, return one row per individual market instead of one per event.
-            Each market's average_return is its individual profit, and its weight is the
-            event weight divided by the number of markets in that event.
+        per_market: If True, return one row per traded market instead of one per event.
+            Each market row keeps the full event weight so ROI aggregation matches
+            between event-level and market-level representations.
 
     Returns:
-        DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
-        where average_return is the net profit (can be negative) for that
-        forecaster on that event/round. If per_market=True, also includes market_index.
+        DataFrame with columns (forecaster, event_ticker, round, weight, average_return, cost)
+        where average_return is net profit and cost is total amount spent.
+        If per_market=True, also includes market_index.
     """
     # Filter out rows with mismatched array lengths
     def _arrays_same_length(row):
@@ -436,153 +471,118 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
     forecasts = forecasts.drop(columns=['median_round', 'round_dist'])
     print(f"After median-round dedup: {len(forecasts)} rows (1 per forecaster-event)")
 
-    TOTAL_BUDGET = 1000
+    result_data = []
+    skipped_illiquid = 0
 
-    # PASS 1: Calculate total weights per forecaster (row by row)
-    forecaster_total_weights = {}
-    row_weights = {}  # {idx: (weight_sum, weights_array, ...)}
-
-    for idx, row in forecasts.iterrows():
+    for _, row in forecasts.iterrows():
         forecaster = row['forecaster']
 
         try:
-            prediction = row['prediction']
-            odds = row['odds']
-            no_odds = row['no_odds']
+            prediction = np.asarray(row['prediction'], dtype=float)
+            outcome = np.asarray(row['outcome'], dtype=float)
+            odds = np.asarray(row['odds'], dtype=float)
+            no_odds = np.asarray(row['no_odds'], dtype=float)
 
             if len(prediction) == 0:
                 continue
 
-            # Sanity check: skip outcomes with invalid prices (<=0 or >=1)
             valid_prices = (odds > 0) & (odds < 1) & (no_odds > 0) & (no_odds < 1)
             if not np.any(valid_prices):
-                continue
-
-            # Check liquidity for ALL outcomes
-            spreads = odds + no_odds
-            if np.any(spreads > max_spread):
-                continue
-
-            # Calculate weights: |p - yes_ask| * price
-            diff = prediction - odds
-            bet_yes = diff > 0
-            bet_no = diff < 0
-
-            # Price is yes_ask for YES bets, no_ask for NO bets
-            price = np.where(bet_yes, odds, np.where(bet_no, no_odds, 1.0))
-
-            # Weight = |diff| * price, but only for non-zero diffs and valid prices
-            weights = np.where((diff != 0) & valid_prices, np.abs(diff) * price, 0.0)
-            total_weight = np.sum(weights)
-
-            if forecaster not in forecaster_total_weights:
-                forecaster_total_weights[forecaster] = 0.0
-            forecaster_total_weights[forecaster] += total_weight
-
-            # Store for pass 2
-            row_weights[idx] = {
-                'weights': weights,
-                'price': price,
-                'bet_yes': bet_yes,
-                'forecaster': forecaster
-            }
-
-        except Exception:
-            continue
-
-    # PASS 2: Calculate profit row by row
-    result_data = []
-
-    for idx, row in forecasts.iterrows():
-        forecaster = row['forecaster']
-
-        try:
-            if idx in row_weights:
-                data = row_weights[idx]
-                weights = data['weights']
-                price = data['price']
-                bet_yes = data['bet_yes']
-
-                outcome = row['outcome']
-
-                # Get total weight for this forecaster
-                total_weight = forecaster_total_weights.get(forecaster, 0.0)
-                if total_weight == 0:
-                    if per_market:
-                        num_markets = len(outcome)
-                        for i in range(num_markets):
-                            result_data.append({
-                                'forecaster': forecaster,
-                                'event_ticker': row['event_ticker'],
-                                'round': row['round'],
-                                'market_index': i,
-                                'weight': row['weight'] / num_markets,
-                                'average_return': 0.0
-                            })
-                    else:
-                        result_data.append({
-                            'forecaster': forecaster,
-                            'event_ticker': row['event_ticker'],
-                            'round': row['round'],
-                            'weight': row['weight'],
-                            'average_return': 0.0
-                        })
-                else:
-                    # Allocate budget proportionally
-                    amount_per_market = TOTAL_BUDGET * weights / total_weight
-
-                    # Calculate win/loss
-                    is_yes_win = outcome == 1
-                    is_no_win = outcome == 0
-                    is_win = np.where(bet_yes, is_yes_win, is_no_win)
-
-                    # Calculate profit per market
-                    safe_prices = np.where(weights > 0, price, 1.0)
-                    win_profit = (amount_per_market / safe_prices) - amount_per_market
-                    lose_profit = -amount_per_market
-
-                    profit_per_market = np.where(is_win, win_profit, lose_profit)
-                    profit_per_market = np.where(weights > 0, profit_per_market, 0.0)
-
-                    if per_market:
-                        num_markets = len(profit_per_market)
-                        market_weight = row['weight'] / num_markets
-                        for i in range(num_markets):
-                            result_data.append({
-                                'forecaster': forecaster,
-                                'event_ticker': row['event_ticker'],
-                                'round': row['round'],
-                                'market_index': i,
-                                'weight': market_weight,
-                                'average_return': profit_per_market[i]
-                            })
-                    else:
-                        profit = np.sum(profit_per_market)
-                        result_data.append({
-                            'forecaster': forecaster,
-                            'event_ticker': row['event_ticker'],
-                            'round': row['round'],
-                            'weight': row['weight'],
-                            'average_return': profit
-                        })
-            else:
-                # Row was skipped (illiquid or failed)
+                if per_market:
+                    continue
                 result_data.append({
                     'forecaster': forecaster,
                     'event_ticker': row['event_ticker'],
                     'round': row['round'],
                     'weight': row['weight'],
-                    'average_return': np.nan
+                    'average_return': 0.0,
+                    'cost': 0.0,
+                })
+                continue
+
+            spreads = odds + no_odds
+            if np.any(spreads[valid_prices] > max_spread):
+                skipped_illiquid += 1
+                if per_market:
+                    continue
+                result_data.append({
+                    'forecaster': forecaster,
+                    'event_ticker': row['event_ticker'],
+                    'round': row['round'],
+                    'weight': row['weight'],
+                    'average_return': np.nan,
+                    'cost': np.nan,
+                })
+                continue
+
+            diff = prediction - odds
+            within_spread = (prediction >= (1 - no_odds)) & (prediction <= odds)
+            active_mask = valid_prices & ~within_spread & (diff != 0)
+
+            if not np.any(active_mask):
+                if per_market:
+                    continue
+                result_data.append({
+                    'forecaster': forecaster,
+                    'event_ticker': row['event_ticker'],
+                    'round': row['round'],
+                    'weight': row['weight'],
+                    'average_return': 0.0,
+                    'cost': 0.0,
+                })
+                continue
+
+            active_indices = np.where(active_mask)[0]
+            prediction = prediction[active_mask]
+            outcome = outcome[active_mask]
+            odds = odds[active_mask]
+            no_odds = no_odds[active_mask]
+            diff = diff[active_mask]
+
+            bet_yes = diff > 0
+            shares = np.where(bet_yes, prediction - odds, (1 - prediction) - no_odds)
+            price = np.where(bet_yes, odds, no_odds)
+
+            cost_per_market = shares * price
+            is_win = np.where(bet_yes, outcome == 1, outcome == 0)
+            payout_per_market = np.where(is_win, shares, 0.0)
+            profit_per_market = payout_per_market - cost_per_market
+
+            if per_market:
+                for market_index, market_profit, market_cost in zip(active_indices, profit_per_market, cost_per_market):
+                    result_data.append({
+                        'forecaster': forecaster,
+                        'event_ticker': row['event_ticker'],
+                        'round': row['round'],
+                        'market_index': int(market_index),
+                        'weight': row['weight'],
+                        'average_return': market_profit,
+                        'cost': market_cost,
+                    })
+            else:
+                result_data.append({
+                    'forecaster': forecaster,
+                    'event_ticker': row['event_ticker'],
+                    'round': row['round'],
+                    'weight': row['weight'],
+                    'average_return': np.sum(profit_per_market),
+                    'cost': np.sum(cost_per_market),
                 })
 
         except Exception:
+            if per_market:
+                continue
             result_data.append({
                 'forecaster': forecaster,
                 'event_ticker': row['event_ticker'],
                 'round': row['round'],
                 'weight': row['weight'],
-                'average_return': np.nan
+                'average_return': np.nan,
+                'cost': np.nan,
             })
+
+    if skipped_illiquid > 0:
+        print(f"Skipped {skipped_illiquid} illiquid events (spread > {max_spread})")
 
     result_df = pd.DataFrame(result_data)
     return result_df
@@ -696,87 +696,82 @@ def compute_calibration_ece(forecasts: pd.DataFrame, num_bins: int = 10,
         return result_df
 
 
-def compute_sharpe_ratio(average_return_results: pd.DataFrame, baseline_return: float = 1.0, 
+def compute_sharpe_ratio(average_return_results: pd.DataFrame, baseline_return: float = 0.0, 
                          normalize_by_round: bool = False) -> pd.DataFrame:
     """
-    Calculate the Sharpe ratio for each forecaster.
-    
-    The Sharpe ratio is defined as: E[R - R_b] / std(R - R_b), where R is the return 
-    and R_b is the baseline return (typically 1.0 for break-even).
+    Calculate the Sharpe ratio for each forecaster using per-dollar returns (ROI).
     
     Args:
-        average_return_results: DataFrame with columns (forecaster, event_ticker, round, weight, average_return)
-        baseline_return: The baseline return to subtract from the average return (default: 1.0 for break-even)
+        average_return_results: DataFrame with columns
+            (forecaster, event_ticker, round, weight, average_return, cost)
+        baseline_return: The baseline ROI to subtract from realized ROI
+            (default: 0.0 for break-even)
         normalize_by_round: If True, first average returns within each (forecaster, event_ticker) group,
-                           then calculate Sharpe ratio across events. This prevents events with more
-                           rounds from dominating the calculation. (default: False)
+                           then calculate Sharpe ratio across events. (default: False)
     
     Returns:
-        DataFrame with columns (forecaster, sharpe_ratio, mean_excess_return, std_excess_return)
+        DataFrame with columns (forecaster, sharpe_ratio, mean_roi, std_roi, num_events)
         sorted by sharpe_ratio in descending order
     """
     df = average_return_results.copy()
-    
+
+    if 'cost' not in df.columns:
+        raise ValueError("Sharpe ratio requires a 'cost' column in average_return_results")
+
+    df = df[df['cost'] > 0].copy()
+    if df.empty:
+        return pd.DataFrame(columns=['forecaster', 'sharpe_ratio', 'mean_roi', 'std_roi', 'num_events'])
+
+    df['roi'] = df['average_return'] / df['cost']
+
     if normalize_by_round:
-        # Step 1: For each (forecaster, event_ticker), compute weighted average return across all rounds
-        # This gives us one return value per event per forecaster
         def weighted_mean(group):
-            return np.average(group['average_return'], weights=group['weight'])
-        
-        event_returns = df.groupby(['forecaster', 'event_ticker']).apply(
-            weighted_mean, include_groups=False
-        ).reset_index(name='event_return')
-        
-        # Step 2: Calculate Sharpe ratio for each forecaster using event-level returns
+            return np.average(group['roi'], weights=group['weight'])
+
+        event_rois = df.groupby(['forecaster', 'event_ticker']).apply(weighted_mean).reset_index(name='event_roi')
+
         sharpe_results = []
-        for forecaster in event_returns['forecaster'].unique():
-            forecaster_data = event_returns[event_returns['forecaster'] == forecaster]
-            returns = forecaster_data['event_return'].values
-            
-            # Calculate excess returns
-            excess_returns = returns - baseline_return
-            
-            # Calculate mean and std of excess returns
-            mean_excess = np.mean(excess_returns)
-            std_excess = np.std(excess_returns, ddof=1)  # Use sample std (ddof=1)
-            
-            # Calculate Sharpe ratio (handle case where std is 0)
+        for forecaster in event_rois['forecaster'].unique():
+            forecaster_data = event_rois[event_rois['forecaster'] == forecaster]
+            rois = forecaster_data['event_roi'].values
+
+            excess = rois - baseline_return
+            mean_excess = np.mean(excess)
+            std_excess = np.std(excess, ddof=1) if len(excess) > 1 else 0.0
+
             if std_excess > 0:
                 sharpe = mean_excess / std_excess
             else:
                 sharpe = 0.0 if mean_excess == 0 else (np.inf if mean_excess > 0 else -np.inf)
-            
+
             sharpe_results.append({
                 'forecaster': forecaster,
                 'sharpe_ratio': sharpe,
-                'mean_excess_return': mean_excess,
-                'std_excess_return': std_excess
+                'mean_roi': mean_excess,
+                'std_roi': std_excess,
+                'num_events': len(rois)
             })
     else:
-        # Calculate Sharpe ratio directly from all (event, round) pairs
         sharpe_results = []
         for forecaster in df['forecaster'].unique():
             forecaster_data = df[df['forecaster'] == forecaster]
-            returns = forecaster_data['average_return'].values
-            
-            # Calculate excess returns
-            excess_returns = returns - baseline_return
-            
-            # Calculate mean and std of excess returns
-            mean_excess = np.mean(excess_returns)
-            std_excess = np.std(excess_returns, ddof=1)  # Use sample std (ddof=1)
-            
-            # Calculate Sharpe ratio (handle case where std is 0)
+            rois = forecaster_data['roi'].values
+
+            excess = rois - baseline_return
+            mean_excess = np.mean(excess)
+            std_excess = np.std(excess, ddof=1) if len(excess) > 1 else 0.0
+
             if std_excess > 0:
                 sharpe = mean_excess / std_excess
             else:
                 sharpe = 0.0 if mean_excess == 0 else (np.inf if mean_excess > 0 else -np.inf)
-            
+
             sharpe_results.append({
                 'forecaster': forecaster,
                 'sharpe_ratio': sharpe,
-                'mean_excess_return': mean_excess,
-                'std_excess_return': std_excess
+                'mean_roi': mean_excess,
+                'std_roi': std_excess,
+                'num_events': len(rois)
             })
     
     result_df = pd.DataFrame(sharpe_results)
@@ -917,7 +912,8 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
                                                     per_market=True) if use_market_bootstrap else None
         return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round,
                                          bootstrap_config=bootstrap_config,
-                                         bootstrap_scores_df=bs_scores)
+                                         bootstrap_scores_df=bs_scores,
+                                         aggregation='roi')
 
     do_stream = stream_every > 0
     if not do_stream and not by_category:
