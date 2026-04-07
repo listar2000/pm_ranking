@@ -714,6 +714,8 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
             payout_per_market = np.where(has_bet & is_win, shares, 0.0)
             profit_per_market = payout_per_market - cost_per_market
 
+            num_markets_bet = int(np.sum(has_bet))
+
             if per_market:
                 traded_indices = active_indices[has_bet]
                 traded_profits = profit_per_market[has_bet]
@@ -727,6 +729,7 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
                         'weight': row['weight'],
                         'average_return': market_profit,
                         'cost': market_cost,
+                        'num_markets_bet': 1,
                     })
             else:
                 result_data.append({
@@ -736,6 +739,7 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
                     'weight': row['weight'],
                     'average_return': np.sum(profit_per_market),
                     'cost': np.sum(cost_per_market),
+                    'num_markets_bet': num_markets_bet,
                 })
 
         except Exception:
