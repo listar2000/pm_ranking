@@ -21,6 +21,13 @@ bootstrap
    at the event level. Market-level resampling is the default and captures both
    within-event and across-event variance.
 
+   Performance: the inner resampling loop is fully vectorized — for each
+   forecaster we draw a single ``(num_samples, n_rows)`` index matrix and
+   compute all bootstrap statistics in one batch of numpy operations, instead
+   of running a Python-level for loop over ``num_samples`` iterations. This
+   makes the dominant cost of the nightly recompute small enough that bootstrap
+   CI is no longer the bottleneck.
+
 
 
 Functions
@@ -42,10 +49,11 @@ Module Contents
    to estimate confidence intervals for forecaster scores. It uses symmetric CIs
    around the point estimate.
 
-   IMPORTANT: Resampling is done SEPARATELY for each forecaster. At each bootstrap
-   iteration, we sample (with replacement) from each forecaster's own predictions
-   using their adjusted weights. This properly captures the uncertainty in each
-   forecaster's individual score estimate.
+   IMPORTANT: Resampling is done SEPARATELY for each forecaster. For each
+   forecaster we draw an entire ``(num_samples, n_rows)`` index matrix in one
+   ``np.random.choice`` call and compute the bootstrap statistic for every
+   sample at once via vectorized numpy ops, instead of running a Python loop
+   over the bootstrap iterations.
 
    Args:
        result_df: DataFrame with columns (forecaster, score_col, adjusted_weight)
@@ -57,7 +65,8 @@ Module Contents
            - ci_level: Confidence level (default: 0.95)
            - num_se: Number of standard errors for CI bounds (default: None, uses ci_level)
            - random_seed: Random seed for reproducibility (default: 42)
-           - show_progress: Whether to show progress bar (default: True)
+           - show_progress: Ignored (kept for backwards compatibility — the
+             vectorized implementation has no per-iteration progress to show)
        aggregation: Aggregation mode for forecaster scores.
            - 'mean': weighted mean of score_col
            - 'sum': sum of score_col

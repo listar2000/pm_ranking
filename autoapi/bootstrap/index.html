@@ -128,6 +128,12 @@ resamples at the market level. When the input contains per-event rows (one
 row per problem/event with scores averaged across markets), bootstrap resamples
 at the event level. Market-level resampling is the default and captures both
 within-event and across-event variance.</p>
+<p>Performance: the inner resampling loop is fully vectorized — for each
+forecaster we draw a single <code class="docutils literal notranslate"><span class="pre">(num_samples,</span> <span class="pre">n_rows)</span></code> index matrix and
+compute all bootstrap statistics in one batch of numpy operations, instead
+of running a Python-level for loop over <code class="docutils literal notranslate"><span class="pre">num_samples</span></code> iterations. This
+makes the dominant cost of the nightly recompute small enough that bootstrap
+CI is no longer the bottleneck.</p>
 <section id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Link to this heading" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#functions'"><span>¶</span></a></h2>
 <table class="autosummary longtable docutils align-default">
@@ -147,10 +153,11 @@ within-event and across-event variance.</p>
 <p>This function performs weighted bootstrap resampling of individual predictions
 to estimate confidence intervals for forecaster scores. It uses symmetric CIs
 around the point estimate.</p>
-<p>IMPORTANT: Resampling is done SEPARATELY for each forecaster. At each bootstrap
-iteration, we sample (with replacement) from each forecaster’s own predictions
-using their adjusted weights. This properly captures the uncertainty in each
-forecaster’s individual score estimate.</p>
+<p>IMPORTANT: Resampling is done SEPARATELY for each forecaster. For each
+forecaster we draw an entire <code class="docutils literal notranslate"><span class="pre">(num_samples,</span> <span class="pre">n_rows)</span></code> index matrix in one
+<code class="docutils literal notranslate"><span class="pre">np.random.choice</span></code> call and compute the bootstrap statistic for every
+sample at once via vectorized numpy ops, instead of running a Python loop
+over the bootstrap iterations.</p>
 <dl>
 <dt>Args:</dt><dd><dl class="simple">
 <dt>result_df: DataFrame with columns (forecaster, score_col, adjusted_weight)</dt><dd><p>where each row is an individual prediction</p>
@@ -165,7 +172,8 @@ bootstrap_config: Dictionary with bootstrap parameters:</p>
 <li><p>ci_level: Confidence level (default: 0.95)</p></li>
 <li><p>num_se: Number of standard errors for CI bounds (default: None, uses ci_level)</p></li>
 <li><p>random_seed: Random seed for reproducibility (default: 42)</p></li>
-<li><p>show_progress: Whether to show progress bar (default: True)</p></li>
+<li><p>show_progress: Ignored (kept for backwards compatibility — the
+vectorized implementation has no per-iteration progress to show)</p></li>
 </ul>
 </div></blockquote>
 <dl class="simple">

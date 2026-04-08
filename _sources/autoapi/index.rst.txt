@@ -6,15 +6,15 @@ This page contains auto-generated API reference documentation [#f1]_.
 .. toctree::
    :titlesonly:
 
-   /autoapi/plot/index
+   /autoapi/data/index
    /autoapi/algo/index
    /autoapi/misc/index
-   /autoapi/data/index
+   /autoapi/plot/index
    /autoapi/utils/index
    /autoapi/scoring/index
    /autoapi/run_rank/index
-   /autoapi/bootstrap/index
    /autoapi/test_algo/index
+   /autoapi/bootstrap/index
    /autoapi/algo_legacy/index
    /autoapi/algo_betting_/index
    /autoapi/plot_timestamp/index

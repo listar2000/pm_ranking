@@ -60,7 +60,7 @@ Module Contents
        DataFrame with added "{forecaster}-market-baseline" rows for each real forecaster.
 
 
-.. py:function:: rank_forecasters_by_score(result_df: pandas.DataFrame, normalize_by_round: bool = False, score_col: str = None, ascending: bool = None, bootstrap_config: Optional[Dict] = None, add_individualized_baselines: bool = False, bootstrap_scores_df: pandas.DataFrame = None, aggregation: str = 'mean') -> pandas.DataFrame
+.. py:function:: rank_forecasters_by_score(result_df: pandas.DataFrame, normalize_by_round: bool = False, score_col: str = None, ascending: bool = None, bootstrap_config: Optional[Dict] = None, add_individualized_baselines: bool = False, bootstrap_scores_df: pandas.DataFrame = None, aggregation: str = 'mean', analytical_ci: Union[bool, float, None] = None) -> pandas.DataFrame
 
    Return a rank_df with columns (forecaster, rank, score).
 
@@ -89,10 +89,18 @@ Module Contents
            - 'sum': sum of score_col
            - 'roi': return on investment, computed as
              sum(score_col) / sum(cost). Requires a 'cost' column.
+       analytical_ci: Closed-form normal-approximation CI alternative to bootstrap.
+           Mutually exclusive with ``bootstrap_config``. Only supported for
+           ``aggregation='mean'`` (proper scoring rules); ROI's ratio-of-sums needs the
+           delta method.
+           - None / False: no analytical CI
+           - True: 95% CI
+           - float in (0, 1): explicit confidence level (e.g. 0.99)
 
    Returns:
        DataFrame with rank as index and columns (forecaster, score).
-       If bootstrap_config is provided, also includes CI columns.
+       If bootstrap_config or analytical_ci is set, also includes a "{level}% ci"
+       column formatted as "±X.XXXX".
 
 
 .. py:function:: add_market_baseline_predictions(forecasts: pandas.DataFrame, reference_forecaster: str = None, use_both_sides: bool = False) -> pandas.DataFrame
@@ -242,7 +250,7 @@ Module Contents
        sorted by sharpe_ratio in descending order
 
 
-.. py:function:: compute_ranked_brier_score(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, resample_level: Literal['market', 'event'] = 'market', add_individualized_baselines: bool = False) -> dict
+.. py:function:: compute_ranked_brier_score(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, resample_level: Literal['market', 'event'] = 'market', add_individualized_baselines: bool = False, max_spread: float = DEFAULT_MAX_SPREAD, analytical_ci: Union[bool, float, None] = None) -> dict
 
    Compute the ranked forecasters for the given score function.
 
@@ -257,9 +265,14 @@ Module Contents
        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
            forecaster by filtering market-baseline scores to their participated (event_ticker, round).
            Requires 'market-baseline' forecaster to be present.
+       max_spread: Liquidity filter passed through to compute_brier_score. Events whose markets have
+           yes_ask + no_ask exceeding this value are skipped. Defaults to DEFAULT_MAX_SPREAD (1.03).
+       analytical_ci: Closed-form normal-approximation CI alternative to bootstrap.
+           Mutually exclusive with bootstrap_config. None/False = off, True = 95% CI,
+           float = explicit confidence level (e.g. 0.99). See rank_forecasters_by_score.
 
 
-.. py:function:: compute_ranked_average_return(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, resample_level: Literal['market', 'event'] = 'market', add_individualized_baselines: bool = False) -> dict
+.. py:function:: compute_ranked_average_return(forecasts: pandas.DataFrame, by_category: bool = False, stream_every: int = -1, spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None, resample_level: Literal['market', 'event'] = 'market', add_individualized_baselines: bool = False, max_spread: float = DEFAULT_MAX_SPREAD) -> dict
 
    Compute the ranked forecasters for the given score function.
 
@@ -276,5 +289,8 @@ Module Contents
        add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
            forecaster by filtering market-baseline scores to their participated (event_ticker, round).
            Requires 'market-baseline' forecaster to be present.
+       max_spread: Liquidity filter passed through to compute_average_return_neutral. Events whose
+           markets have yes_ask + no_ask exceeding this value are skipped. Defaults to
+           DEFAULT_MAX_SPREAD (1.03).
 
 
