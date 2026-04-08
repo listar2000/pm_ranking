@@ -21,7 +21,10 @@ def test_risk_neutral_bets_basic():
     assert bets.shape == (2, 3)
     assert np.all(np.sum(bets > 0, axis=1) == 1)
 
-    edges = forecast_probs - implied_probs
+    # _get_risk_neutral_bets selects the option with maximum ratio
+    # forecast_probs / implied_probs (not subtraction). Use the same
+    # definition so the assertion remains correct under non-uniform odds.
+    edges = forecast_probs / implied_probs
     expected_max_edges = np.argmax(edges, axis=1)
     for i in range(2):
         assert bets[i, expected_max_edges[i]] > 0

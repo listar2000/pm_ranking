@@ -1,4 +1,5 @@
 """Shared pytest fixtures and marker-based auto-skip logic for the pm_rank test suite."""
+import importlib.util
 from datetime import datetime
 from pathlib import Path
 
@@ -23,11 +24,9 @@ def _has_prophet_data() -> bool:
 
 
 def _has_pyro() -> bool:
-    try:
-        import pyro  # noqa: F401
-    except ImportError:
-        return False
-    return True
+    # Use find_spec so we don't actually import pyro (and its heavy transitive
+    # deps) during test collection — we only need to know if it's installable.
+    return importlib.util.find_spec("pyro") is not None
 
 
 def pytest_collection_modifyitems(config, items):
