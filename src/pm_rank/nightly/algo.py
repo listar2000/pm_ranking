@@ -1,9 +1,33 @@
-import pandas as pd
+import math
+from functools import lru_cache
+from typing import Dict, Literal, Optional, Tuple, Union
+
 import numpy as np
-from typing import Literal, Dict, Optional
+import pandas as pd
+from tqdm import tqdm
+
 from pm_rank.model.calibration import _bin_stats, _calculate_ece
 from pm_rank.nightly.bootstrap import compute_bootstrap_ci
-from tqdm import tqdm
+
+
+@lru_cache(maxsize=8)
+def _normal_z_score(ci_level: float) -> float:
+    """Inverse standard-normal CDF for the symmetric two-sided level.
+
+    pm_rank intentionally has no scipy dependency, so we approximate the
+    inverse via a 60-iteration bisection on math.erf. Cached because the
+    common-case input is the constant 0.95.
+    """
+    target = (1.0 + ci_level) / 2.0
+    lo, hi = 0.0, 6.0
+    sqrt2 = math.sqrt(2.0)
+    for _ in range(60):
+        mid = (lo + hi) / 2.0
+        if 0.5 * (1.0 + math.erf(mid / sqrt2)) < target:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2.0
 
 
 DEFAULT_BOOTSTRAP_CONFIG = {
@@ -87,7 +111,8 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
                               bootstrap_config: Optional[Dict] = None,
                               add_individualized_baselines: bool = False,
                               bootstrap_scores_df: pd.DataFrame = None,
-                              aggregation: str = 'mean') -> pd.DataFrame:
+                              aggregation: str = 'mean',
+                              analytical_ci: Union[bool, float, None] = None) -> pd.DataFrame:
     """
     Return a rank_df with columns (forecaster, rank, score).
 
@@ -116,11 +141,27 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
             - 'sum': sum of score_col
             - 'roi': return on investment, computed as
               sum(score_col) / sum(cost). Requires a 'cost' column.
+        analytical_ci: Closed-form normal-approximation CI alternative to bootstrap.
+            Mutually exclusive with ``bootstrap_config``. Only supported for
+            ``aggregation='mean'`` (proper scoring rules); ROI's ratio-of-sums needs the
+            delta method.
+            - None / False: no analytical CI
+            - True: 95% CI
+            - float in (0, 1): explicit confidence level (e.g. 0.99)
 
     Returns:
         DataFrame with rank as index and columns (forecaster, score).
-        If bootstrap_config is provided, also includes CI columns.
+        If bootstrap_config or analytical_ci is set, also includes a "{level}% ci"
+        column formatted as "±X.XXXX".
     """
+    if bootstrap_config is not None and analytical_ci:
+        raise ValueError("Pass either bootstrap_config or analytical_ci, not both")
+    if analytical_ci is True:
+        analytical_ci_level: Optional[float] = 0.95
+    elif isinstance(analytical_ci, float):
+        analytical_ci_level = analytical_ci
+    else:
+        analytical_ci_level = None
     df = result_df.copy()
 
     if df.empty:
@@ -207,6 +248,47 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
     forecaster_scores['# predictions'] = forecaster_scores['forecaster'].map(prediction_counts)
     
     ci_col_name = None
+    if analytical_ci_level is not None and aggregation != 'mean':
+        # Closed-form CI only makes sense when the aggregator is the (weighted)
+        # sample mean of independent per-row scores. ROI's ratio-of-sums needs
+        # the delta method; punt for now.
+        raise ValueError("analytical_ci is only supported for aggregation='mean'")
+
+    if analytical_ci_level is not None:
+        ci_col_name = f'{analytical_ci_level * 100}% ci'
+        z_score = _normal_z_score(analytical_ci_level)
+
+        # Reuse the same groupby indices used by the point-estimate aggregation
+        # above. SE = sqrt(weighted_var / n_eff) with n_eff = Kish's effective
+        # sample size for the weighted samples.
+        score_values = df[score_col].to_numpy()
+        weight_values = df['adjusted_weight'].to_numpy()
+        point_by_forecaster = dict(zip(forecaster_scores['forecaster'], forecaster_scores['score']))
+        analytical_margins: Dict[str, float] = {}
+        for forecaster, row_indices in df.groupby('forecaster').indices.items():
+            scores_arr = score_values[row_indices]
+            weights_arr = weight_values[row_indices]
+            n = scores_arr.shape[0]
+            weight_sum = float(np.sum(weights_arr))
+            if n <= 1 or weight_sum <= 0:
+                analytical_margins[str(forecaster)] = float('nan') if weight_sum <= 0 else 0.0
+                continue
+            point = float(point_by_forecaster.get(forecaster, np.average(scores_arr, weights=weights_arr)))
+            n_eff = (weight_sum ** 2) / float(np.sum(weights_arr ** 2))
+            if n_eff <= 1:
+                analytical_margins[str(forecaster)] = 0.0
+                continue
+            weighted_sq = float(np.sum(weights_arr * (scores_arr - point) ** 2))
+            variance = weighted_sq / weight_sum * (n_eff / (n_eff - 1.0))
+            se = float(np.sqrt(variance / n_eff))
+            analytical_margins[str(forecaster)] = z_score * se
+
+        forecaster_scores[ci_col_name] = forecaster_scores['forecaster'].map(
+            lambda f: f"±{analytical_margins[f]:.4f}"
+            if f in analytical_margins and not np.isnan(analytical_margins[f])
+            else np.nan
+        )
+
     if bootstrap_config is not None:
         # Compute bootstrap confidence intervals if requested
         ci_level = bootstrap_config.get('ci_level', DEFAULT_BOOTSTRAP_CONFIG['ci_level'])
@@ -263,15 +345,15 @@ def rank_forecasters_by_score(result_df: pd.DataFrame, normalize_by_round: bool 
     
     # Rank forecasters (ascending=True means lower score = better rank)
     forecaster_scores['rank'] = forecaster_scores['score'].rank(method='min', ascending=ascending).astype(int)
-    
+
     # Sort by rank and select required columns, then set rank as index
-    if bootstrap_config is not None:
+    if ci_col_name is not None:
         rank_df = forecaster_scores[['forecaster', 'rank', 'score', ci_col_name, '# predictions']].sort_values('rank')
         rank_df = rank_df.set_index('rank')[['forecaster', 'score', ci_col_name, '# predictions']]
     else:
         rank_df = forecaster_scores[['forecaster', 'rank', 'score', '# predictions']].sort_values('rank')
         rank_df = rank_df.set_index('rank')[['forecaster', 'score', '# predictions']]
-    
+
     return rank_df
 
 
@@ -1011,7 +1093,9 @@ def _stream_over_time(forecasts: pd.DataFrame, stream_every: int) -> dict:
 def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = False, stream_every: int = -1, \
     normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None,
     resample_level: Literal["market", "event"] = "market",
-    add_individualized_baselines: bool = False) -> dict:
+    add_individualized_baselines: bool = False,
+    max_spread: float = DEFAULT_MAX_SPREAD,
+    analytical_ci: Union[bool, float, None] = None) -> dict:
     """
     Compute the ranked forecasters for the given score function.
 
@@ -1026,16 +1110,22 @@ def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = Fals
         add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
             forecaster by filtering market-baseline scores to their participated (event_ticker, round).
             Requires 'market-baseline' forecaster to be present.
+        max_spread: Liquidity filter passed through to compute_brier_score. Events whose markets have
+            yes_ask + no_ask exceeding this value are skipped. Defaults to DEFAULT_MAX_SPREAD (1.03).
+        analytical_ci: Closed-form normal-approximation CI alternative to bootstrap.
+            Mutually exclusive with bootstrap_config. None/False = off, True = 95% CI,
+            float = explicit confidence level (e.g. 0.99). See rank_forecasters_by_score.
     """
     use_market_bootstrap = (resample_level == "market") and (bootstrap_config is not None)
 
     def _rank(fc):
-        score = compute_brier_score(fc, per_market=False)
-        bs_scores = compute_brier_score(fc, per_market=True) if use_market_bootstrap else None
+        score = compute_brier_score(fc, per_market=False, max_spread=max_spread)
+        bs_scores = compute_brier_score(fc, per_market=True, max_spread=max_spread) if use_market_bootstrap else None
         return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round,
                                          bootstrap_config=bootstrap_config,
                                          add_individualized_baselines=add_individualized_baselines,
-                                         bootstrap_scores_df=bs_scores)
+                                         bootstrap_scores_df=bs_scores,
+                                         analytical_ci=analytical_ci)
 
     do_stream = stream_every > 0
     if not do_stream and not by_category:
@@ -1062,7 +1152,8 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
     spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False,
     bootstrap_config: Optional[Dict] = None,
     resample_level: Literal["market", "event"] = "market",
-    add_individualized_baselines: bool = False) -> dict:
+    add_individualized_baselines: bool = False,
+    max_spread: float = DEFAULT_MAX_SPREAD) -> dict:
     """
     Compute the ranked forecasters for the given score function.
 
@@ -1079,15 +1170,20 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
         add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
             forecaster by filtering market-baseline scores to their participated (event_ticker, round).
             Requires 'market-baseline' forecaster to be present.
+        max_spread: Liquidity filter passed through to compute_average_return_neutral. Events whose
+            markets have yes_ask + no_ask exceeding this value are skipped. Defaults to
+            DEFAULT_MAX_SPREAD (1.03).
     """
     use_market_bootstrap = (resample_level == "market") and (bootstrap_config is not None)
 
     def _rank(fc):
         score = compute_average_return_neutral(fc, spread_market_even=spread_market_even,
                                                 num_money_per_round=num_money_per_round,
+                                                max_spread=max_spread,
                                                 per_market=False)
         bs_scores = compute_average_return_neutral(fc, spread_market_even=spread_market_even,
                                                     num_money_per_round=num_money_per_round,
+                                                    max_spread=max_spread,
                                                     per_market=True) if use_market_bootstrap else None
         return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round,
                                          bootstrap_config=bootstrap_config,
