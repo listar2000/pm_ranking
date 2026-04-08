@@ -1,0 +1,126 @@
+---
+title: Scoring Rules
+description: "Brier, Log, and Spherical proper scoring rules for ranking forecasters by accuracy."
+---
+
+`pm_rank` ships three [proper scoring rules](https://en.wikipedia.org/wiki/Scoring_rule):
+**Brier**, **Logarithmic**, and **Spherical**. They all have the same `fit()`
+interface and return a `(scores, rankings)` tuple.
+
+A **proper** scoring rule is one that maximizes a forecaster's expected score
+when they report their true beliefs — i.e. it incentivizes honest probabilistic
+reporting. The Brier score is the default in Prophet Arena because it
+generalizes cleanly beyond binary outcomes and rewards both calibration and
+sharpness.
+
+## Setup
+
+Every example on this page assumes you've built a `ForecastChallenge` (see
+[Quick Start](/quickstart) for the full setup). The relevant lines are:
+
+```python
+from pm_rank import ForecastChallenge, ForecastEvent, ForecastProblem
+# ... build problem1, problem2 ...
+challenge = ForecastChallenge(title="Demo", forecast_problems=[problem1, problem2])
+problems = challenge.get_problems()
+```
+
+## Brier score
+
+The Brier score is the squared error between the predicted probability vector
+and the one-hot true outcome, averaged across options.
+
+```python
+from pm_rank import BrierScoringRule
+
+rule = BrierScoringRule()
+scores, rankings = rule.fit(problems)
+
+print("Brier scores  :", scores)
+print("Brier rankings:", rankings)
+```
+
+```
+Brier scores  : {'alice': 0.937, 'bob': 0.777, 'carol': 0.847}
+Brier rankings: {'alice': 1, 'carol': 2, 'bob': 3}
+```
+
+<Note>
+By default `BrierScoringRule` returns **negated** scores so that "higher is
+better" — that's why Alice (the most accurate forecaster) gets the highest
+score and rank 1. The actual squared-error values are `1 - score`.
+</Note>
+
+## Log score
+
+The log score evaluates each forecast purely by the probability it assigned
+to the realized outcome:
+
+```python
+from pm_rank import LogScoringRule
+
+scores, rankings = LogScoringRule().fit(problems)
+```
+
+The log score is unbounded below — assigning probability 0 to a realized
+outcome yields `-∞`. `pm_rank` handles this with a small numerical floor.
+
+## Spherical score
+
+The spherical score normalizes the prediction vector and measures cosine
+similarity with the one-hot truth vector. It's bounded in `[0, 1]` and tends
+to be less sensitive to confident-but-wrong predictions than the log score.
+
+```python
+from pm_rank import SphericalScoringRule
+
+scores, rankings = SphericalScoringRule().fit(problems)
+```
+
+## Including bootstrap confidence intervals
+
+All scoring rules support optional bootstrap confidence intervals on the
+per-forecaster aggregate scores:
+
+```python
+from pm_rank import BrierScoringRule
+from pm_rank.model.utils import BootstrapCIConfig
+
+rule = BrierScoringRule()
+scores, rankings, cis = rule.fit(
+    problems,
+    include_bootstrap_ci=True,
+    bootstrap_ci_config=BootstrapCIConfig(num_bootstrap_samples=1000),
+)
+print(cis)  # {'alice': [low, high], 'bob': [low, high], ...}
+```
+
+## IRT-weighted Brier score
+
+If you've fit an `IRTModel`, you can use its per-problem discrimination
+parameters to weight the Brier score, giving more influence to problems
+that better separate strong and weak forecasters:
+
+```python
+import numpy as np
+from pm_rank import BrierScoringRule, IRTModel  # IRTModel needs pm-rank[full]
+
+irt_model = IRTModel().fit(problems)
+problem_disc, _ = irt_model.get_problem_level_parameters()
+weights = np.array([problem_disc[p.problem_id] for p in problems])
+
+scores, rankings = BrierScoringRule().fit(
+    problems,
+    problem_discriminations=weights,
+)
+```
+
+In our experiments this weighted Brier score has the highest rank correlation
+with IRT-derived skill rankings — see the [blogpost](/blog/ranking-llms) for
+the methodological discussion.
+
+## See also
+
+- [Bradley-Terry model](/usage/bradley-terry) — relative skill estimation
+- [Comparing rankings](/usage/comparing-rankings) — Spearman / Kendall between two rank dicts
+- [API reference](/api-reference) — full method signatures

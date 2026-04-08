@@ -1,0 +1,99 @@
+---
+title: Comparing Rankings
+description: "Spearman and Kendall rank correlations for cross-checking ranking methods."
+---
+
+`pm_rank` exposes two rank-correlation utilities for comparing the rankings
+produced by different models. Both take two `Dict[str, int]` rankings and
+return a single float in `[-1, 1]`.
+
+```python
+from pm_rank import spearman_correlation, kendall_correlation
+```
+
+## Why compare rankings?
+
+Different ranking methods optimize different things:
+
+- **Brier** rewards calibrated, sharp probabilistic forecasts.
+- **Bradley-Terry** rewards being relatively better than your peers, even if
+  everyone is poorly calibrated.
+- **AverageReturn** rewards being better than the *market*, which is a
+  different baseline again.
+- **IRT** rewards getting hard problems right (as identified by the model).
+
+If two methods strongly agree on a forecaster ranking, you can be confident
+the ranking reflects underlying skill rather than artifacts of the metric.
+If they disagree, that disagreement is itself informative.
+
+## Worked example
+
+```python
+from pm_rank import (
+    BrierScoringRule, GeneralizedBT,
+    spearman_correlation, kendall_correlation,
+)
+
+# Fit two different models on the same problems
+_, brier_rankings = BrierScoringRule().fit(problems)
+_, bt_rankings    = GeneralizedBT().fit(problems)
+
+print("Spearman:", spearman_correlation(brier_rankings, bt_rankings))
+print("Kendall :", kendall_correlation(brier_rankings, bt_rankings))
+```
+
+```
+Spearman: 1.0
+Kendall : 1.0
+```
+
+In our [quick-start example](/quickstart) Brier and BT produce the *same*
+ranking (Alice > Carol > Bob), so both correlations are 1. On real data the
+two methods typically agree at the top of the leaderboard but diverge in the
+middle.
+
+## What the numbers mean
+
+| Value | Interpretation |
+|---|---|
+| `1.0` | Perfectly identical ordering. |
+| `0.0` | No relationship — the rankings are statistically independent. |
+| `-1.0` | Perfectly reversed ordering. |
+
+[Spearman](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient)
+is the Pearson correlation of the rank values themselves. It's sensitive to
+the magnitude of rank differences — moving from rank 1 to rank 10 hurts more
+than moving from rank 1 to rank 2.
+
+[Kendall](https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient)
+counts the fraction of forecaster *pairs* that are ordered the same way in
+both rankings, minus the fraction ordered oppositely. It's less sensitive to
+single outliers and is generally more conservative.
+
+<Tip>
+**Rule of thumb:** if two methods give Spearman > 0.85 on a real dataset,
+they're effectively measuring the same thing. If they give Spearman < 0.5,
+they're measuring genuinely different aspects of forecaster skill, and
+which one to trust depends on what question you're asking.
+</Tip>
+
+## Comparing all five models on real data
+
+For a worked example computing pairwise correlations between **Brier**,
+**Market Earning**, **Generalized Bradley-Terry**, **IRT**, and
+**Weighted Brier** on a real dataset, see
+`src/pm_rank/plotting/plot_correlations_multiple_metrics.py` in the source
+repository.
+
+<img
+  src="/images/correlation_grid.png"
+  alt="Correlation grid across ranking methods"
+  width="500"
+/>
+
+## See also
+
+- [Scoring rules](/usage/scoring-rules)
+- [Bradley-Terry](/usage/bradley-terry)
+- [Average Return](/usage/average-return)
+- [API reference](/api-reference)

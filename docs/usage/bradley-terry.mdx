@@ -1,0 +1,79 @@
+---
+title: Bradley-Terry Model
+description: "Generalized Bradley-Terry pairwise skill model fit by Majorization-Minimization."
+---
+
+The **Generalized Bradley-Terry (GBT)** model adapts the classic
+[Bradley-Terry model](https://www.jmlr.org/papers/v7/huang06a.html) to
+prediction-market data. It estimates a latent **skill** parameter for each
+forecaster by treating every event outcome as a contest between a "winning
+team" (the realized outcome) and a "losing team" (everything else), where each
+forecaster's contribution is weighted by the probability they assigned.
+
+`pm_rank` fits the model with an iterative
+**Majorization-Minimization (MM)** algorithm, which guarantees convergence
+and gives intuitive Elo-style comparative scores.
+
+## Basic usage
+
+```python
+from pm_rank import GeneralizedBT
+
+bt = GeneralizedBT(method="MM", num_iter=100, threshold=1e-3)
+scores, rankings = bt.fit(problems)
+
+print("BT skills   :", scores)
+print("BT rankings :", rankings)
+```
+
+```
+BT skills   : {'alice': 2.998, 'bob': 1.13e-05, 'carol': 0.00181}
+BT rankings : {'alice': 1, 'carol': 2, 'bob': 3}
+```
+
+The skill scores are normalized so they sum to the number of forecasters.
+**Higher skill = stronger forecaster**, and the ratio between two skills has
+an intuitive interpretation: a forecaster with skill 3.0 is "three times more
+likely to be right" than a forecaster with skill 1.0 in the BT sense.
+
+## Configuration
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `method` | `"MM"` | Optimization method. Currently only Majorization-Minimization is supported. |
+| `num_iter` | `100` | Maximum number of MM iterations. |
+| `threshold` | `1e-3` | Convergence threshold on the max change in skill parameters. The algorithm stops early once `max(|θ_t - θ_{t-1}|) < threshold`. |
+| `verbose` | `False` | Set to `True` to log per-iteration debugging info. |
+
+```python
+bt = GeneralizedBT(num_iter=200, threshold=1e-5, verbose=True)
+```
+
+## When to use it
+
+<CardGroup cols={2}>
+  <Card title="Use BT when..." icon="check">
+    - You have a moderate-to-large number of overlapping forecasters
+    - You want **relative** skill estimates (not absolute accuracy)
+    - You want a single number per forecaster that's easy to compare
+  </Card>
+  <Card title="Avoid BT when..." icon="xmark">
+    - The forecaster set is sparse and barely overlaps across problems
+    - You care about **calibration**, not just relative ranking
+    - You need per-problem difficulty estimates (use IRT instead)
+  </Card>
+</CardGroup>
+
+## Limitations
+
+<Warning>
+The current implementation assumes **each forecaster makes only one forecast
+per problem**. If your data has multiple submissions per (forecaster, problem)
+pair, you'll need to deduplicate or aggregate before calling `.fit()`.
+</Warning>
+
+## See also
+
+- [Scoring rules](/usage/scoring-rules) — for an absolute accuracy view
+- [Comparing rankings](/usage/comparing-rankings) — see how BT correlates with Brier
+- [Blogpost](/blog/ranking-llms) — methodological discussion of why we ship both

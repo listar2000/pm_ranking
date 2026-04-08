@@ -1,0 +1,87 @@
+---
+title: Calibration
+description: "Expected Calibration Error (ECE) for diagnosing forecaster reliability."
+---
+
+The **`CalibrationMetric`** is a *diagnostic*, not a competitive ranking. It
+measures how well a forecaster's stated probabilities match observed
+frequencies. A perfectly calibrated forecaster who says "70% chance" should
+be right 70% of the time across all forecasts they made with that probability.
+
+The package implements the standard
+[Expected Calibration Error (ECE)](https://arxiv.org/abs/1706.04599):
+
+1. Bin the forecaster's probability assignments into `num_bins` buckets.
+2. For each bucket, compute the average predicted probability (`conf`) and
+   the empirical frequency that those forecasts came true (`acc`).
+3. ECE is the weighted absolute gap between `conf` and `acc` across bins.
+
+Lower ECE = better calibration.
+
+## Basic usage
+
+```python
+from pm_rank import CalibrationMetric
+
+cm = CalibrationMetric(num_bins=5, weight_event=False)
+scores, rankings = cm.fit(problems)
+
+print("ECE scores  :", scores)
+print("ECE rankings:", rankings)
+```
+
+```
+ECE scores  : {'alice': 0.233, 'bob': 0.100, 'carol': 0.350}
+ECE rankings: {'bob': 0, 'alice': 1, 'carol': 2}
+```
+
+<Note>
+Use `weight_event=False` for small datasets and toy examples. The default
+`weight_event=True` normalizes per-problem weights, which can hit a numerical
+edge case on very small inputs. Set it to `True` for production runs on
+real datasets where each problem has many forecasters.
+</Note>
+
+## Configuration reference
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `num_bins` | `10` | Number of probability bins. |
+| `strategy` | `"uniform"` | Either `"uniform"` (equal-width bins) or `"quantile"` (equal-count bins). |
+| `weight_event` | `True` | Weight each event equally vs each market equally. Set to `False` on toy datasets. |
+
+## Plotting reliability diagrams
+
+After fitting, you can plot a per-forecaster reliability diagram:
+
+```python
+cm = CalibrationMetric(num_bins=10)
+cm.fit(problems)
+
+fig, ax = cm.plot(name="alice", title="Alice — reliability diagram")
+fig.savefig("alice_reliability.png")
+```
+
+The diagonal is perfect calibration. Bars above the diagonal mean the
+forecaster is **under-confident** in that bin (says 30%, actually right 50%
+of the time); bars below mean **over-confident**.
+
+## When to use it
+
+<CardGroup cols={2}>
+  <Card title="Use ECE when..." icon="check">
+    - You want to know *whether* probabilities are trustworthy
+    - You're comparing forecasters who all have similar accuracy
+    - You're auditing an LLM forecaster for calibration drift over time
+  </Card>
+  <Card title="Don't use ECE alone for ranking" icon="triangle-exclamation">
+    - A forecaster who always predicts the base rate is perfectly calibrated
+      but useless. ECE is best paired with a sharpness/accuracy metric like
+      Brier or BT skill.
+  </Card>
+</CardGroup>
+
+## See also
+
+- [Scoring rules](/usage/scoring-rules) — accuracy + calibration combined
+- [Comparing rankings](/usage/comparing-rankings) — see how ECE correlates with other metrics

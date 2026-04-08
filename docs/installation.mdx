@@ -1,0 +1,54 @@
+---
+title: Installation
+description: "Install pm_rank from PyPI or from source."
+---
+
+`pm_rank` requires **Python 3.8 or higher** and is published on PyPI as
+[`pm-rank`](https://pypi.org/project/pm-rank/).
+
+## From PyPI
+
+<Tabs>
+  <Tab title="Base install">
+    The base install gives you all the scoring/ranking models *except* IRT,
+    which depends on `pyro-ppl` (and transitively on `torch`).
+
+    ```bash
+    pip install pm-rank
+    ```
+  </Tab>
+  <Tab title="Full install (with IRT)">
+    To also pull in the IRT model and its `pyro-ppl` dependency:
+
+    ```bash
+    pip install pm-rank[full]
+    ```
+  </Tab>
+</Tabs>
+
+## From source
+
+Clone the repo and install editably for development:
+
+```bash
+git clone https://github.com/listar2000/pm_rank.git
+cd pm_rank
+pip install -e .
+```
+
+## Verifying the install
+
+```bash
+python -c "import pm_rank; print(sorted(pm_rank.__all__))"
+```
+
+You should see the public classes and functions, including `ForecastEvent`,
+`BrierScoringRule`, `GeneralizedBT`, `AverageReturn`, and so on. If you also
+installed the IRT extras, `IRTModel`, `SVIConfig`, and `MCMCConfig` will be in
+the list.
+
+<Note>
+Once you've installed the package, head to the [Quick Start](/quickstart) for
+a runnable example, or browse the [Core Concepts](/concepts) page to learn
+the data model.
+</Note>

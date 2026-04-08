@@ -1,0 +1,259 @@
+---
+title: API Reference
+description: "Hand-written reference for the public classes and functions in pm_rank."
+---
+
+This page lists every public symbol exported from `pm_rank` together with
+its constructor signature and a one-line description. For full mathematical
+detail on each algorithm, see the corresponding [usage guide](/usage/scoring-rules)
+or the source docstrings (`help(pm_rank.BrierScoringRule)`).
+
+## Top-level imports
+
+Everything documented here is importable directly from `pm_rank`:
+
+```python
+from pm_rank import (
+    # Data
+    ForecastEvent, ForecastProblem, ForecastChallenge,
+    ChallengeLoader, GJOChallengeLoader, ProphetArenaChallengeLoader,
+    # Models
+    BrierScoringRule, LogScoringRule, SphericalScoringRule,
+    GeneralizedBT, AverageReturn, CalibrationMetric,
+    # Utilities
+    spearman_correlation, kendall_correlation,
+)
+
+# Optional (requires pm-rank[full]):
+from pm_rank import IRTModel, SVIConfig, MCMCConfig
+```
+
+## Data model
+
+### ForecastEvent
+
+```python
+ForecastEvent(
+    forecast_id: str,
+    problem_id: str,
+    username: str,
+    timestamp: datetime,
+    probs: list[float],
+    unnormalized_probs: list[float] | None = None,
+    weight: float = 1.0,
+    odds: list[float] | None = None,
+    no_odds: list[float] | None = None,
+)
+```
+
+A single forecast made by one user on one problem. `probs` must be
+non-negative and sum to 1.0 within `1e-6`. See [Core Concepts](/concepts)
+for the full field-by-field documentation.
+
+### ForecastProblem
+
+```python
+ForecastProblem(
+    title: str,
+    problem_id: str,
+    options: list[str],
+    correct_option_idx: list[int],
+    forecasts: list[ForecastEvent],
+    end_time: datetime,
+    num_forecasters: int,
+    url: str | None = None,
+    category: str | None = None,
+)
+```
+
+A prediction problem with options, the realized outcome, and the list of
+forecasts. Cached properties: `crowd_probs`, `unique_forecasters`, `has_odds`,
+`has_no_odds`.
+
+### ForecastChallenge
+
+```python
+ForecastChallenge(
+    title: str,
+    forecast_problems: list[ForecastProblem],
+    categories: list[str] | None = None,
+)
+```
+
+A bundle of problems. Key methods:
+
+| Method | Returns | Purpose |
+|---|---|---|
+| `get_problems(nums=-1)` | `list[ForecastProblem]` | All (or first `nums`) problems. |
+| `stream_problems(order, increment)` | `Iterator[list[ForecastProblem]]` | Streaming/online iteration in fixed-size batches. `order` is `"sequential"`, `"random"`, or `"time"`. |
+| `stream_problems_over_time(increment_by, min_bucket_size)` | `Iterator[tuple[str, list[ForecastProblem]]]` | Chronological buckets keyed by date. `increment_by` is `"day"`, `"week"`, or `"month"`. |
+| `get_forecaster_problems(username)` | `list[ForecastProblem]` | All problems a given forecaster touched. |
+| `get_problem_by_id(problem_id)` | `ForecastProblem \| None` | Lookup by id. |
+
+Cached properties: `forecaster_map`, `num_forecasters`, `unique_forecasters`.
+
+### ChallengeLoader (abstract)
+
+```python
+class ChallengeLoader(ABC):
+    @abstractmethod
+    def load_challenge(self) -> ForecastChallenge: ...
+
+    @abstractmethod
+    def get_challenge_metadata(self) -> dict: ...
+```
+
+Subclass this to plug in your own data source.
+
+### GJOChallengeLoader / ProphetArenaChallengeLoader
+
+Concrete loaders for Good Judgment Open and Prophet Arena data formats.
+See their constructor docstrings (`help(GJOChallengeLoader)`) for the file
+paths they expect.
+
+## Scoring rules
+
+All scoring rules inherit from a common abstract base and share the same
+`fit()` interface.
+
+### BrierScoringRule / LogScoringRule / SphericalScoringRule
+
+```python
+BrierScoringRule(verbose: bool = False)
+LogScoringRule(verbose: bool = False)
+SphericalScoringRule(verbose: bool = False)
+```
+
+```python
+.fit(
+    problems: list[ForecastProblem],
+    problem_discriminations: np.ndarray | None = None,
+    include_scores: bool = True,
+    include_bootstrap_ci: bool = False,
+    include_per_problem_info: bool = False,
+    bootstrap_ci_config: BootstrapCIConfig = DEFAULT_BOOTSTRAP_CI_CONFIG,
+) -> tuple[dict, dict] | dict
+```
+
+Returns either `(scores_dict, rankings_dict)` if `include_scores=True`
+(default), or just `rankings_dict`. The optional `problem_discriminations`
+array weights problems by their IRT discrimination — see
+[Scoring Rules](/usage/scoring-rules) for details.
+
+## GeneralizedBT
+
+```python
+GeneralizedBT(
+    method: Literal["MM", "Elo"] = "MM",
+    num_iter: int = 100,
+    threshold: float = 1e-3,
+    verbose: bool = False,
+)
+```
+
+```python
+.fit(
+    problems: list[ForecastProblem],
+    include_scores: bool = True,
+) -> tuple[dict, dict] | dict
+```
+
+Generalized Bradley-Terry skill model fit by Majorization-Minimization.
+Skills are normalized to sum to the number of forecasters. See
+[Bradley-Terry](/usage/bradley-terry).
+
+## AverageReturn
+
+```python
+AverageReturn(
+    num_money_per_round: int = 1,
+    risk_aversion: float = 0.0,
+    use_approximate: bool = False,
+    break_tie_by_uniform: bool = True,
+    use_binary_reduction: bool = True,
+    verbose: bool = False,
+    config: AverageReturnConfig | None = None,
+    bootstrap_ci_config: BootstrapCIConfig = DEFAULT_BOOTSTRAP_CI_CONFIG,
+)
+```
+
+```python
+.fit(
+    problems: list[ForecastProblem],
+    include_scores: bool = True,
+    sharpe_mode: Literal[None, "marginal", "relative"] = None,
+) -> tuple[dict, dict] | dict
+```
+
+CRRA-utility market-earnings ranking. Requires `odds` and `no_odds` on every
+`ForecastEvent` (binary-reduction strategy). `risk_aversion=0` is
+risk-neutral, `risk_aversion=1` is log-utility (Kelly). See
+[Average Return](/usage/average-return).
+
+## CalibrationMetric
+
+```python
+CalibrationMetric(
+    num_bins: int = 10,
+    strategy: Literal["uniform", "quantile"] = "uniform",
+    weight_event: bool = True,
+    verbose: bool = False,
+)
+```
+
+```python
+.fit(
+    problems: list[ForecastProblem],
+    include_scores: bool = True,
+) -> tuple[dict, dict] | dict
+
+.plot(
+    name: str,
+    title: str = "Reliability diagram",
+    save_path: str | None = None,
+    figsize: tuple[float, float] = (4, 4),
+    percent: bool = True,
+)
+```
+
+Expected Calibration Error (ECE) reliability metric. Lower is better
+(unlike scoring rules, the rankings here put the *most* calibrated forecaster
+at rank 0). See [Calibration](/usage/calibration).
+
+## Rank-correlation utilities
+
+```python
+spearman_correlation(rank_dict_a: dict[str, int], rank_dict_b: dict[str, int]) -> float
+kendall_correlation(rank_dict_a: dict[str, int], rank_dict_b: dict[str, int]) -> float
+```
+
+Compute the Spearman / Kendall correlation between two rankings. Both return
+a float in `[-1, 1]`. Forecasters present in only one ranking are ignored.
+See [Comparing Rankings](/usage/comparing-rankings).
+
+## Optional: IRT model
+
+Available only if `pm-rank[full]` (or `pyro-ppl`) is installed.
+
+```python
+from pm_rank import IRTModel, SVIConfig, MCMCConfig
+
+IRTModel(
+    inference: Literal["svi", "mcmc"] = "svi",
+    svi_config: SVIConfig | None = None,
+    mcmc_config: MCMCConfig | None = None,
+    verbose: bool = False,
+)
+```
+
+Item Response Theory model jointly estimating forecaster ability and
+per-problem difficulty/discrimination via SVI or MCMC. After `fit()`, the
+per-problem discrimination parameters can be passed back to the scoring
+rules via `problem_discriminations=` to compute an
+[IRT-weighted Brier score](/usage/scoring-rules#irt-weighted-brier-score).
+
+<Tip>
+For full method-level docstrings on any of these classes, run
+`help(pm_rank.<ClassName>)` in a Python session, or browse the source on
+[GitHub](https://github.com/listar2000/pm_rank).
+</Tip>

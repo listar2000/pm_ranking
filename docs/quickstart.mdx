@@ -1,0 +1,124 @@
+---
+title: Quick Start
+description: "Build a tiny challenge in memory and rank three forecasters in under 30 lines."
+---
+
+This page walks through a complete, runnable example. It builds a challenge
+with **two problems and three forecasters** entirely in memory — no external
+data files needed — and fits two different ranking models.
+
+<Note>
+This snippet runs on a stock `pip install pm-rank` with no extra
+dependencies.
+</Note>
+
+## The full example
+
+```python
+from datetime import datetime
+from pm_rank import (
+    ForecastEvent, ForecastProblem, ForecastChallenge,
+    BrierScoringRule, GeneralizedBT,
+)
+
+now = datetime.now()
+options = ["Yes", "No", "Maybe"]
+
+problem1 = ForecastProblem(
+    title="Will it rain tomorrow?",
+    problem_id="p1",
+    options=options,
+    correct_option_idx=[0],
+    end_time=now,
+    num_forecasters=3,
+    forecasts=[
+        ForecastEvent(forecast_id="f1", problem_id="p1", username="alice",
+                      timestamp=now, probs=[0.7, 0.2, 0.1]),
+        ForecastEvent(forecast_id="f2", problem_id="p1", username="bob",
+                      timestamp=now, probs=[0.4, 0.4, 0.2]),
+        ForecastEvent(forecast_id="f3", problem_id="p1", username="carol",
+                      timestamp=now, probs=[0.5, 0.3, 0.2]),
+    ],
+)
+
+problem2 = ForecastProblem(
+    title="Will the stock go up?",
+    problem_id="p2",
+    options=options,
+    correct_option_idx=[1],
+    end_time=now,
+    num_forecasters=3,
+    forecasts=[
+        ForecastEvent(forecast_id="f4", problem_id="p2", username="alice",
+                      timestamp=now, probs=[0.2, 0.6, 0.2]),
+        ForecastEvent(forecast_id="f5", problem_id="p2", username="bob",
+                      timestamp=now, probs=[0.5, 0.3, 0.2]),
+        ForecastEvent(forecast_id="f6", problem_id="p2", username="carol",
+                      timestamp=now, probs=[0.3, 0.4, 0.3]),
+    ],
+)
+
+challenge = ForecastChallenge(title="Demo", forecast_problems=[problem1, problem2])
+
+scores, rankings = BrierScoringRule().fit(challenge.get_problems())
+print("Brier scores  :", scores)
+print("Brier rankings:", rankings)
+
+bt_scores, bt_rankings = GeneralizedBT().fit(challenge.get_problems())
+print("BT skills   :", bt_scores)
+print("BT rankings :", bt_rankings)
+```
+
+## Expected output
+
+```
+Brier rankings: {'alice': 1, 'carol': 2, 'bob': 3}
+BT rankings   : {'alice': 1, 'carol': 2, 'bob': 3}
+```
+
+Both models agree: Alice predicted both correct outcomes most confidently
+(0.7 on rain, 0.6 on stock), Carol was a slightly weaker but still aligned
+forecaster, and Bob hedged toward the wrong option both times.
+
+## What just happened?
+
+<Steps>
+  <Step title="Built ForecastEvent objects">
+    Each `ForecastEvent` is one forecaster's prediction on one problem. The
+    `probs` list must sum to 1.0 (within `1e-6`) and every `forecast_id` must
+    be unique within a problem.
+  </Step>
+  <Step title="Wrapped them in ForecastProblem objects">
+    A `ForecastProblem` adds the `options` list, the `correct_option_idx`
+    indicating the realized outcome, and metadata like `end_time` and
+    `num_forecasters`.
+  </Step>
+  <Step title="Bundled problems into a ForecastChallenge">
+    A `ForecastChallenge` is a list of `ForecastProblem` objects with
+    convenience methods like `get_problems()` (full batch) and
+    `stream_problems()` (streaming/online iterator).
+  </Step>
+  <Step title="Fit a model">
+    Every model in `pm_rank` exposes the same `fit(problems)` interface
+    that takes a list of `ForecastProblem` and returns either a single
+    `rankings` dict or a `(scores, rankings)` tuple.
+  </Step>
+</Steps>
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Core Concepts" icon="cube" href="/concepts">
+    Understand the `ForecastEvent` / `ForecastProblem` / `ForecastChallenge`
+    hierarchy in detail.
+  </Card>
+  <Card title="Scoring Rules" icon="ruler" href="/usage/scoring-rules">
+    Compare Brier, Log, and Spherical proper scoring rules.
+  </Card>
+  <Card title="Bradley-Terry" icon="trophy" href="/usage/bradley-terry">
+    Walk through the generalized BT skill model.
+  </Card>
+  <Card title="Average Return" icon="coins" href="/usage/average-return">
+    Rank by simulated market earnings under CRRA risk preferences.
+  </Card>
+</CardGroup>

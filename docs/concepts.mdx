@@ -1,0 +1,155 @@
+---
+title: Core Concepts
+description: "The unified data model that every pm_rank model consumes."
+---
+
+`pm_rank` defines a small set of dataclasses that every scoring/ranking
+method consumes. Understanding this hierarchy is the only thing you really
+need to know before plugging in your own data source.
+
+<img
+  src="/images/package_overview.png"
+  alt="pm_rank pipeline overview"
+/>
+
+The data model is bottom-up:
+
+1. A **ForecastEvent** is one prediction by one forecaster on one problem.
+2. A **ForecastProblem** bundles a problem (options + correct answer) with
+   the list of `ForecastEvent`s made on it.
+3. A **ForecastChallenge** bundles many problems into a dataset and exposes
+   batch- and streaming-iteration interfaces.
+
+Every model's `fit()` method takes `List[ForecastProblem]`, so as soon as
+you can build that list — either by hand or via a `ChallengeLoader` — every
+ranking method in the package becomes available to you.
+
+## ForecastEvent
+
+The atomic unit. One prediction, one forecaster, one problem.
+
+```python
+from datetime import datetime
+from pm_rank import ForecastEvent
+
+event = ForecastEvent(
+    forecast_id="alice-p1",
+    problem_id="p1",
+    username="alice",
+    timestamp=datetime.now(),
+    probs=[0.7, 0.2, 0.1],
+)
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `forecast_id` | yes | Unique identifier for this forecast (must be unique within a problem). |
+| `problem_id` | yes | The id of the problem this forecast is for. |
+| `username` | yes | The forecaster's name/id. |
+| `timestamp` | yes | When the forecast was made. Used for streaming/time-ordered analysis. |
+| `probs` | yes | Probability distribution over the options. Must be non-negative and sum to 1.0 within `1e-6`. |
+| `unnormalized_probs` | no | Raw unnormalized predictions; defaults to `probs`. |
+| `weight` | no | Per-event weight (default `1.0`). Used by some metrics for time-weighting. |
+| `odds` | no | Market-implied probability of each option resolving **YES**. Required by `AverageReturn`. |
+| `no_odds` | no | Market-implied probability of each option resolving **NO**. Also required by `AverageReturn` (binary reduction). |
+
+<Warning>
+The `probs` validator is strict. `[0.7, 0.2, 0.1]` works; `[0.7, 0.2, 0.05]`
+will raise `ValueError: Probabilities must sum to 1`.
+</Warning>
+
+## ForecastProblem
+
+A problem with its options, the realized outcome, and the list of forecasts.
+
+```python
+from pm_rank import ForecastProblem
+
+problem = ForecastProblem(
+    title="Will it rain tomorrow?",
+    problem_id="p1",
+    options=["Yes", "No", "Maybe"],
+    correct_option_idx=[0],     # "Yes" is the realized outcome
+    end_time=datetime.now(),
+    num_forecasters=3,
+    forecasts=[event, ...],
+)
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `title` | yes | Human-readable problem title. |
+| `problem_id` | yes | Unique problem identifier. |
+| `options` | yes | List of option labels. The length of this list must match every forecast's `probs` length. |
+| `correct_option_idx` | yes | List of indices into `options` for the realized outcome(s) (often a single index, but supports multi-correct). |
+| `end_time` | yes | When the problem closed. Used for time-ordered streaming. |
+| `num_forecasters` | yes | Number of distinct forecasters who participated. |
+| `forecasts` | yes | List of `ForecastEvent` objects. Every `forecast_id` must be unique. |
+| `url`, `category` | no | Optional metadata. |
+
+`ForecastProblem` also exposes two cached properties worth knowing about:
+
+- `problem.crowd_probs` — the average probability vector across all forecasts.
+- `problem.unique_forecasters` — the set of usernames participating.
+
+## ForecastChallenge
+
+A bundle of problems with iteration helpers.
+
+```python
+from pm_rank import ForecastChallenge
+
+challenge = ForecastChallenge(
+    title="My demo",
+    forecast_problems=[problem1, problem2, ...],
+)
+```
+
+The two iteration interfaces every model relies on:
+
+<CodeGroup>
+```python Batch
+# Get all problems at once - the standard "fit on the full dataset" path.
+problems = challenge.get_problems()
+scores, rankings = BrierScoringRule().fit(problems)
+```
+
+```python Streaming
+# Iterate in fixed-size batches - useful for online/sequential analysis.
+for batch in challenge.stream_problems(order="time", increment=100):
+    # batch is a List[ForecastProblem]
+    process(batch)
+```
+</CodeGroup>
+
+`ForecastChallenge` also gives you:
+
+- `challenge.unique_forecasters` — list of all distinct usernames in the dataset.
+- `challenge.forecaster_map` — `dict` mapping each username to all of their forecasts.
+- `challenge.get_forecaster_problems(username)` — all problems a given forecaster touched.
+- `challenge.stream_problems_over_time(increment_by="day")` — chronological buckets keyed by date.
+
+## Bringing your own data
+
+To plug in a new data source, subclass `ChallengeLoader` and implement
+`load_challenge()` to return a `ForecastChallenge`. Two concrete loaders are
+already bundled:
+
+- **`GJOChallengeLoader`** — loads scraped data from
+  [Good Judgment Open](https://www.gjopen.com/).
+- **`ProphetArenaChallengeLoader`** — loads data from
+  [Prophet Arena](https://www.prophetarena.co/).
+
+```python
+from pm_rank import ProphetArenaChallengeLoader
+
+loader = ProphetArenaChallengeLoader(
+    metadata_path="path/to/challenge_metadata.json",
+    predictions_path="path/to/all_predictions.json",
+)
+challenge = loader.load_challenge()
+```
+
+Once you have a `ForecastChallenge`, every model in the package is
+data-source-independent — head to the [Usage Guide](/usage/scoring-rules)
+to start ranking.

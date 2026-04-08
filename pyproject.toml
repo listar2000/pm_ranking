@@ -18,20 +18,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-docs = [
-    "sphinx",
-    "sphinxawesome-theme",
-    "sphinx-math-dollar",
-    "myst-parser",
-    "sphinx-autoapi",
-]
+# Documentation is built with Mintlify (npm-based, see docs/docs.json).
+# No Python dependencies are required to build or preview the docs locally;
+# install the Mintlify CLI with `npm i -g mintlify` and run `mintlify dev`
+# from the `docs/` directory.
 
 full = [
     "pyro-ppl",
-    "sphinx",
-    "sphinxawesome-theme",
-    "sphinx-math-dollar",
-    "myst-parser",
 ]
 
 [build-system]

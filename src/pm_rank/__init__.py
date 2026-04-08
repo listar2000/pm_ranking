@@ -1,5 +1,37 @@
-"""
-`pm_rank`: A toolkit for scoring and ranking prediction market forecasters.
+"""``pm_rank``: a toolkit for scoring and ranking prediction-market forecasters.
+
+``pm_rank`` provides a unified data model for prediction-market events and a
+collection of principled scoring and ranking algorithms that operate on it.
+It was originally developed for the
+`Prophet Arena <https://www.prophetarena.co/>`_ LLM prediction-market platform
+but is general purpose and works with any data source you can wrap in a
+:class:`ChallengeLoader` (e.g. Good Judgment Open).
+
+**Core data classes** (see :mod:`pm_rank.data`):
+
+- :class:`ForecastEvent` — a single prediction by a forecaster on one problem.
+- :class:`ForecastProblem` — a problem with options + the correct option + the
+  list of forecasts made on it.
+- :class:`ForecastChallenge` — a collection of problems with both batch and
+  streaming iteration interfaces.
+
+**Models** (see :mod:`pm_rank.model`):
+
+- :class:`BrierScoringRule`, :class:`LogScoringRule`, :class:`SphericalScoringRule`
+  — proper scoring rules.
+- :class:`GeneralizedBT` — a generalized Bradley-Terry skill model fit by the
+  Majorization-Minimization (MM) algorithm.
+- :class:`AverageReturn` — CRRA market-earnings ranking (requires ``odds`` and
+  ``no_odds`` on the forecast events).
+- :class:`CalibrationMetric` — reliability diagnostic (ECE).
+- :class:`IRTModel` (optional, requires ``pyro-ppl``) — Item Response Theory
+  model with SVI or MCMC inference.
+
+**Install:** ``pip install pm-rank`` for the base install, or
+``pip install pm-rank[full]`` to also pull in the IRT extras.
+
+A copy-pasteable quick-start example lives in the project README and at the
+Mintlify docs site.
 """
 
 # Import main subpackages

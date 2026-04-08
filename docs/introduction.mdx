@@ -1,0 +1,78 @@
+---
+title: Introduction
+description: "An analysis toolkit for scoring and ranking prediction-market forecasters."
+---
+
+<img
+  src="/images/prophet_arena_web.png"
+  alt="Prophet Arena platform screenshot"
+/>
+
+`pm_rank` is a Python toolkit for **scoring and ranking forecasters** on
+prediction-market data. It provides a unified data model and a collection
+of principled ranking algorithms that operate on it.
+
+It was originally developed for [Prophet Arena](https://www.prophetarena.co/),
+an LLM prediction-market platform, but works with any data source you can
+wrap in a `ChallengeLoader` (e.g. Good Judgment Open).
+
+## What it gives you
+
+<CardGroup cols={2}>
+  <Card title="Unified data model" icon="database" href="/concepts">
+    A simple `ForecastEvent` → `ForecastProblem` → `ForecastChallenge`
+    hierarchy that every model in `pm_rank` consumes.
+  </Card>
+  <Card title="Proper scoring rules" icon="ruler" href="/usage/scoring-rules">
+    Brier, Log, and Spherical scores for evaluating probabilistic forecasts.
+  </Card>
+  <Card title="Bradley-Terry skill model" icon="trophy" href="/usage/bradley-terry">
+    Generalized BT model fit by Majorization-Minimization for Elo-style
+    relative skill estimates.
+  </Card>
+  <Card title="Market-earning model" icon="coins" href="/usage/average-return">
+    CRRA utility-based simulated betting against the market — answers
+    *"how much money would this forecaster make?"*
+  </Card>
+  <Card title="Calibration diagnostics" icon="chart-line" href="/usage/calibration">
+    Expected Calibration Error (ECE) reliability metrics.
+  </Card>
+  <Card title="Streaming interface" icon="forward" href="/concepts">
+    `ForecastChallenge.stream_problems()` for online/sequential analysis.
+  </Card>
+</CardGroup>
+
+## Where to start
+
+<Steps>
+  <Step title="Install">
+    `pip install pm-rank` — see [Installation](/installation) for the full
+    options including the IRT extras.
+  </Step>
+  <Step title="Run the quick-start">
+    A copy-pasteable example that builds a tiny challenge in memory and
+    fits two ranking models — see [Quick Start](/quickstart).
+  </Step>
+  <Step title="Learn the data model">
+    The three core dataclasses (`ForecastEvent`, `ForecastProblem`,
+    `ForecastChallenge`) are documented in [Core Concepts](/concepts).
+  </Step>
+  <Step title="Pick a model">
+    Each ranking method has a dedicated walkthrough under the **Usage Guide**.
+  </Step>
+</Steps>
+
+## Background reading
+
+If you want the *why* behind these metrics — what trade-offs proper scoring
+rules make, why we ship both Brier and an average-return model, what an IRT
+model adds — read the design blogpost:
+
+<Card
+  title="How We Score & Rank LLMs in Prophet Arena"
+  icon="newspaper"
+  href="/blog/ranking-llms"
+>
+  A 10-minute walkthrough of the reasoning behind the metric choices in
+  `pm_rank`, written by the package author.
+</Card>

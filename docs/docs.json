@@ -1,0 +1,78 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "pm_rank",
+  "description": "An analysis toolkit for scoring and ranking prediction-market forecasters.",
+  "colors": {
+    "primary": "#0E7490",
+    "light": "#22D3EE",
+    "dark": "#0E7490"
+  },
+  "favicon": "/images/rank_overview.png",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart",
+              "concepts"
+            ]
+          },
+          {
+            "group": "Usage Guide",
+            "pages": [
+              "usage/scoring-rules",
+              "usage/bradley-terry",
+              "usage/average-return",
+              "usage/calibration",
+              "usage/comparing-rankings"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "api-reference"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Blog",
+        "groups": [
+          {
+            "group": "Posts",
+            "pages": [
+              "blog/ranking-llms"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Colab Demo",
+        "href": "https://colab.research.google.com/drive/1gAXhNQySdCP1L9HjVQA8vyLz5393pjdI?usp=sharing"
+      },
+      {
+        "label": "PyPI",
+        "href": "https://pypi.org/project/pm-rank/"
+      }
+    ],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/listar2000/pm_rank"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/listar2000/pm_rank"
+    }
+  }
+}

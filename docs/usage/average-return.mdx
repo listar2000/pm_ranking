@@ -1,0 +1,123 @@
+---
+title: Average Return Model
+description: "Rank forecasters by simulated CRRA-utility betting against the market."
+---
+
+The **`AverageReturn`** model answers a different question from scoring rules:
+
+> *"If this forecaster placed bets on every problem according to their stated
+> probabilities, how much money would they make?"*
+
+This is closer to how a real prediction market evaluates participants, and
+it incorporates **market odds** — a forecaster who's "right but not more
+right than the market" doesn't make money. The model uses a
+[Constant Relative Risk Aversion (CRRA)](https://en.wikipedia.org/wiki/Risk_aversion#Constant_relative_risk_aversion)
+utility function with a tunable risk-aversion parameter.
+
+<Warning>
+`AverageReturn` requires both the **`odds`** and **`no_odds`** fields on every
+`ForecastEvent` (the default `use_binary_reduction=True` strategy needs both).
+Without them, the model returns empty results. See [Core Concepts](/concepts)
+for the field definitions.
+</Warning>
+
+## Setup with odds data
+
+```python
+from datetime import datetime
+from pm_rank import (
+    ForecastEvent, ForecastProblem, ForecastChallenge, AverageReturn,
+)
+
+now = datetime.now()
+opts = ["Yes", "No", "Maybe"]
+yes_odds = [0.5, 0.3, 0.2]   # market-implied prob each option resolves YES
+no_odds  = [0.5, 0.7, 0.8]   # market-implied prob each option resolves NO
+
+p1 = ForecastProblem(
+    title="Demo p1", problem_id="p1", options=opts,
+    correct_option_idx=[0], end_time=now, num_forecasters=3,
+    forecasts=[
+        ForecastEvent(forecast_id="f1", problem_id="p1", username="alice",
+                      timestamp=now, probs=[0.7, 0.2, 0.1],
+                      odds=yes_odds, no_odds=no_odds),
+        ForecastEvent(forecast_id="f2", problem_id="p1", username="bob",
+                      timestamp=now, probs=[0.4, 0.4, 0.2],
+                      odds=yes_odds, no_odds=no_odds),
+        ForecastEvent(forecast_id="f3", problem_id="p1", username="carol",
+                      timestamp=now, probs=[0.55, 0.3, 0.15],
+                      odds=yes_odds, no_odds=no_odds),
+    ],
+)
+challenge = ForecastChallenge(title="Odds demo", forecast_problems=[p1])
+```
+
+## Risk-neutral betting
+
+The simplest case: `risk_aversion=0` means the forecaster goes **all-in** on
+the option with the largest market edge (`forecast_probs / implied_probs`).
+
+```python
+ar = AverageReturn(num_money_per_round=1, risk_aversion=0.0)
+scores, rankings = ar.fit(challenge.get_problems())
+print(scores)
+print(rankings)
+```
+
+```
+{'alice': 2.667, 'bob': 0.0, 'carol': 1.0}
+{'alice': 1, 'carol': 2, 'bob': 3}
+```
+
+Alice's forecast (`0.7` on the realized "Yes" outcome) had the largest edge
+over the market price (`0.5`), so all-in betting paid off. Bob's biggest edge
+was on the wrong outcome and he went bust.
+
+## Log-utility (full Kelly) betting
+
+`risk_aversion=1` recovers the
+[Kelly criterion](https://en.wikipedia.org/wiki/Kelly_criterion): bet
+proportional to your forecast probabilities, regardless of the market price.
+
+```python
+ar = AverageReturn(num_money_per_round=1, risk_aversion=1.0)
+scores, rankings = ar.fit(challenge.get_problems())
+```
+
+## Intermediate risk aversion (CRRA)
+
+Any `risk_aversion` value in `(0, 1)` gives intermediate behavior. Higher
+values are more conservative.
+
+```python
+ar = AverageReturn(num_money_per_round=1, risk_aversion=0.5)
+scores, rankings = ar.fit(challenge.get_problems())
+```
+
+## Configuration reference
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `num_money_per_round` | `1` | Budget per problem. |
+| `risk_aversion` | `0.0` | CRRA risk-aversion γ in `[0, 1]`. `0` = risk-neutral, `1` = log-utility. |
+| `use_binary_reduction` | `True` | Reduce each multi-option market to a sum of independent YES/NO binary markets. Requires `no_odds`. |
+| `use_approximate` | `False` | Use the approximate CRRA solver instead of the closed-form variant. |
+| `break_tie_by_uniform` | `True` | When all edges are tied, split the budget uniformly. |
+
+## Streaming over time
+
+Use `fit_stream()` with `ForecastChallenge.stream_problems()` to compute
+average return at successive points in time:
+
+```python
+ar = AverageReturn(num_money_per_round=1, risk_aversion=0.5)
+for i, batch in enumerate(challenge.stream_problems(order="time", increment=100)):
+    batch_results = ar.fit(batch)
+    print(f"After batch {i}: {batch_results[1]}")
+```
+
+## See also
+
+- [Scoring rules](/usage/scoring-rules) — for accuracy-only metrics
+- [Comparing rankings](/usage/comparing-rankings) — see how AvgReturn correlates with Brier
+- [Blogpost](/blog/ranking-llms) — why average-return complements scoring rules
