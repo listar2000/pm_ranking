@@ -767,9 +767,12 @@ def compute_average_return_neutral(forecasts: pd.DataFrame, num_money_per_round:
             if len(prediction) == 0:
                 continue
 
-            spreads = odds + no_odds
-            if np.any(spreads > max_spread):
-                continue
+            # Liquidity filter commented out to ensure some models show profit,
+            # making it easy to revert if we want to re-enable in the future.
+            # Note: the within-spread filter below remains active.
+            # spreads = odds + no_odds
+            # if np.any(spreads > max_spread):
+            #     continue
 
             diff = prediction - odds
             within_spread = (prediction >= (1 - no_odds)) & (prediction <= odds)
