@@ -1011,7 +1011,8 @@ def _stream_over_time(forecasts: pd.DataFrame, stream_every: int) -> dict:
 def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = False, stream_every: int = -1, \
     normalize_by_round: bool = False, bootstrap_config: Optional[Dict] = None,
     resample_level: Literal["market", "event"] = "market",
-    add_individualized_baselines: bool = False) -> dict:
+    add_individualized_baselines: bool = False,
+    max_spread: float = DEFAULT_MAX_SPREAD) -> dict:
     """
     Compute the ranked forecasters for the given score function.
 
@@ -1026,12 +1027,14 @@ def compute_ranked_brier_score(forecasts: pd.DataFrame, by_category: bool = Fals
         add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
             forecaster by filtering market-baseline scores to their participated (event_ticker, round).
             Requires 'market-baseline' forecaster to be present.
+        max_spread: Liquidity filter passed through to compute_brier_score. Events whose markets have
+            yes_ask + no_ask exceeding this value are skipped. Defaults to DEFAULT_MAX_SPREAD (1.03).
     """
     use_market_bootstrap = (resample_level == "market") and (bootstrap_config is not None)
 
     def _rank(fc):
-        score = compute_brier_score(fc, per_market=False)
-        bs_scores = compute_brier_score(fc, per_market=True) if use_market_bootstrap else None
+        score = compute_brier_score(fc, per_market=False, max_spread=max_spread)
+        bs_scores = compute_brier_score(fc, per_market=True, max_spread=max_spread) if use_market_bootstrap else None
         return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round,
                                          bootstrap_config=bootstrap_config,
                                          add_individualized_baselines=add_individualized_baselines,
@@ -1062,7 +1065,8 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
     spread_market_even: bool = False, num_money_per_round: float = 1.0, normalize_by_round: bool = False,
     bootstrap_config: Optional[Dict] = None,
     resample_level: Literal["market", "event"] = "market",
-    add_individualized_baselines: bool = False) -> dict:
+    add_individualized_baselines: bool = False,
+    max_spread: float = DEFAULT_MAX_SPREAD) -> dict:
     """
     Compute the ranked forecasters for the given score function.
 
@@ -1079,15 +1083,20 @@ def compute_ranked_average_return(forecasts: pd.DataFrame, by_category: bool = F
         add_individualized_baselines: If True, create "{forecaster}-market-baseline" entries for each
             forecaster by filtering market-baseline scores to their participated (event_ticker, round).
             Requires 'market-baseline' forecaster to be present.
+        max_spread: Liquidity filter passed through to compute_average_return_neutral. Events whose
+            markets have yes_ask + no_ask exceeding this value are skipped. Defaults to
+            DEFAULT_MAX_SPREAD (1.03).
     """
     use_market_bootstrap = (resample_level == "market") and (bootstrap_config is not None)
 
     def _rank(fc):
         score = compute_average_return_neutral(fc, spread_market_even=spread_market_even,
                                                 num_money_per_round=num_money_per_round,
+                                                max_spread=max_spread,
                                                 per_market=False)
         bs_scores = compute_average_return_neutral(fc, spread_market_even=spread_market_even,
                                                     num_money_per_round=num_money_per_round,
+                                                    max_spread=max_spread,
                                                     per_market=True) if use_market_bootstrap else None
         return rank_forecasters_by_score(score, normalize_by_round=normalize_by_round,
                                          bootstrap_config=bootstrap_config,
