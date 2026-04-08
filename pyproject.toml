@@ -6,7 +6,7 @@ authors = [
     { name = "Sida Li", email = "listar2000@uchicago.edu" }
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 
 dependencies = [
     "numpy",
@@ -14,6 +14,7 @@ dependencies = [
     "seaborn",
     "pandas",
     "tqdm",
+    "pydantic>=2.0",
     # add other dependencies as needed
 ]
 
@@ -24,6 +25,11 @@ docs = [
     "sphinx-math-dollar",
     "myst-parser",
     "sphinx-autoapi",
+]
+
+test = [
+    "pytest>=7.0",
+    "pytest-cov",
 ]
 
 full = [
@@ -40,3 +46,22 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["test"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--import-mode=importlib",
+]
+markers = [
+    "requires_gjo_data: needs src/pm_rank/data/raw/{all_predictions.json,sports_challenge_metadata.json}",
+    "requires_prophet_data: needs src/pm_rank/data/raw/prophet_arena_full.csv",
+    "requires_pyro: needs pyro-ppl from the 'full' extra",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:pydantic.*",
+]

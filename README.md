@@ -31,6 +31,13 @@ Or, for development (editable) mode:
 pip install -e .
 ```
 
+**Running the tests:**
+```sh
+pip install -e ".[test]"
+pytest
+```
+Tests that depend on raw data files under `src/pm_rank/data/raw/` (the GJO sports challenge and Prophet Arena CSV) are automatically skipped when those files are absent — see `src/pm_rank/data/raw/NOTE.md` for download instructions. IRT model tests additionally require the `full` extra (`pip install -e ".[test,full]"`).
+
 #### 1.2: &nbsp; Unified Data Interface and Concepts
 
 > Please refer to `data/base.py` for the actual data model implementation. We give a high-level and non-comprehensive overview in a **bottom-up** manner.
