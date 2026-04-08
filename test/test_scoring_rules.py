@@ -118,18 +118,8 @@ def test_brier_exact_value_three_options_negated():
     assert scores["alice"] == pytest.approx(1 - 0.14 / 3)
 
 
-@pytest.mark.xfail(
-    reason=(
-        "BrierScoringRule(negate=False) is currently ignored — scoring_rule.py:146 "
-        "and :210 call self._score_fn(...) without forwarding self.negate, so the "
-        "method's own default (negate=True) always wins. This test documents the "
-        "library bug; remove the xfail once the constructor argument is wired "
-        "through."
-    ),
-    strict=True,
-)
 def test_brier_exact_value_non_negated():
-    """Same problem but with negate=False should return the raw rescaled Brier."""
+    """With negate=False, the raw rescaled Brier (lower = better) is returned."""
     problem = _single_forecast_problem([0.7, 0.2, 0.1], correct_option_idx=[0])
     scores, _ = BrierScoringRule(negate=False).fit([problem], include_scores=True)
     assert scores["alice"] == pytest.approx(0.14 / 3)

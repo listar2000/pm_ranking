@@ -384,7 +384,7 @@ class BrierScoringRule(ScoringRule):
         self.logger.info(
             f"Initialized {self.__class__.__name__} with hyperparam: negate={negate}")
 
-    def _score_fn(self, correct_option_idx: np.ndarray, all_probs: np.ndarray, negate: bool = True) -> np.ndarray:
+    def _score_fn(self, correct_option_idx: np.ndarray, all_probs: np.ndarray) -> np.ndarray:
         """Calculate Brier scores for the forecasts.
 
         The Brier score is computed as the average squared difference between
@@ -398,10 +398,10 @@ class BrierScoringRule(ScoringRule):
                              Shape (m,) where m is the number of correct options.
         :param all_probs: Array of all predicted probability distributions.
                          Shape (n, k) where n is number of forecasts, k is number of options.
-        :param negate: Whether to negate the scores so that higher values are better
-                       (default: True).
 
-        :returns: Array of Brier scores. Shape (n,).
+        :returns: Array of Brier scores. Shape (n,). If ``self.negate`` is
+                  True (the default), scores are returned as ``1 - raw`` so
+                  that higher values are better.
         """
         one_hot = np.zeros(all_probs.shape[1])
         # correct_option_idx might be an empty array
@@ -411,8 +411,8 @@ class BrierScoringRule(ScoringRule):
         brier_scores = np.sum((all_probs - one_hot) ** 2, axis=1)
         # (3) we obtain (n,) scores, rescaled so that it lies in [0, 1]
         scores = brier_scores / all_probs.shape[1]
-        # (4) negate the result since higher scores are better
-        return 1 - scores if negate else scores
+        # (4) negate the result so that higher scores are better
+        return 1 - scores if self.negate else scores
 
 
 class SphericalScoringRule(ScoringRule):
