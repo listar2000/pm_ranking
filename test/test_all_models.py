@@ -33,37 +33,40 @@ def test_all_models():
     )
     challenge = gjo_loader.load_challenge(forecaster_filter=20, problem_filter=20)
 
+    # fit(..., include_scores=False) returns a 1-element tuple (rankings,)
+    # for Brier / IRT / AverageReturn / BT, so each call unpacks accordingly
+    # before we feed the rank dicts into the correlation helpers.
     brier_scoring_rule = BrierScoringRule()
-    brier_result = brier_scoring_rule.fit(challenge.forecast_problems, include_scores=False)
+    (brier_ranks,) = brier_scoring_rule.fit(challenge.forecast_problems, include_scores=False)
 
     irt_model = IRTModel(n_bins=6, use_empirical_quantiles=False)
     svi_config = SVIConfig(optimizer="Adam", num_steps=5000, learning_rate=0.005, device="cpu")
-    irt_result = irt_model.fit(
+    (irt_ranks,) = irt_model.fit(
         challenge.forecast_problems, method="SVI", config=svi_config, include_scores=False
     )
 
     average_return = AverageReturn()
-    average_return_result = average_return.fit(challenge.forecast_problems, include_scores=False)
+    (average_return_ranks,) = average_return.fit(challenge.forecast_problems, include_scores=False)
 
     bt_model = GeneralizedBT(method="MM", num_iter=300)
-    bt_result = bt_model.fit(challenge.forecast_problems, include_scores=False)
+    (bt_ranks,) = bt_model.fit(challenge.forecast_problems, include_scores=False)
 
     problem_discrimination_dict, _ = irt_model.get_problem_level_parameters()
     problem_discriminations = [
         problem_discrimination_dict[problem.problem_id] for problem in challenge.forecast_problems
     ]
-    weighted_brier_result = brier_scoring_rule.fit(
+    (weighted_brier_ranks,) = brier_scoring_rule.fit(
         challenge.forecast_problems,
         include_scores=False,
         problem_discriminations=problem_discriminations,
     )
 
-    all_results = [brier_result, irt_result, average_return_result, weighted_brier_result, bt_result]
+    all_ranks = [brier_ranks, irt_ranks, average_return_ranks, weighted_brier_ranks, bt_ranks]
 
     # Every pairwise correlation should be a real number in [-1, 1].
-    for i in range(len(all_results)):
-        for j in range(i + 1, len(all_results)):
-            s = spearman_correlation(all_results[i], all_results[j])
-            k = kendall_correlation(all_results[i], all_results[j])
+    for i in range(len(all_ranks)):
+        for j in range(i + 1, len(all_ranks)):
+            s = spearman_correlation(all_ranks[i], all_ranks[j])
+            k = kendall_correlation(all_ranks[i], all_ranks[j])
             assert -1.0 <= s <= 1.0
             assert -1.0 <= k <= 1.0

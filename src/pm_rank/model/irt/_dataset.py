@@ -82,9 +82,10 @@ def _prepare_pyro_obs(forecast_problems: List[ForecastProblem], n_bins: int = 6,
             problem_ids.append(problem_id_to_idx[problem_id])
             all_probs.append(forecast.unnormalized_probs)
 
-        # calculate the scores for this problem
+        # calculate the scores for this problem (BrierScoringRule(negate=False)
+        # means _score_fn reads self.negate and returns the raw rescaled Brier).
         scores.extend(brier_scoring_rule._score_fn(
-            np.array(correct_option_idx), np.array(all_probs), negate=False))
+            np.array(correct_option_idx), np.array(all_probs)))
 
     # discretize the scores
     discretized_indices, bin_edges = _discretize_scoring_rules(
