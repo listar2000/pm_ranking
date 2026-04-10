@@ -1,6 +1,13 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+
+try:
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
+except ImportError as e:
+    raise ImportError(
+        "matplotlib is required for plotting utilities. "
+        "Install it with: pip install pm-rank[plot]"
+    ) from e
 
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["DejaVu Serif"]

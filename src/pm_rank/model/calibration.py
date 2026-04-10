@@ -22,7 +22,6 @@ import numpy as np
 from typing import Literal, List
 from pm_rank.data.base import ForecastProblem
 from pm_rank.model.utils import get_logger
-from pm_rank.plotting.plot_reliability_diagram import plot_reliability_diagram
 import logging
 
 
@@ -203,11 +202,13 @@ class CalibrationMetric:
         return (forecaster_scores, forecaster_ranking) if include_scores else forecaster_ranking
 
     def plot(self, name: str, title: str = "Reliability diagram", save_path: str = None, figsize: tuple[float, float] = (4,4), percent: bool = True):
+        from pm_rank.plotting.plot_reliability_diagram import plot_reliability_diagram
+
         if not self._fitted:
             raise ValueError("CalibrationMetric must be fitted before plotting")
         if name not in self._fitted_info:
             raise ValueError(f"Forecaster {name} not found in fitted info")
-        
+
         bin_centers, bin_widths, conf, acc, counts = self._fitted_info[name]
 
         ece = _calculate_ece(conf, acc, counts, counts.sum())

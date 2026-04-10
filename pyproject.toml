@@ -10,8 +10,6 @@ requires-python = ">=3.10"
 
 dependencies = [
     "numpy",
-    "matplotlib",
-    "seaborn",
     "pandas",
     "tqdm",
     "pydantic>=2.0",
@@ -19,6 +17,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+plot = [
+    "matplotlib",
+    "seaborn",
+]
+
 docs = [
     "sphinx",
     "sphinxawesome-theme",
