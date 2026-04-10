@@ -1,9 +1,16 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 from datetime import timedelta
 from pm_rank.nightly.utils import calculate_time_to_last_submission, assign_time_bins
+
+try:
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+except ImportError as e:
+    raise ImportError(
+        "matplotlib and seaborn are required for plotting utilities. "
+        "Install them with: pip install pm-rank[plot]"
+    ) from e
 
 # Set theme and font styling (following plot_recall_rate_histogram.py)
 sns.set_theme(style="ticks")

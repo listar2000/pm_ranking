@@ -7,9 +7,16 @@ In total, we plot (1 x 3) plots, where in each plot for a certain risk aversion 
 - lines: different forecasters (use different colors for each forecaster)
 - title: risk aversion level
 """
-import matplotlib.pyplot as plt
-import seaborn as sns
 from typing import Dict
+
+try:
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+except ImportError as e:
+    raise ImportError(
+        "matplotlib and seaborn are required for plotting utilities. "
+        "Install them with: pip install pm-rank[plot]"
+    ) from e
 
 from pm_rank.data.loaders import ProphetArenaChallengeLoader
 from pm_rank.model.average_return import AverageReturn

@@ -1,7 +1,14 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
+
+try:
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+except ImportError as e:
+    raise ImportError(
+        "matplotlib and seaborn are required for plotting utilities. "
+        "Install them with: pip install pm-rank[plot]"
+    ) from e
 
 # Set theme and font styling (following plot_recall_rate_histogram.py)
 sns.set_theme(style="ticks")

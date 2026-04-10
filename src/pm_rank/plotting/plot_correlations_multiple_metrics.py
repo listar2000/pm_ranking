@@ -1,13 +1,21 @@
+import numpy as np
+
 from pm_rank.model.bradley_terry import GeneralizedBT
 from pm_rank.model.average_return import AverageReturn
 from pm_rank.model.scoring_rule import BrierScoringRule
 from pm_rank.model.irt import IRTModel, SVIConfig
 from pm_rank.data.loaders import GJOChallengeLoader
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-from matplotlib.patches import Rectangle
 from pm_rank.model.utils import spearman_correlation, kendall_correlation
+
+try:
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from matplotlib.patches import Rectangle
+except ImportError as e:
+    raise ImportError(
+        "matplotlib and seaborn are required for plotting utilities. "
+        "Install them with: pip install pm-rank[plot]"
+    ) from e
 
 
 def _get_all_rankings():

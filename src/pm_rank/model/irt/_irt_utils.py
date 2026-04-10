@@ -1,16 +1,23 @@
 from typing import Dict
 
 import torch
-import matplotlib.pyplot as plt
 
 def plot_posterior_samples(posterior_samples: Dict[str, torch.Tensor], base_path: str):
     """
     Plot histograms of posterior samples for theta, a, b, and p parameters.
     Creates 4 separate PNG files.
-    
+
     Args:
         posterior_samples: Dictionary of posterior samples from MCMC
     """
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as e:
+        raise ImportError(
+            "matplotlib is required for plotting. "
+            "Install it with: pip install pm-rank[plot]"
+        ) from e
+
     base_path = "/net/scratch2/listar2000/pm_ranking/model/irt/images"
     
     # Plot theta samples (first 10)
