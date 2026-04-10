@@ -15,6 +15,11 @@ this will give you access to most basic scoring/ranking models *except for the I
 pip install pm-rank[full]
 ```
 
+If you need the plotting/visualization utilities (e.g. reliability diagrams, correlation grids, risk curves), install with:
+```sh
+pip install pm-rank[plot]
+```
+
 If you want to work on the documentation, you can install the `docs` version:
 ```sh
 pip install pm-rank[docs]

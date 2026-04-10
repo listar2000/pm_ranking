@@ -1,6 +1,10 @@
 ## CHANGELOG FOR PM-RANK VERSIONS
 
-### v0.3.1 (Current)
+### v0.3.5 (Current)
+
+- **Optional plotting dependencies**: `matplotlib` and `seaborn` are no longer required for core scoring/ranking functionality. They have been moved to an optional `[plot]` extra. Install with `pip install pm-rank[plot]` if you need visualization utilities.
+
+### v0.3.1
 
 - Anri fixed some bugs with the new average return algorithm.
 
