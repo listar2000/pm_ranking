@@ -1,0 +1,45 @@
+model,baseline,diff_ROI,lo90,hi90,pval2
+Claude Opus 4.6,Inv-Margin,24.2625,16.7014,31.3194,0.0
+Claude Opus 4.6,Kelly-Alike,14.813,10.2907,18.3634,0.0
+Claude Opus 4.6,Max (Grp),20.4777,6.4514,32.9419,0.0183
+Claude Opus 4.6,Max (Mkt),14.9075,10.003,19.0034,0.0
+Gemini 3,Inv-Margin,9.7834,3.8672,16.8322,0.0067
+Gemini 3,Kelly-Alike,6.8452,2.1909,11.8024,0.0093
+Gemini 3,Max (Grp),15.4047,-0.2473,28.4438,0.1067
+Gemini 3,Max (Mkt),8.2747,3.0903,13.6697,0.007
+Claude Sonnet 4.5,Inv-Margin,-6.0921,-18.2376,5.9333,0.387
+Claude Sonnet 4.5,Kelly-Alike,-6.7727,-14.6003,0.9937,0.1477
+Claude Sonnet 4.5,Max (Grp),14.1091,0.8289,26.5774,0.0817
+Claude Sonnet 4.5,Max (Mkt),-5.8553,-14.9835,3.0645,0.2873
+LLaMA 4 Maverick,Inv-Margin,-11.0207,-22.0816,-0.1973,0.092
+LLaMA 4 Maverick,Kelly-Alike,-9.3946,-15.8899,-2.6151,0.0217
+LLaMA 4 Maverick,Max (Grp),7.7385,-5.6202,19.5482,0.3217
+LLaMA 4 Maverick,Max (Mkt),-8.2662,-15.7498,-0.8677,0.066
+GPT-5.2 (Base),Inv-Margin,-11.0878,-25.9862,3.3828,0.2047
+GPT-5.2 (Base),Kelly-Alike,-9.5695,-20.6917,1.332,0.1463
+GPT-5.2 (Base),Max (Grp),9.9076,-8.2717,26.7706,0.3713
+GPT-5.2 (Base),Max (Mkt),-8.6979,-21.1977,3.5741,0.2447
+Grok 4.1 Fast,Inv-Margin,-19.8498,-29.2415,-9.7955,0.0003
+Grok 4.1 Fast,Kelly-Alike,-14.7318,-20.5797,-8.5114,0.0
+Grok 4.1 Fast,Max (Grp),-1.3343,-15.3569,10.8203,0.9337
+Grok 4.1 Fast,Max (Mkt),-15.201,-21.8805,-8.0879,0.0003
+GPT-5.2 (High),Inv-Margin,-10.3342,-24.6483,3.5603,0.2243
+GPT-5.2 (High),Kelly-Alike,-9.2862,-19.1993,0.1889,0.1053
+GPT-5.2 (High),Max (Grp),5.5233,-13.5825,23.0175,0.6087
+GPT-5.2 (High),Max (Mkt),-7.3627,-19.5005,4.3992,0.3133
+DeepSeek V3.2,Inv-Margin,-7.9683,-19.6271,3.7907,0.2627
+DeepSeek V3.2,Kelly-Alike,-8.516,-16.1934,-0.8537,0.0683
+DeepSeek V3.2,Max (Grp),13.005,-1.8377,27.3149,0.152
+DeepSeek V3.2,Max (Mkt),-6.5443,-15.5303,2.462,0.2293
+Minimax M2,Inv-Margin,-8.1826,-19.9432,3.3585,0.234
+Minimax M2,Kelly-Alike,-6.1577,-14.204,1.7729,0.204
+Minimax M2,Max (Grp),16.4653,2.8331,29.2393,0.05
+Minimax M2,Max (Mkt),-4.6298,-13.726,4.1455,0.377
+Kimi K2 Thinking,Inv-Margin,-5.3307,-18.3817,8.4159,0.514
+Kimi K2 Thinking,Kelly-Alike,-4.8437,-14.0756,4.226,0.37
+Kimi K2 Thinking,Max (Grp),15.3724,1.3648,29.0995,0.0757
+Kimi K2 Thinking,Max (Mkt),-2.5479,-13.0687,8.0221,0.6797
+Qwen 3 235B,Inv-Margin,-25.4451,-36.5275,-1.0271,0.0773
+Qwen 3 235B,Kelly-Alike,-8.5907,-16.662,-0.185,0.092
+Qwen 3 235B,Max (Grp),5.8099,-10.2316,21.4316,0.545
+Qwen 3 235B,Max (Mkt),-7.3291,-16.5964,2.4327,0.2137

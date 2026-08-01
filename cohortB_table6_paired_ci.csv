@@ -1,0 +1,25 @@
+model,baseline,diff_ROI,lo90,hi90,pval2
+Gemini 3.1 Pro (agent),Inv-Margin,9.2662,3.106,15.0257,0.0163
+Gemini 3.1 Pro (agent),Kelly-Alike,8.5568,3.8305,13.2698,0.004
+Gemini 3.1 Pro (agent),Max (Grp),12.4032,3.5477,21.3579,0.019
+Gemini 3.1 Pro (agent),Max (Mkt),8.4556,3.511,13.3938,0.007
+Claude Opus 4.8,Inv-Margin,11.5624,6.5224,16.5293,0.0003
+Claude Opus 4.8,Kelly-Alike,6.3553,2.244,10.3323,0.0167
+Claude Opus 4.8,Max (Grp),20.9623,6.8676,31.3758,0.0257
+Claude Opus 4.8,Max (Mkt),7.9283,4.278,11.3545,0.0
+GPT-5.5 High (agent),Inv-Margin,11.593,1.5232,22.1084,0.0587
+GPT-5.5 High (agent),Kelly-Alike,4.9594,-2.5862,12.6773,0.2697
+GPT-5.5 High (agent),Max (Grp),-3.772,-30.7079,17.9692,0.8843
+GPT-5.5 High (agent),Max (Mkt),5.9577,-1.75,13.9083,0.1973
+DeepSeek V4 Pro,Inv-Margin,13.3827,3.4563,20.0817,0.0237
+DeepSeek V4 Pro,Kelly-Alike,6.1611,0.0584,11.063,0.097
+DeepSeek V4 Pro,Max (Grp),9.3503,-6.3534,21.7906,0.2927
+DeepSeek V4 Pro,Max (Mkt),7.3026,0.125,13.0256,0.0933
+Grok 4.3,Inv-Margin,-7.742,-17.4968,1.7296,0.1897
+Grok 4.3,Kelly-Alike,-6.9634,-13.7917,-0.1139,0.0937
+Grok 4.3,Max (Grp),8.0515,-5.4488,20.5236,0.2957
+Grok 4.3,Max (Mkt),-9.476,-17.9163,-1.2762,0.0513
+Qwen 3.6 Plus,Inv-Margin,-0.5259,-10.159,8.453,0.909
+Qwen 3.6 Plus,Kelly-Alike,-2.1484,-10.1332,5.2324,0.588
+Qwen 3.6 Plus,Max (Grp),13.8775,-2.1769,26.3517,0.145
+Qwen 3.6 Plus,Max (Mkt),0.1679,-7.9272,7.6776,0.983

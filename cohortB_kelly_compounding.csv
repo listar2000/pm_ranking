@@ -1,0 +1,7 @@
+model,Kelly-Alike (per-bet),K_full_cap,K_full_lev,K_half_cap,K_half_lev
+Gemini 3.1 Pro (agent),3.47,20553.54,52987.62,6039.9,9150.92
+Claude Opus 4.8,6.32,-99.99,-99.99,-98.55,-98.38
+GPT-5.5 High (agent),3.4,-100.0,-100.0,-100.0,-100.0
+DeepSeek V4 Pro,3.97,-100.0,-100.0,-100.0,-100.0
+Grok 4.3,-0.13,-100.0,-100.0,-100.0,-100.0
+Qwen 3.6 Plus,0.65,-100.0,-100.0,-100.0,-100.0

@@ -31,3 +31,7 @@ docs_env/
 # artifacts
 *.pt
 visualize/
+
+# Large regenerable data artifacts (exceed GitHub 100MB limit; rebuild via full_export.py)
+full_scored_export.csv
+db_cache/
